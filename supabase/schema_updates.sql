@@ -1,5 +1,3 @@
--- Update public.products to support sso toggle
-ALTER TABLE public.products ADD COLUMN sso_enabled BOOLEAN NOT NULL DEFAULT false;
 
 -- Update public.orders to support sandbox testing
 ALTER TABLE public.orders ADD COLUMN is_sandbox BOOLEAN NOT NULL DEFAULT false;

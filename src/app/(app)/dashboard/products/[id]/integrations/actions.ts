@@ -5,32 +5,6 @@ import { revalidatePath } from 'next/cache'
 import { dispatchWebhook } from '@/lib/webhook'
 import crypto from 'crypto'
 
-export async function toggleSsoAction(productId: string, enabled: boolean) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) return { success: false, error: 'Unauthorized' }
-
-  // Verify ownership
-  const { data: product } = await supabase
-    .from('products')
-    .select('id')
-    .eq('id', productId)
-    .eq('owner_id', user.id)
-    .single()
-
-  if (!product) return { success: false, error: 'Product not found' }
-
-  const { error } = await supabase
-    .from('products')
-    .update({ sso_enabled: enabled })
-    .eq('id', productId)
-
-  if (error) return { success: false, error: error.message }
-
-  revalidatePath(`/dashboard/products/${productId}/integrations`)
-  return { success: true }
-}
 
 export async function testWebhookAction(productId: string, webhookUrl: string) {
   const supabase = await createClient()

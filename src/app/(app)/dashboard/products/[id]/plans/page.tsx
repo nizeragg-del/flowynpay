@@ -129,7 +129,7 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none text-sm" 
                     placeholder="Ex: pro" 
                   />
-                  <p className="text-xs text-slate-500 mt-1">Usado na integração OAuth para o seu sistema saber qual plano liberar.</p>
+                  <p className="text-xs text-slate-500 mt-1">Identificador usado na integração para o seu sistema saber qual plano liberar.</p>
                 </div>
 
                 <button 

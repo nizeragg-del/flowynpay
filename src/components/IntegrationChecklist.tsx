@@ -29,16 +29,12 @@ export async function IntegrationChecklist({ productId }: { productId: string })
   // 5. Test purchase
   const hasTestPurchase = product.orders && product.orders.some((o: any) => o.is_sandbox === true && o.status === 'paid')
 
-  // Optional: SSO Configured
-  const hasSso = product.sso_enabled === true
-
   const steps = [
     { label: 'Produto criado', done: isProductCreated, required: true },
     { label: 'Plano com identificador', done: hasPlan, required: true },
     { label: 'URL de Webhook cadastrada', done: hasWebhook, required: true },
     { label: 'Webhook testado com sucesso', done: hasWebhookTested, required: true },
-    { label: 'Compra teste simulada', done: hasTestPurchase, required: true },
-    { label: 'Login SSO habilitado', done: hasSso, required: false }
+    { label: 'Compra teste simulada', done: hasTestPurchase, required: true }
   ]
 
   const requiredSteps = steps.filter(s => s.required)

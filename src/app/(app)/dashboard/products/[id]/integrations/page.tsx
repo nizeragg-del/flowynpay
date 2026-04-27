@@ -1,13 +1,11 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Globe, Code2, CheckCircle2, Sparkles, Building2, Link as LinkIcon, Image as ImageIcon, Percent, Webhook, CreditCard, Activity } from 'lucide-react'
+import { ArrowLeft, Save, Globe, CheckCircle2, Building2, CreditCard, Webhook } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { IntegrationChecklist } from '@/components/IntegrationChecklist'
 import { WebhookTestPanel } from '@/components/WebhookTestPanel'
 import { WebhookLogsList } from '@/components/WebhookLogsList'
-import { WebhookCodeTemplates } from '@/components/WebhookCodeTemplates'
-import { toggleSsoAction } from './actions'
 
 export default async function IntegrationsPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -36,13 +34,6 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
     .order('created_at', { ascending: false })
     .limit(50)
 
-  // Fetch OAuth Application (if exists)
-  const { data: oauthApp } = await supabase
-    .from('oauth_applications')
-    .select('*')
-    .eq('product_id', productId)
-    .single()
-
   async function updateWebhook(formData: FormData) {
     'use server'
     const webhook_url = formData.get('webhook_url') as string
@@ -59,49 +50,6 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
       .update({ webhook_url })
       .eq('id', productId)
       .eq('owner_id', user.id)
-
-    revalidatePath(`/dashboard/products/${productId}/integrations`)
-  }
-
-  async function generateOAuthCredentials() {
-    'use server'
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return
-
-    // Verifica se o usuário é dono do produto (segurança via RLS faria isso, mas reforçando)
-    const { data: check } = await supabase.from('products').select('id').eq('id', productId).eq('owner_id', user.id).single()
-    if (!check) return
-
-    await supabase
-      .from('oauth_applications')
-      .insert({ product_id: productId })
-
-    revalidatePath(`/dashboard/products/${productId}/integrations`)
-  }
-
-  async function updateOAuthSettings(formData: FormData) {
-    'use server'
-    const redirectUrisStr = formData.get('redirect_uris') as string
-    
-    if (!redirectUrisStr) return
-
-    const redirectUris = redirectUrisStr.split(',').map(u => u.trim()).filter(Boolean)
-
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return
-
-    // Verifica se o usuário é dono do produto
-    const { data: check } = await supabase.from('products').select('id').eq('id', productId).eq('owner_id', user.id).single()
-    if (!check) return
-
-    await supabase
-      .from('oauth_applications')
-      .update({ redirect_uris: redirectUris })
-      .eq('product_id', productId)
 
     revalidatePath(`/dashboard/products/${productId}/integrations`)
   }
@@ -228,161 +176,6 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
         {/* Webhook Logs */}
         <WebhookLogsList logs={webhookLogs || []} />
 
-        {/* Code Templates */}
-        <WebhookCodeTemplates />
-
-        <div className="bg-gradient-to-r from-slate-100 to-white border border-slate-200 rounded-3xl p-8 mb-10 shadow-sm mt-16">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Nível Avançado (Opcional)</h2>
-              <p className="text-slate-500 text-sm max-w-xl">
-                Opcionalmente, ative o Single Sign-On (SSO). Isso permite que seus clientes façam login no seu SaaS clicando em "Entrar com Flowyn", evitando que precisem criar uma senha.
-              </p>
-            </div>
-            <form action={async () => {
-              'use server'
-              await toggleSsoAction(productId, !product.sso_enabled)
-            }}>
-              <button 
-                type="submit"
-                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${product.sso_enabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
-              >
-                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${product.sso_enabled ? 'translate-x-8' : 'translate-x-1'}`} />
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* OAuth SSO Section */}
-        {product.sso_enabled && (
-          <div className="mb-10 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <Globe className="w-4 h-4 text-slate-700" /> {/* Can use a different icon if wanted */}
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Integração OAuth 2.0 (SSO)</h2>
-                <p className="text-xs text-slate-500">Permita que seus clientes façam login no seu SaaS usando a conta da Flowyn.</p>
-              </div>
-            </div>
-
-            {oauthApp ? (
-              <div className="space-y-6">
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                  <div className="mb-5">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                      Client ID
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 font-mono shadow-sm truncate">
-                        {oauthApp.client_id}
-                      </code>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                      Client Secret
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 font-mono shadow-sm truncate">
-                        {oauthApp.client_secret}
-                      </code>
-                    </div>
-                    <p className="text-xs text-amber-600 mt-2 font-medium">⚠️ Mantenha o Client Secret em segurança. Nunca o exponha no frontend.</p>
-                  </div>
-
-                  <form action={updateOAuthSettings}>
-                    <label htmlFor="redirect_uris" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                      Redirect URIs (separadas por vírgula)
-                    </label>
-                    <textarea 
-                      id="redirect_uris"
-                      name="redirect_uris"
-                      defaultValue={oauthApp.redirect_uris?.join(', ') || ''}
-                      placeholder="https://seu-saas.com/api/auth/callback"
-                      className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 font-mono shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                      rows={2}
-                    />
-                    <div className="mt-2 flex justify-end">
-                      <button type="submit" className="text-xs bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg font-bold transition-all">
-                        Salvar URIs
-                      </button>
-                    </div>
-                  </form>
-                </div>
-
-                <div className="bg-gradient-to-r from-black/5 to-slate-200/5 border border-black/10 rounded-xl p-5">
-                  <h4 className="font-bold text-sm text-slate-900 mb-2">URLs de Integração</h4>
-                  <ul className="space-y-2 text-sm text-slate-600">
-                    <li><strong>Authorization URL:</strong> <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200">https://flowyn.com/oauth/authorize</code></li>
-                    <li><strong>Token URL:</strong> <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200">https://api.flowyn.com/oauth/token</code></li>
-                    <li><strong>User Info URL:</strong> <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200">https://api.flowyn.com/oauth/userinfo</code></li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-                <Globe className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-slate-900 mb-2">Habilitar Single Sign-On</h3>
-                <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto leading-relaxed">
-                  Gere as credenciais OAuth para implementar um botão "Entrar com Flowyn" no seu SaaS. 
-                  Isso permite que clientes loguem automaticamente após a compra e sincronizem os dados do plano.
-                </p>
-                <form action={generateOAuthCredentials}>
-                  <button 
-                    type="submit" 
-                    className="inline-flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-sm"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Gerar Credenciais OAuth
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Documentation */}
-        <div>
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-              <Code2 className="w-4 h-4 text-slate-700" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Documentação da API</h2>
-              <p className="text-xs text-slate-500">Payload enviado em cada notificação</p>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 rounded-xl p-5 shadow-lg overflow-x-auto">
-            <pre className="text-sm text-slate-100 font-mono leading-relaxed">
-{`{
-  "event": "purchase.created",
-  "is_sandbox": false,
-  "product_id": "${productId}",
-  "plan_id": "...",
-  "customer": {
-    "email": "user@example.com",
-    "name": "João Silva"
-  },
-  "timestamp": "2024-04-20T12:00:00Z"
-}`}
-            </pre>
-          </div>
-
-          <div className="mt-5 bg-gradient-to-r from-black/5 to-slate-200/5 border border-black/10 rounded-xl p-5">
-            <div className="flex gap-3 items-start">
-              <Sparkles className="w-5 h-5 text-slate-900 mt-0.5" />
-              <div>
-                <h4 className="font-bold text-sm text-slate-900 mb-1">Próximos passos</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Quando o Stripe for integrado, o payload incluirá também o <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded font-bold">stripe_subscription_id</code> para 
-                  que você possa gerenciar cancelamentos e upgrades diretamente pela API do Stripe.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
       </main>
     </div>

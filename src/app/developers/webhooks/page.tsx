@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { Webhook, Zap, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Webhook, Zap, ArrowRight, CheckCircle2, Database, Layers, Server } from 'lucide-react'
 
 export const metadata = {
-  title: 'Guia de Integração | Flowyn',
-  description: 'Conecte seu SaaS a Flowyn em 3 minutos usando o Make.com.',
+  title: 'Guia de Integração Make.com | Flowyn',
+  description: 'Conecte seu SaaS a Flowyn em 3 minutos usando o Make.com. Sem escrever uma única linha de código.',
 }
 
 export default function WebhookDocsPage() {
@@ -31,10 +31,10 @@ export default function WebhookDocsPage() {
             <Zap className="w-8 h-8 text-amber-400" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Integração Automática de Vendas
+            Integração Low-Code
           </h1>
           <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Libere o acesso do seu cliente de forma 100% automática sempre que uma venda for aprovada usando o Make.com em menos de 5 minutos, clicando e arrastando!
+            Libere o acesso do seu cliente de forma 100% automática sempre que uma venda for aprovada. Use o <strong>Make.com</strong> para conectar a Flowyn ao seu Banco de Dados em menos de 5 minutos, apenas clicando e arrastando.
           </p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export default function WebhookDocsPage() {
             Crie seu Webhook Receptor no Make
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6">
-            O Make irá gerar um link mágico para você cadastrar na Flowyn. Tudo que nós mandarmos pra esse link, vai cair na sua mão visualmente.
+            O Make irá gerar um link mágico para você cadastrar na Flowyn. Tudo que nós mandarmos pra esse link vai cair na sua mão visualmente.
           </p>
           <ul className="space-y-4 text-slate-600 mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-100">
             <li className="flex items-start gap-3">
@@ -61,13 +61,28 @@ export default function WebhookDocsPage() {
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" />
-              <span>Clique em <em>Add</em>, digite um nome qualquer (Ex: "Vendas Flowyn") e clique em Save.</span>
+              <span>Clique em <em>Add</em>, digite um nome (Ex: "Vendas Flowyn") e clique em Save.</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
               <span>Ele irá gerar um link (ex: <code className="bg-white border px-1.5 py-0.5 rounded text-sm text-pink-600">https://hook.make.com/xyz123</code>). <strong>Copie esse link!</strong></span>
             </li>
           </ul>
+          
+          <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl">
+            <h4 className="font-bold text-amber-900 mb-2">Payload (O que enviamos para o seu Webhook)</h4>
+            <p className="text-sm text-amber-800 mb-3">Quando uma venda ocorre, enviamos automaticamente as seguintes variáveis traduzidas para a raiz do seu Make.com:</p>
+            <pre className="text-xs text-amber-900 bg-amber-100 p-3 rounded-lg overflow-x-auto">
+{`{
+  "email": "comprador@email.com",
+  "nome": "João Silva",
+  "id_do_pedido": "ord_123456",
+  "id_do_produto": "prd_7890",
+  "id_do_plano": "pln_basic",
+  ... (outros dados avançados como tracking de afiliados)
+}`}
+            </pre>
+          </div>
         </div>
 
         {/* --- STEP 2 --- */}
@@ -77,16 +92,20 @@ export default function WebhookDocsPage() {
             Cadastre o Link na Flowyn
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6">
-            Agora precisamos dizer pro nosso Checkout para onde enviar as informações do cliente quando a faturar bater.
+            Agora precisamos dizer pro nosso Checkout para onde enviar as informações do cliente quando a fatura for aprovada.
           </p>
-          <ul className="space-y-4 text-slate-600 mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <ul className="space-y-4 text-slate-600 bg-slate-50 p-6 rounded-2xl border border-slate-100">
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" />
-              <span>Volte para o Painel da Flowyn e clique em <strong>Meus Produtos</strong>, depois vá em <strong>Editar</strong> no produto desejado.</span>
+              <span>No Painel da Flowyn, acesse <strong>Meus Produtos &gt; Editar</strong>.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" />
+              <span>Vá até a aba <strong>Webhooks / Integração</strong>.</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-              <span>Na aba de Configurações, cole aquele link do Make no campo <strong>URL do Webhook</strong> e salve!</span>
+              <span>Cole o link do Make.com no campo "Endpoint Recebedor" e Salve. Você pode usar a ferramenta de Simular Compra para testar se os dados chegaram no Make.</span>
             </li>
           </ul>
         </div>
@@ -95,33 +114,72 @@ export default function WebhookDocsPage() {
         <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm">
           <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center font-bold text-lg mb-6">3</div>
           <h3 className="text-2xl font-bold text-slate-900 mb-4">
-            Conecte ao seu Banco de Dados (Supabase, MySQL, etc)
+            Conecte ao seu Banco de Dados
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6">
-            Volte para o Make. Agora você vai dizer o que o Make deve fazer com o e-mail do cliente que ele acabou de receber.
+            Volte para o Make. Agora que o Make.com já sabe receber nossos dados, você só precisa dizer a ele onde salvar o acesso do seu cliente. Escolha o banco de dados que você utiliza no seu SaaS abaixo:
           </p>
-          <ul className="space-y-4 text-slate-600 mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-            <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" />
-              <span>Adicione uma segunda bolinha ligada ao Webhook. Procure pelo nome do Banco de Dados que seu SaaS usa (Ex: Supabase, MySQL).</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" />
-              <span>Selecione a ação <strong>Upsert a Record</strong> (Criar ou Atualizar Usuário) ou <strong>Create a Row</strong>.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" />
-              <span>Conecte com seu banco digitando sua chave de acesso. No campo <em>Table</em>, escolha a sua tabela de `assinantes` ou `users`.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-              <span><strong>A Mágica:</strong> Pegue o "Email" e o "Nome do Plano" que estão na caixinha do Webhook, e arraste para os campos correspondentes do seu Banco de Dados. Clique em Save e depois em <strong>Turn On (Ligar)</strong> no cantinho inferior esquerdo. Pronto!</span>
-            </li>
-          </ul>
+
+          <div className="space-y-8 mt-8">
+            {/* Supabase */}
+            <div className="border border-slate-200 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Database className="w-6 h-6 text-emerald-600" />
+                <h4 className="font-bold text-xl text-slate-900">Integração com Supabase</h4>
+              </div>
+              <p className="text-sm text-slate-600 mb-4">Para quem constrói SaaS usando a stack do Supabase + Next.js.</p>
+              <ol className="list-decimal list-inside space-y-3 text-sm text-slate-700">
+                <li>Adicione uma nova bolinha no Make conectada ao Webhook e busque pelo módulo <strong>Supabase</strong>.</li>
+                <li>Selecione a ação <strong>Create a Row</strong> (ou <strong>Update a Row</strong> dependendo do seu modelo).</li>
+                <li>Conecte sua conta do Supabase colando a sua <code className="bg-slate-100 px-1 rounded text-slate-900">Project URL</code> e <code className="bg-slate-100 px-1 rounded text-slate-900">Service Role Key</code> (pegue isso nas Configurações de API do seu Supabase).</li>
+                <li>Selecione a tabela (ex: <code>subscriptions</code> ou <code>profiles</code>).</li>
+                <li>Mapeie as variáveis: No campo de email do Supabase, clique e arraste a variável <strong>email</strong> que veio do Webhook. Faça o mesmo para <strong>id_do_plano</strong>.</li>
+              </ol>
+            </div>
+
+            {/* Firebase */}
+            <div className="border border-slate-200 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Layers className="w-6 h-6 text-amber-500" />
+                <h4 className="font-bold text-xl text-slate-900">Integração com Firebase / Firestore</h4>
+              </div>
+              <p className="text-sm text-slate-600 mb-4">Para quem usa o ecossistema do Google Cloud (Firestore).</p>
+              <ol className="list-decimal list-inside space-y-3 text-sm text-slate-700">
+                <li>Adicione o módulo <strong>Google Cloud Firestore</strong> no seu cenário do Make.</li>
+                <li>Escolha a ação <strong>Create/Update a Document</strong>.</li>
+                <li>Faça login com a conta do Google Cloud e autorize o Make.</li>
+                <li>No campo Collection ID, insira a coleção dos seus usuários (ex: <code>users</code>).</li>
+                <li>No campo Document ID, você pode arrastar a variável <strong>email</strong> do webhook, para usar o email como chave, ou pedir para gerar um automático.</li>
+                <li>Adicione os campos que seu sistema lê (ex: <code>plan = id_do_plano</code>, <code>status = active</code>).</li>
+              </ol>
+            </div>
+
+            {/* MySQL / phpMyAdmin */}
+            <div className="border border-slate-200 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Server className="w-6 h-6 text-blue-500" />
+                <h4 className="font-bold text-xl text-slate-900">Integração com MySQL / phpMyAdmin</h4>
+              </div>
+              <p className="text-sm text-slate-600 mb-4">Para sistemas robustos legados em PHP, Laravel ou hospedagens VPS padrão.</p>
+              <ol className="list-decimal list-inside space-y-3 text-sm text-slate-700">
+                <li>Busque o módulo <strong>MySQL</strong> no Make.com e escolha <strong>Execute a query</strong>.</li>
+                <li>Crie a conexão preenchendo o Host (IP do seu servidor), Porta (geralmente 3306), Usuário e Senha do seu banco de dados MySQL. <em>(Dica: certifique-se de liberar o IP do Make.com no Firewall do seu servidor/cPanel)</em>.</li>
+                <li>No campo de Query, você fará um Insert/Update direto no banco, utilizando os dados do webhook. Por exemplo:
+                  <br/>
+                  <code className="block mt-2 bg-slate-900 text-slate-100 p-3 rounded">
+                    UPDATE users SET plan_id = '&#123;id_do_plano&#125;', status = 'active' WHERE email = '&#123;email&#125;';
+                  </code>
+                </li>
+                <li>Lembre-se de substituir o que está entre chaves pelas variáveis reais arrastadas do Webhook no Make.</li>
+              </ol>
+            </div>
+            
+          </div>
         </div>
 
         <div className="py-8 text-center text-slate-500">
-          Você automatizou sua empresa sem escrever código. Divirta-se vendo as assinaturas de forma 100% autônoma! 🚀
+          Não esqueça de clicar em <strong>Turn On</strong> no canto inferior esquerdo do Make.com. <br />
+          Você automatizou sua empresa sem escrever uma linha de código. 🚀
         </div>
 
       </main>

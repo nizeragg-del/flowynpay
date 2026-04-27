@@ -57,7 +57,6 @@ CREATE TABLE public.products (
   site_url TEXT,
   commission_rate NUMERIC NOT NULL DEFAULT 50,
   webhook_url TEXT,
-  sso_enabled BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
