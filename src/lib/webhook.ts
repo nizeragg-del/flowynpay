@@ -26,6 +26,12 @@ interface WebhookPayload {
   }
   is_sandbox: boolean
   timestamp: string
+  // Campos em PT-BR para Make.com
+  email?: string
+  nome?: string
+  id_do_pedido?: string
+  id_do_produto?: string
+  id_do_plano?: string
 }
 
 const MAX_RETRIES = 3
@@ -82,6 +88,13 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
     },
     is_sandbox: order.status === 'test' || order.id.startsWith('test_'),
     timestamp: new Date().toISOString(),
+    
+    // Campos em PT-BR exigidos para a Make.com
+    email: order.customer_email,
+    nome: order.customer_name,
+    id_do_pedido: orderId,
+    id_do_produto: product.id,
+    id_do_plano: order.plan_id,
   }
 
   const body = JSON.stringify(payload)
@@ -136,11 +149,11 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
           .update({ webhook_status: 'delivered', webhook_attempts: attempt })
           .eq('id', orderId)
 
-        console.log(`[Webhook] ✅ Delivered for order ${orderId} on attempt ${attempt}`)
+        console.log(`[Webhook] ✅ Delivered for order ${orderId} on attempt ${attempt}. Status: ${response.status} - Body: ${responseBody.slice(0, 300)}`)
         return { success: true }
       }
 
-      console.warn(`[Webhook] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed for order ${orderId}: HTTP ${response.status}`)
+      console.warn(`[Webhook] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed for order ${orderId}: HTTP ${response.status} - Response: ${responseBody.slice(0, 300)}`)
 
     } catch (err: any) {
       const errorMessage = err.name === 'AbortError' ? 'Request timeout (10s)' : err.message

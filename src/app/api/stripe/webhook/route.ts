@@ -176,14 +176,20 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   }
 
   // 3. Provision customer account on Flowyn
-  provisionCustomer(order).catch(err => {
+  try {
+    await provisionCustomer(order)
+  } catch (err) {
     console.error('[Stripe Webhook] Customer provisioning error:', err)
-  })
+  }
 
   // 4. Dispatch webhook to producer's SaaS
-  dispatchWebhook(orderId).catch(err => {
+  try {
+    console.log(`[Stripe Webhook] Iniciando disparo de webhook para o pedido ${orderId}`)
+    await dispatchWebhook(orderId)
+    console.log(`[Stripe Webhook] Disparo de webhook finalizado para o pedido ${orderId}`)
+  } catch (err) {
     console.error('[Stripe Webhook] Webhook dispatch error:', err)
-  })
+  }
 }
 
 async function provisionCustomer(order: any) {
