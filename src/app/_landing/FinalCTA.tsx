@@ -5,7 +5,7 @@ export default function FinalCTA() {
     <section style={{ background: "#0a0a0a", padding: "120px clamp(24px,5vw,64px)", textAlign: "center", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 700, height: 400, background: "radial-gradient(ellipse at bottom, rgba(0,232,138,0.18) 0%, transparent 65%)", pointerEvents: "none" }} />
       <div style={{ position: "relative", maxWidth: 680, margin: "0 auto" }}>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(34px,6vw,66px)", letterSpacing: "-0.04em", color: "#fff", lineHeight: 1.05, marginBottom: 20 }}>
+        <h2 style={{ fontWeight: 800, fontSize: "clamp(34px,6vw,66px)", letterSpacing: "-0.04em", color: "#fff", lineHeight: 1.05, marginBottom: 20 }}>
           Pronto para escalar<br /><em style={{ fontStyle: "italic", color: G }}>sem</em> limite?
         </h2>
         <p style={{ fontSize: 17, fontWeight: 300, color: "rgba(255,255,255,0.45)", marginBottom: 44, lineHeight: 1.7 }}>

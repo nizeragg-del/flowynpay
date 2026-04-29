@@ -15,7 +15,7 @@ export default function Pain() {
     <section style={{ background: "#0a0a0a", color: "#fff", padding: "100px clamp(24px,5vw,64px)" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 64, alignItems: "center" }}>
         <div>
-          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(30px,4vw,52px)", letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: 20 }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(30px,4vw,52px)", letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: 20 }}>
             Integrações quebradas<br />custam <span style={{ color: G }}>vendas reais.</span>
           </h2>
           <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 17, fontWeight: 300, lineHeight: 1.7, marginBottom: 36 }}>

@@ -25,7 +25,7 @@ export default function Nav() {
           <span className="ring-pulse" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: G, opacity: 0.3 }} />
           <span className="dot-pulse" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: G }} />
         </div>
-        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-0.04em", color: "#0a0a0a" }}>Flowyn</span>
+        <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.04em", color: "#0a0a0a" }}>Flowyn</span>
       </div>
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
         <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: "#666", textDecoration: "none" }}>Entrar</Link>

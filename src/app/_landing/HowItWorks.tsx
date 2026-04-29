@@ -11,7 +11,7 @@ export default function HowItWorks() {
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 64 }}>
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: G, display: "block", marginBottom: 12 }}>Como funciona</span>
-          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(28px,4vw,48px)", letterSpacing: "-0.04em", color: "#0a0a0a" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(28px,4vw,48px)", letterSpacing: "-0.04em", color: "#0a0a0a" }}>
             Simples como deve ser.
           </h2>
         </div>
@@ -34,12 +34,12 @@ export default function HowItWorks() {
               }}
             >
               <div style={{
-                fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 80,
+                fontWeight: 800, fontSize: 80,
                 color: "rgba(0,0,0,0.04)", letterSpacing: "-0.05em", lineHeight: 1,
                 position: "absolute", top: 8, right: 16,
               }}>{s.icon}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 13, color: G, marginBottom: 14, letterSpacing: "0.04em" }}>{s.icon}</div>
-              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", marginBottom: 12, color: "#0a0a0a" }}>{s.title}</h3>
+              <div style={{ fontWeight: 800, fontSize: 13, color: G, marginBottom: 14, letterSpacing: "0.04em" }}>{s.icon}</div>
+              <h3 style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", marginBottom: 12, color: "#0a0a0a" }}>{s.title}</h3>
               <p style={{ fontSize: 15, fontWeight: 300, color: "#666", lineHeight: 1.68 }}>{s.desc}</p>
             </div>
           ))}

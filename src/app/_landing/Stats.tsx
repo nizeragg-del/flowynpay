@@ -11,7 +11,7 @@ export default function Stats() {
       <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 32, textAlign: "center" }}>
         {stats.map(s => (
           <div key={s.label}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(36px,5vw,56px)", letterSpacing: "-0.04em", color: "#fff", marginBottom: 8 }}>
+            <div style={{ fontWeight: 800, fontSize: "clamp(36px,5vw,56px)", letterSpacing: "-0.04em", color: "#fff", marginBottom: 8 }}>
               <span style={{ color: G, fontSize: "0.55em", verticalAlign: "super" }}>{s.prefix}</span>{s.value}
             </div>
             <div style={{ fontSize: 14, fontWeight: 300, color: "rgba(255,255,255,0.4)", maxWidth: 160, margin: "0 auto", lineHeight: 1.5 }}>{s.label}</div>

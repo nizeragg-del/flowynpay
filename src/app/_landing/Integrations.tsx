@@ -11,7 +11,7 @@ export default function Integrations() {
     <section style={{ background: "#f7f7f7", padding: "100px clamp(24px,5vw,64px)" }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: G, display: "block", marginBottom: 12 }}>Integração simples</span>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(26px,4vw,46px)", letterSpacing: "-0.04em", marginBottom: 12, color: "#0a0a0a" }}>
+        <h2 style={{ fontWeight: 800, fontSize: "clamp(26px,4vw,46px)", letterSpacing: "-0.04em", marginBottom: 12, color: "#0a0a0a" }}>
           Funciona com o que você já usa.
         </h2>
         <p style={{ fontSize: 16, fontWeight: 300, color: "#777", marginBottom: 56, maxWidth: 480, margin: "0 auto 56px" }}>
@@ -25,7 +25,7 @@ export default function Integrations() {
                 onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 12px 32px rgba(0,0,0,0.1)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "none"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
               >
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: s.bg, color: s.dark ? "#0a0a0a" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16, margin: "0 auto 10px", fontFamily: "'Syne', sans-serif" }}>{s.icon}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: s.bg, color: s.dark ? "#0a0a0a" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16, margin: "0 auto 10px", }}>{s.icon}</div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "#0a0a0a", marginBottom: 4 }}>{s.label}</div>
                 <div style={{ fontSize: 12, color: "#999", fontWeight: 300 }}>{s.sub}</div>
               </div>

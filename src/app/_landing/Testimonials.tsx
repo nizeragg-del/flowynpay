@@ -19,7 +19,7 @@ export default function Testimonials() {
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 56 }}>
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#00e88a", display: "block", marginBottom: 12 }}>Depoimentos</span>
-          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(26px,4vw,46px)", letterSpacing: "-0.04em", color: "#0a0a0a" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(26px,4vw,46px)", letterSpacing: "-0.04em", color: "#0a0a0a" }}>
             Quem usou, não volta atrás.
           </h2>
         </div>

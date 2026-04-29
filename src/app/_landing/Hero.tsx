@@ -23,7 +23,7 @@ export default function Hero() {
           Plataforma ao vivo — centenas de produtores ativos
         </div>
         <h1 style={{
-          fontFamily: "'Syne', sans-serif", fontWeight: 800,
+          fontWeight: 800,
           fontSize: "clamp(40px, 7vw, 80px)", letterSpacing: "-0.04em",
           lineHeight: 1.02, marginBottom: 28, color: "#0a0a0a",
         }}>

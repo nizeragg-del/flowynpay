@@ -7,7 +7,7 @@ export default function Footer() {
           <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: G, opacity: 0.2, transform: "scale(1.8)" }} />
           <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: G }} />
         </div>
-        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-0.04em", color: "rgba(255,255,255,0.7)" }}>Flowyn</span>
+        <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.04em", color: "rgba(255,255,255,0.7)" }}>Flowyn</span>
       </div>
       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", fontWeight: 300 }}>
         © {new Date().getFullYear()} Flowyn. Todos os direitos reservados.

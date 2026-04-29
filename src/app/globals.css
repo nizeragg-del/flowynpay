@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap');
 @import "tailwindcss";
 @plugin "../../node_modules/tailwindcss-animate";
 
@@ -30,9 +29,8 @@
   --color-sidebar: var(--sidebar);
   --color-green: var(--green);
   --color-dark: var(--dark);
-  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, monospace;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
