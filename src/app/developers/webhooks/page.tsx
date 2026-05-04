@@ -13,10 +13,8 @@ export default function WebhookDocsPage() {
       <header className="bg-[#111111] border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 font-bold text-xl tracking-tighter">
-            <div className="w-8 h-8 rounded-lg bg-[#00e88a] flex items-center justify-center">
-              <span className="text-black font-bold text-xs">F</span>
-            </div>
-            Flowyn <span className="text-white/50 font-normal">Developers</span>
+            <img src="/logo2.png" alt="Flowyn" className="h-7 w-auto" />
+            <span className="text-white/50 font-normal ml-2 border-l border-white/20 pl-3">Developers</span>
           </div>
           <nav className="flex items-center gap-6 text-sm font-medium text-white/70">
             <Link href="/dashboard" className="hover:text-white transition-colors">Voltar para o Painel</Link>

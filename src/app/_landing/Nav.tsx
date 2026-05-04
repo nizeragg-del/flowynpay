@@ -20,12 +20,8 @@ export default function Nav() {
       transition: "height 0.3s ease, box-shadow 0.3s ease",
       boxShadow: scrolled ? "0 1px 24px rgba(0,0,0,0.07)" : "none",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ position: "relative", width: 10, height: 10 }}>
-          <span className="ring-pulse" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: G, opacity: 0.3 }} />
-          <span className="dot-pulse" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: G }} />
-        </div>
-        <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.04em", color: "#0a0a0a" }}>Flowyn</span>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <img src="/logo.png" alt="Flowyn" style={{ height: 28, width: 'auto' }} />
       </div>
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
         <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: "#666", textDecoration: "none" }}>Entrar</Link>

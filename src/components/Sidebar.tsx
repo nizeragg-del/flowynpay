@@ -13,11 +13,8 @@ export function Sidebar({ isAffiliate, isProducer }: { isAffiliate: boolean, isP
 
   return (
     <aside className="w-full md:w-64 bg-[#111111] md:bg-transparent border-r border-white/10 text-white flex-shrink-0 flex flex-col z-20 h-full">
-      <div className="p-6 flex items-center gap-3 font-bold text-2xl tracking-tighter cursor-pointer">
-         <div className="w-8 h-8 rounded-lg bg-[#00e88a] flex items-center justify-center">
-           <span className="text-black font-extrabold text-xs">F</span>
-         </div>
-         Flowyn
+      <div className="p-6 flex items-center cursor-pointer">
+         <img src="/logo2.png" alt="Flowyn" className="h-8 w-auto" />
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">

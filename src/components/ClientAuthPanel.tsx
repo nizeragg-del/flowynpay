@@ -48,11 +48,8 @@ export function ClientAuthPanel({ initialError, initialType }: ClientAuthPanelPr
           ${isLogin ? 'block md:z-20 md:translate-x-0 md:opacity-100' : 'hidden md:flex md:z-10 md:translate-x-[20%] md:opacity-0'}
         `}>
           <div className="w-full max-w-sm mx-auto">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-8">
-              <div className="w-8 h-8 rounded-lg bg-[#00e88a] flex items-center justify-center">
-                <span className="text-black font-bold text-xs">F</span>
-              </div>
-              Flowyn
+            <Link href="/" className="flex items-center mb-8">
+              <img src="/logo2.png" alt="Flowyn" className="h-8 w-auto" />
             </Link>
             <h2 className="text-3xl font-extrabold text-white mb-2">Acesse sua conta</h2>
             <p className="text-sm text-white/50 mb-8">Bem-vindo de volta! Sinta o fluxo do seu negócio.</p>
@@ -109,11 +106,8 @@ export function ClientAuthPanel({ initialError, initialType }: ClientAuthPanelPr
           ${!isLogin ? 'block md:z-20 md:translate-x-0 md:opacity-100' : 'hidden md:flex md:z-10 md:-translate-x-[20%] md:opacity-0'}
         `}>
           <div className="w-full max-w-sm mx-auto">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-6">
-              <div className="w-8 h-8 rounded-lg bg-[#00e88a] flex items-center justify-center">
-                <span className="text-black font-bold text-xs">F</span>
-              </div>
-              Flowyn
+            <Link href="/" className="flex items-center mb-6">
+              <img src="/logo2.png" alt="Flowyn" className="h-8 w-auto" />
             </Link>
             <h2 className="text-3xl font-extrabold text-white mb-2">Crie sua conta</h2>
             <p className="text-sm text-white/50 mb-6">Comece sua jornada de escala infinita.</p>
