@@ -61,7 +61,16 @@ export function ClientAuthPanel({ initialError, initialType, initialSuccess }: C
                   <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold text-sm">Conta criada com sucesso! 🎉</p>
-                    <p className="text-[#00e88a]/70 text-xs mt-0.5">Faça login para acessar sua plataforma.</p>
+                    <p className="text-[#00e88a]/70 text-xs mt-0.5">Verifique seu e-mail para confirmar a conta e depois faça login.</p>
+                  </div>
+                </div>
+              )}
+              {isLogin && initialSuccess === 'email_confirmed' && (
+                <div className="bg-[#00e88a]/10 text-[#00e88a] p-4 rounded-xl text-sm flex items-start gap-3 border border-[#00e88a]/30">
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-sm">E-mail confirmado! ✅</p>
+                    <p className="text-[#00e88a]/70 text-xs mt-0.5">Sua conta está ativa. Faça login para acessar sua plataforma.</p>
                   </div>
                 </div>
               )}
