@@ -65,6 +65,15 @@ export function ClientAuthPanel({ initialError, initialType, initialSuccess }: C
                   </div>
                 </div>
               )}
+              {isLogin && initialSuccess === 'password_reset' && (
+                <div className="bg-[#00e88a]/10 text-[#00e88a] p-4 rounded-xl text-sm flex items-start gap-3 border border-[#00e88a]/30">
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-sm">Senha redefinida com sucesso! 🔒</p>
+                    <p className="text-[#00e88a]/70 text-xs mt-0.5">Entre com sua nova senha abaixo.</p>
+                  </div>
+                </div>
+              )}
               {isLogin && initialError && (
                 <div className="bg-red-500/10 text-red-400 p-3 rounded-xl text-sm flex items-center gap-2 border border-red-500/20">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -98,7 +107,7 @@ export function ClientAuthPanel({ initialError, initialType, initialSuccess }: C
                   <input type="checkbox" className="rounded border-white/20 bg-[#0a0a0a] text-[#00e88a] focus:ring-[#00e88a] h-4 w-4" />
                   Lembrar de mim
                 </label>
-                <a href="#" className="text-sm font-medium text-white/50 hover:text-white transition-colors">Esqueceu a senha?</a>
+                <a href="/forgot-password" className="text-sm font-medium text-white/50 hover:text-white transition-colors">Esqueceu a senha?</a>
               </div>
               <button
                 type="submit"

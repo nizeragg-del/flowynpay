@@ -74,7 +74,7 @@ export function Sidebar({ isAffiliate, isProducer }: { isAffiliate: boolean, isP
           <CreditCard className="w-5 h-5" />
           <span className="font-medium text-sm">Pagamentos</span>
         </Link>
-        <Link href="/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-white/60 hover:bg-white/5 hover:text-white`}>
+        <Link href="/dashboard/settings/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/profile') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
           <Settings className="w-5 h-5" />
           <span className="font-medium text-sm">Conta</span>
         </Link>
