@@ -26,31 +26,29 @@ export default async function AppLayout({
   // Fetch total sales depending on role
   let totalSales = 0
   if (isProducer) {
-    // Sum all paid orders for products owned by this user
     const { data: products } = await supabase
       .from('products')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('owner_id', user.id)  // ← owner_id, not user_id
 
     if (products && products.length > 0) {
       const productIds = products.map((p: any) => p.id)
       const { data: orders } = await supabase
         .from('orders')
-        .select('amount')
+        .select('amount, status')
         .in('product_id', productIds)
-        .eq('status', 'paid')
 
-      totalSales = (orders ?? []).reduce((sum: number, o: any) => sum + Number(o.amount), 0)
+      const paid = (orders ?? []).filter((o: any) => o.status === 'paid')
+      totalSales = paid.reduce((sum: number, o: any) => sum + Number(o.amount), 0)
     }
   } else if (isAffiliate) {
-    // Sum affiliate commissions
     const { data: orders } = await supabase
       .from('orders')
-      .select('commission_amount')
+      .select('commission_amount, status')
       .eq('affiliate_id', user.id)
-      .eq('status', 'paid')
 
-    totalSales = (orders ?? []).reduce((sum: number, o: any) => sum + Number(o.commission_amount), 0)
+    const paid = (orders ?? []).filter((o: any) => o.status === 'paid')
+    totalSales = paid.reduce((sum: number, o: any) => sum + Number(o.commission_amount), 0)
   }
 
   return (
