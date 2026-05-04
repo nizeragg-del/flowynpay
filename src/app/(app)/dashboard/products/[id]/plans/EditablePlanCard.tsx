@@ -48,37 +48,37 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
 
   if (isEditing) {
     return (
-      <div className="bg-slate-50 border-2 border-indigo-500 rounded-2xl p-5 shadow-inner transition-all animate-in fade-in zoom-in duration-200">
+      <div className="bg-[#111111] border-2 border-[#00e88a] rounded-2xl p-5 shadow-xl transition-all animate-in fade-in zoom-in duration-200">
         <form onSubmit={handleUpdate} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nome do Plano</label>
+              <label className="block text-[10px] uppercase font-bold text-white/40 mb-1">Nome do Plano</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] outline-none"
               />
             </div>
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Preço (R$)</label>
+              <label className="block text-[10px] uppercase font-bold text-white/40 mb-1">Preço (R$)</label>
               <input
                 type="number"
                 step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 required
-                className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] outline-none"
               />
             </div>
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Identificador SaaS</label>
+              <label className="block text-[10px] uppercase font-bold text-white/40 mb-1">Identificador SaaS</label>
               <input
                 type="text"
                 value={formData.plan_identifier}
                 onChange={(e) => setFormData({ ...formData, plan_identifier: e.target.value })}
-                className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] outline-none"
                 placeholder="Opcional"
               />
             </div>
@@ -87,7 +87,7 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-slate-500 hover:text-slate-700 font-bold text-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-white/50 hover:text-white font-bold text-xs transition-colors"
             >
               <X className="w-3.5 h-3.5" />
               Cancelar
@@ -95,9 +95,9 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black px-4 py-1.5 rounded-lg font-bold text-xs shadow-[0_0_15px_rgba(0,232,138,0.3)] transition-colors disabled:opacity-50"
             >
-              {loading ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              {loading ? <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Salvar Alterações
             </button>
           </div>
@@ -107,17 +107,17 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 group">
+    <div className="bg-[#111111] border border-white/10 rounded-2xl p-5 shadow-xl hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] hover:border-white/20 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-200">
-          <Package className="w-5 h-5 text-slate-600" />
+        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-[#00e88a]/10 group-hover:border-[#00e88a]/20 transition-colors">
+          <Package className="w-5 h-5 text-white/60 group-hover:text-[#00e88a] transition-colors" />
         </div>
         <div>
-          <h3 className="font-bold text-slate-900">{plan.name}</h3>
+          <h3 className="font-bold text-white">{plan.name}</h3>
           <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-xs text-slate-400 font-mono">ID: {plan.id.slice(0, 12)}...</p>
+            <p className="text-xs text-white/40 font-mono">ID: {plan.id.slice(0, 12)}...</p>
             {plan.plan_identifier && (
-              <span className="bg-slate-100 text-slate-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border border-slate-200">
+              <span className="bg-white/5 text-white/50 text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border border-white/10">
                 {plan.plan_identifier}
               </span>
             )}
@@ -125,18 +125,18 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
         </div>
       </div>
 
-      <div className="flex items-center gap-4 md:gap-6">
-        <div className="text-right">
-          <span className="text-xl font-extrabold text-slate-900">
+      <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 md:gap-6">
+        <div className="text-left md:text-right">
+          <span className="text-xl font-extrabold text-white">
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
           </span>
-          <span className="text-xs text-slate-400 font-medium ml-1">/mês</span>
+          <span className="text-xs text-white/40 font-medium ml-1">/mês</span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsEditing(true)}
-            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+            className="p-2.5 text-white/40 hover:text-[#00e88a] hover:bg-[#00e88a]/10 rounded-lg transition-all"
             title="Editar plano"
           >
             <Pencil className="w-4 h-4" />
@@ -145,7 +145,7 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
           <a
             href={`/checkout/${plan.id}`}
             target="_blank"
-            className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+            className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
             title="Ver checkout"
           >
             <ExternalLink className="w-4 h-4" />

@@ -85,7 +85,7 @@ export default function DashboardPage() {
   }, [])
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500 animate-pulse">Carregando painel de controle...</div>
+    return <div className="p-8 text-center text-white/50 animate-pulse">Carregando painel de controle...</div>
   }
 
   const isProducer = profile?.role === 'producer'
@@ -98,20 +98,20 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-white tracking-tight">
               Visão do {isProducer ? 'Produtor' : 'Afiliado'}
             </h2>
-            <p className="text-slate-500 mt-1 font-medium">
+            <p className="text-white/60 mt-1 font-medium">
               {isProducer ? 'Acompanhe seu faturamento global e assinaturas.' : 'Acompanhe seus cliques, conversões e comissões.'}
             </p>
           </div>
           
           {isProducer ? (
-            <Link href="/dashboard/products/new" className="bg-primary hover:bg-sidebar text-white px-6 py-2.5 rounded-lg font-semibold shadow-md shadow-primary/20 transition-all flex items-center gap-2">
+            <Link href="/dashboard/products/new" className="bg-[#00e88a] hover:bg-[#00e88a]/90 text-black px-6 py-2.5 rounded-lg font-semibold shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)] transition-all flex items-center gap-2">
               Criar Novo Produto
             </Link>
           ) : (
-            <Link href="/market" className="bg-primary hover:bg-sidebar text-white px-6 py-2.5 rounded-lg font-semibold shadow-md shadow-primary/20 transition-all flex items-center gap-2">
+            <Link href="/market" className="bg-[#00e88a] hover:bg-[#00e88a]/90 text-black px-6 py-2.5 rounded-lg font-semibold shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)] transition-all flex items-center gap-2">
               Encontrar Produtos
             </Link>
           )}
@@ -119,71 +119,75 @@ export default function DashboardPage() {
         
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-xl hover:border-[#00e88a]/30 transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#00e88a]/5 rounded-full blur-[40px] -mr-10 -mt-10 pointer-events-none group-hover:bg-[#00e88a]/10 transition-colors" />
+            <div className="flex justify-between items-start mb-4 relative z-10">
               <div>
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                <p className="text-sm font-semibold text-white/50 uppercase tracking-wider mb-1">
                   {isProducer ? 'Faturamento Total' : 'Comissões Ganhas'}
                 </p>
-                <h3 className="text-2xl font-bold text-slate-900">
+                <h3 className="text-2xl font-bold text-white">
                   {fmt(isProducer ? stats.totalRevenue : stats.totalCommissions)}
                 </h3>
               </div>
-              <div className="bg-emerald-100 text-emerald-600 p-3 rounded-xl">
+              <div className="bg-[#00e88a]/10 text-[#00e88a] p-3 rounded-xl border border-[#00e88a]/20">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-slate-500">Vendas aprovadas</span>
+            <div className="flex items-center text-sm relative z-10">
+              <span className="text-white/40">Vendas aprovadas</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-xl hover:border-[#00e88a]/30 transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#00e88a]/5 rounded-full blur-[40px] -mr-10 -mt-10 pointer-events-none group-hover:bg-[#00e88a]/10 transition-colors" />
+            <div className="flex justify-between items-start mb-4 relative z-10">
               <div>
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                <p className="text-sm font-semibold text-white/50 uppercase tracking-wider mb-1">
                   {isProducer ? 'Comissões Geradas' : 'Volume Gerado'}
                 </p>
-                <h3 className="text-2xl font-bold text-slate-900">
+                <h3 className="text-2xl font-bold text-white">
                   {fmt(isProducer ? stats.totalCommissions : stats.totalRevenue)}
                 </h3>
               </div>
-              <div className="bg-primary/10 text-primary p-3 rounded-xl">
+              <div className="bg-white/5 text-[#00e88a] p-3 rounded-xl border border-[#00e88a]/20">
                 <Activity className="w-5 h-5" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-slate-500">{isProducer ? 'Aos afiliados' : 'Valor bruto das vendas'}</span>
+            <div className="flex items-center text-sm relative z-10">
+              <span className="text-white/40">{isProducer ? 'Aos afiliados' : 'Valor bruto das vendas'}</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-xl hover:border-blue-500/30 transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-[40px] -mr-10 -mt-10 pointer-events-none group-hover:bg-blue-500/10 transition-colors" />
+            <div className="flex justify-between items-start mb-4 relative z-10">
               <div>
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Vendas Aprovadas</p>
-                <h3 className="text-2xl font-bold text-slate-900">{stats.paidCount}</h3>
+                <p className="text-sm font-semibold text-white/50 uppercase tracking-wider mb-1">Vendas Aprovadas</p>
+                <h3 className="text-2xl font-bold text-white">{stats.paidCount}</h3>
               </div>
-              <div className="bg-blue-100 text-blue-600 p-3 rounded-xl">
+              <div className="bg-blue-500/10 text-blue-400 p-3 rounded-xl border border-blue-500/20">
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-slate-500">Transações com status pago</span>
+            <div className="flex items-center text-sm relative z-10">
+              <span className="text-white/40">Transações com status pago</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-xl hover:border-amber-500/30 transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-[40px] -mr-10 -mt-10 pointer-events-none group-hover:bg-amber-500/10 transition-colors" />
+            <div className="flex justify-between items-start mb-4 relative z-10">
               <div>
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Pendentes</p>
-                <h3 className="text-2xl font-bold text-slate-900">{stats.pendingCount}</h3>
+                <p className="text-sm font-semibold text-white/50 uppercase tracking-wider mb-1">Pendentes</p>
+                <h3 className="text-2xl font-bold text-white">{stats.pendingCount}</h3>
               </div>
-              <div className="bg-amber-100 text-amber-600 p-3 rounded-xl">
+              <div className="bg-amber-500/10 text-amber-400 p-3 rounded-xl border border-amber-500/20">
                 <CreditCard className="w-5 h-5" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-slate-500">Aguardando confirmação</span>
+            <div className="flex items-center text-sm relative z-10">
+              <span className="text-white/40">Aguardando confirmação</span>
             </div>
           </div>
         </div>
@@ -192,11 +196,11 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Chart */}
-          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="lg:col-span-2 bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-xl">
             <div className="mb-6 flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Desempenho Geral</h3>
-                <p className="text-sm text-slate-500">Faturamento vs Comissões — últimos 7 dias</p>
+                <h3 className="text-lg font-bold text-white">Desempenho Geral</h3>
+                <p className="text-sm text-white/50">Faturamento vs Comissões — últimos 7 dias</p>
               </div>
             </div>
             
@@ -206,8 +210,8 @@ export default function DashboardPage() {
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6a1b9a" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#6a1b9a" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#00e88a" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#00e88a" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorCommission" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -216,14 +220,17 @@ export default function DashboardPage() {
                     </defs>
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={-10} tickFormatter={(val) => `R$${val}`} />
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Area type="monotone" dataKey="revenue" name="Faturamento (R$)" stroke="#6a1b9a" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#111', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.5)' }} 
+                      itemStyle={{ color: '#fff' }} 
+                    />
+                    <Area type="monotone" dataKey="revenue" name="Faturamento (R$)" stroke="#00e88a" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                     <Area type="monotone" dataKey="commission" name="Comissões (R$)" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCommission)" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                <div className="flex items-center justify-center h-full text-white/30 text-sm">
                   Sem dados suficientes para o gráfico
                 </div>
               )}
@@ -231,36 +238,36 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Sales */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col">
             <div className="mb-6 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-slate-900">Vendas Recentes</h3>
-              <Link href="/dashboard/sales" className="p-2 hover:bg-slate-50 rounded-lg transition-colors text-primary">
+              <h3 className="text-lg font-bold text-white">Vendas Recentes</h3>
+              <Link href="/dashboard/sales" className="p-2 hover:bg-white/5 rounded-lg transition-colors text-[#00e88a]">
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
 
             {recentOrders.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                <DollarSign className="w-10 h-10 text-slate-300 mb-3" />
-                <p className="text-slate-500 text-sm">Nenhuma venda registrada ainda.</p>
-                <p className="text-slate-400 text-xs mt-1">As transações aparecerão aqui em tempo real.</p>
+                <DollarSign className="w-10 h-10 text-white/20 mb-3" />
+                <p className="text-white/50 text-sm">Nenhuma venda registrada ainda.</p>
+                <p className="text-white/40 text-xs mt-1">As transações aparecerão aqui em tempo real.</p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col gap-4">
                 {recentOrders.map((order) => (
-                  <div key={order.id} className="flex justify-between items-center p-4 hover:bg-slate-50 rounded-xl border border-transparent hover:border-slate-200 transition-all group cursor-pointer">
+                  <div key={order.id} className="flex justify-between items-center p-4 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/10 transition-all group cursor-pointer">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary font-bold">
+                      <div className="w-10 h-10 rounded-full bg-[#0a0a0a] border border-white/10 flex items-center justify-center text-[#00e88a] font-bold">
                         {order.customer_name.charAt(0)}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-sm text-slate-900 group-hover:text-primary transition-colors">{order.customer_name}</h4>
-                        <p className="text-xs text-slate-500">{order.product?.name || '—'}</p>
+                        <h4 className="font-semibold text-sm text-white group-hover:text-[#00e88a] transition-colors">{order.customer_name}</h4>
+                        <p className="text-xs text-white/50">{order.product?.name || '—'}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-sm text-slate-900">{fmt(Number(order.amount))}</p>
-                      <p className={`text-[10px] font-bold uppercase tracking-wider ${order.status === 'paid' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      <p className="font-bold text-sm text-white">{fmt(Number(order.amount))}</p>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${order.status === 'paid' ? 'text-emerald-400' : 'text-amber-400'}`}>
                         {order.status === 'paid' ? 'Aprovado' : 'Pendente'}
                       </p>
                     </div>
@@ -269,7 +276,7 @@ export default function DashboardPage() {
               </div>
             )}
             
-            <Link href="/dashboard/sales" className="w-full mt-4 py-3 text-sm font-semibold text-primary hover:bg-slate-50 rounded-xl transition-colors text-center block">
+            <Link href="/dashboard/sales" className="w-full mt-4 py-3 text-sm font-semibold text-[#00e88a] hover:bg-white/5 rounded-xl transition-colors text-center block">
               Ver Relatório Completo
             </Link>
           </div>

@@ -56,32 +56,32 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
 
   return (
     <div className="w-full pb-12">
-      <main className="max-w-3xl mx-auto">
+      <main className="max-w-3xl mx-auto px-6">
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/dashboard/products" className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          <Link href={`/dashboard/products/${productId}`} className="p-2.5 bg-[#111111] border border-white/10 rounded-xl hover:bg-white/5 transition-colors shadow-xl">
+            <ArrowLeft className="w-5 h-5 text-white/70" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Webhooks / Integração</h1>
-            <p className="text-slate-500 text-sm mt-0.5">
-              Produto: <span className="font-bold text-slate-900">{product.name}</span>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">Webhooks / Integração</h1>
+            <p className="text-white/50 text-sm mt-0.5">
+              Produto: <span className="font-bold text-white">{product.name}</span>
             </p>
           </div>
         </div>
 
         {/* Quick Nav Tabs */}
-        <div className="flex bg-white rounded-2xl border border-slate-200 p-2 gap-2 mb-10 overflow-x-auto shadow-sm">
-          <Link href={`/dashboard/products/${productId}`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors">
+        <div className="flex bg-[#111111] rounded-2xl border border-white/10 p-2 gap-2 mb-10 overflow-x-auto shadow-xl custom-scrollbar">
+          <Link href={`/dashboard/products/${productId}`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-white/50 hover:bg-white/5 hover:text-white font-medium rounded-xl transition-colors">
             <Building2 className="w-4 h-4" />
             Detalhes do Produto
           </Link>
-          <Link href={`/dashboard/products/${productId}/plans`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors">
+          <Link href={`/dashboard/products/${productId}/plans`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-white/50 hover:bg-white/5 hover:text-white font-medium rounded-xl transition-colors">
             <CreditCard className="w-4 h-4" />
             Planos de Venda
           </Link>
-          <Link href={`/dashboard/products/${productId}/integrations`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-900 font-bold rounded-xl">
+          <Link href={`/dashboard/products/${productId}/integrations`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-white/10 text-white font-bold rounded-xl border border-white/5">
             <Webhook className="w-4 h-4" />
             Webhooks / Integração
           </Link>
@@ -92,25 +92,25 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
 
 
         {/* Webhook Section */}
-        <div className="mb-10">
+        <div className="mb-10 mt-10">
           <div className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-              <Globe className="w-4 h-4 text-slate-700" />
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+              <Globe className="w-4 h-4 text-[#00e88a]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Webhook URL</h2>
-              <p className="text-xs text-slate-500">Configure o endpoint que receberá notificações de pagamento</p>
+              <h2 className="text-lg font-bold text-white">Webhook URL</h2>
+              <p className="text-xs text-white/40">Configure o endpoint que receberá notificações de pagamento</p>
             </div>
           </div>
 
-          <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-            Quando uma assinatura for processada com sucesso, nosso sistema fará automaticamente um <code className="bg-slate-100 px-2 py-0.5 rounded text-primary text-xs font-bold border border-slate-200">POST</code> para a URL abaixo com os dados do cliente.
+          <p className="text-sm text-white/60 mb-6 leading-relaxed">
+            Quando uma assinatura for processada com sucesso, nosso sistema fará automaticamente um <code className="bg-[#111111] px-2 py-0.5 rounded text-[#00e88a] text-xs font-bold border border-white/10">POST</code> para a URL abaixo com os dados do cliente.
           </p>
 
 
           <form action={updateWebhook} className="space-y-5">
             <div>
-              <label htmlFor="webhook_url" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label htmlFor="webhook_url" className="block text-sm font-semibold text-white/70 mb-2">
                 Endpoint Recebedor
               </label>
               <input 
@@ -119,13 +119,13 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
                 name="webhook_url" 
                 defaultValue={product.webhook_url || ''}
                 required 
-                className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none shadow-sm" 
+                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3.5 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none shadow-xl" 
                 placeholder="https://api.seusaas.com/webhooks/saasnex" 
               />
               {product.webhook_url && (
-                <div className="flex items-center gap-1.5 mt-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <p className="text-sm text-emerald-600 font-medium">Webhook configurado e ativo</p>
+                <div className="flex items-center gap-1.5 mt-3">
+                  <CheckCircle2 className="w-4 h-4 text-[#00e88a]" />
+                  <p className="text-sm text-[#00e88a] font-medium">Webhook configurado e ativo</p>
                 </div>
               )}
             </div>
@@ -133,7 +133,7 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
             <div className="flex items-center justify-end pt-2">
               <button 
                 type="submit" 
-                className="inline-flex items-center gap-2 bg-black hover:bg-slate-800 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg"
+                className="inline-flex items-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-3.5 px-8 rounded-xl transition-all shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)]"
               >
                 <Save className="w-5 h-5" />
                 Salvar URL

@@ -56,67 +56,67 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm mb-10 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-        <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-indigo-500" />
+    <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-xl mb-10 overflow-hidden">
+      <div className="p-6 border-b border-white/5 bg-[#0a0a0a]">
+        <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+          <Activity className="w-5 h-5 text-[#00e88a]" />
           Testes e Simulação
         </h3>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-white/50">
           Valide a sua integração antes de receber clientes reais.
         </p>
       </div>
 
       <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Test Ping */}
-        <div className="space-y-4 border-r-0 md:border-r border-slate-100 md:pr-6">
-          <h4 className="font-semibold text-slate-800 text-sm">1. Ping Test (Payload Fictício)</h4>
-          <p className="text-xs text-slate-500 mb-4">
+        <div className="space-y-4 border-r-0 md:border-r border-white/5 md:pr-6">
+          <h4 className="font-semibold text-white/80 text-sm">1. Ping Test (Payload Fictício)</h4>
+          <p className="text-xs text-white/50 mb-4">
             Dispara um evento de teste na sua URL instantaneamente para validar conectividade e tempo de resposta.
           </p>
           <button 
             onClick={handleTest}
             disabled={loading || !currentUrl}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-[#00e88a]/10 hover:bg-[#00e88a]/20 text-[#00e88a] font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 border border-[#00e88a]/20"
           >
             {loading ? <Clock className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             {loading ? 'Disparando...' : 'Enviar Payload de Teste'}
           </button>
 
           {result && (
-            <div className={`mt-4 p-4 rounded-xl border ${result.success ? (result.timeMs > 3000 ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200') : 'bg-red-50 border-red-200'}`}>
+            <div className={`mt-4 p-4 rounded-xl border ${result.success ? (result.timeMs > 3000 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[#00e88a]/10 border-[#00e88a]/30') : 'bg-red-500/10 border-red-500/30'}`}>
               <div className="flex items-center gap-2 mb-3">
                 {result.success ? (
-                  result.timeMs > 3000 ? <AlertTriangle className="w-5 h-5 text-amber-500" /> : <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  result.timeMs > 3000 ? <AlertTriangle className="w-5 h-5 text-amber-500" /> : <CheckCircle2 className="w-5 h-5 text-[#00e88a]" />
                 ) : (
                   <XCircle className="w-5 h-5 text-red-500" />
                 )}
-                <span className={`font-bold text-sm ${result.success ? (result.timeMs > 3000 ? 'text-amber-700' : 'text-emerald-700') : 'text-red-700'}`}>
+                <span className={`font-bold text-sm ${result.success ? (result.timeMs > 3000 ? 'text-amber-500' : 'text-[#00e88a]') : 'text-red-500'}`}>
                   {result.success ? 'Conexão Bem-sucedida' : 'Falha na Conexão'}
                 </span>
               </div>
               
               <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
-                <div className="bg-white/60 rounded p-2 border border-black/5">
-                  <span className="block text-slate-500 font-medium mb-0.5">Status HTTP</span>
-                  <span className={`font-bold ${result.success ? 'text-emerald-600' : 'text-red-600'}`}>{result.status || 'N/A'}</span>
+                <div className="bg-[#0a0a0a] rounded p-2 border border-white/10">
+                  <span className="block text-white/50 font-medium mb-0.5">Status HTTP</span>
+                  <span className={`font-bold ${result.success ? 'text-[#00e88a]' : 'text-red-500'}`}>{result.status || 'N/A'}</span>
                 </div>
-                <div className="bg-white/60 rounded p-2 border border-black/5">
-                  <span className="block text-slate-500 font-medium mb-0.5">Tempo de Resposta</span>
-                  <span className={`font-bold ${result.timeMs > 3000 ? 'text-amber-600' : 'text-slate-700'}`}>{result.timeMs}ms</span>
+                <div className="bg-[#0a0a0a] rounded p-2 border border-white/10">
+                  <span className="block text-white/50 font-medium mb-0.5">Tempo de Resposta</span>
+                  <span className={`font-bold ${result.timeMs > 3000 ? 'text-amber-500' : 'text-white/80'}`}>{result.timeMs}ms</span>
                 </div>
               </div>
 
               {result.error && (
-                <div className="text-xs text-red-600 bg-white/60 p-2 rounded border border-red-100 mb-2">
+                <div className="text-xs text-red-400 bg-[#0a0a0a] p-2 rounded border border-red-500/30 mb-2">
                   <span className="font-bold">Erro: </span> {result.error}
                 </div>
               )}
               
               {result.body && (
                 <div>
-                  <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Body da Resposta</span>
-                  <pre className="text-[10px] text-slate-600 bg-white/60 p-2 rounded border border-black/5 max-h-24 overflow-y-auto whitespace-pre-wrap">
+                  <span className="block text-[10px] uppercase font-bold text-white/40 mb-1">Body da Resposta</span>
+                  <pre className="text-[10px] text-white/60 bg-[#0a0a0a] p-2 rounded border border-white/10 max-h-24 overflow-y-auto whitespace-pre-wrap">
                     {result.body}
                   </pre>
                 </div>
@@ -127,22 +127,22 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
 
         {/* Sandbox Simulation */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-slate-800 text-sm">2. Simulação End-to-End (Sandbox)</h4>
-          <p className="text-xs text-slate-500 mb-4">
+          <h4 className="font-semibold text-white/80 text-sm">2. Simulação End-to-End (Sandbox)</h4>
+          <p className="text-xs text-white/50 mb-4">
             Simula uma compra real no sistema (R$ 0,00). Útil para testar se o seu SaaS cadastra e provisiona o cliente corretamente com o `plan_identifier`.
           </p>
           
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Plano para Simular</label>
+              <label className="block text-xs font-bold text-white/50 mb-1">Plano para Simular</label>
               <select 
                 value={selectedPlanId}
                 onChange={(e) => setSelectedPlanId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 outline-none focus:border-indigo-500"
+                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg p-2.5 text-sm text-white outline-none focus:border-[#00e88a]"
               >
                 {plans.length === 0 && <option value="">Nenhum plano criado</option>}
                 {plans.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.plan_identifier || 'Sem identifier'})</option>
+                  <option key={p.id} value={p.id} className="bg-[#111111]">{p.name} ({p.plan_identifier || 'Sem identifier'})</option>
                 ))}
               </select>
             </div>
@@ -150,7 +150,7 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
             <button 
               onClick={handleSimulate}
               disabled={simulating || plans.length === 0 || !currentUrl}
-              className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)]"
             >
               {simulating ? <Clock className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
               {simulating ? 'Simulando...' : 'Simular Venda Completa'}

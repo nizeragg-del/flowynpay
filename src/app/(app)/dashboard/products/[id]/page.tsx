@@ -60,26 +60,26 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
         
         {/* Page Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/dashboard/products" className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          <Link href="/dashboard/products" className="p-2.5 bg-[#111111] border border-white/10 rounded-xl hover:bg-white/5 transition-colors shadow-xl">
+            <ArrowLeft className="w-5 h-5 text-white/70" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Gerenciar: {product.name}</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Edite as informações ou acesse as configurações avançadas.</p>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">Gerenciar: {product.name}</h1>
+            <p className="text-white/50 text-sm mt-0.5">Edite as informações ou acesse as configurações avançadas.</p>
           </div>
         </div>
 
         {/* Quick Nav Tabs */}
-        <div className="flex bg-white rounded-2xl border border-slate-200 p-2 gap-2 mb-10 overflow-x-auto shadow-sm">
-          <Link href={`/dashboard/products/${id}`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-900 font-bold rounded-xl">
+        <div className="flex bg-[#111111] rounded-2xl border border-white/10 p-2 gap-2 mb-10 overflow-x-auto shadow-xl">
+          <Link href={`/dashboard/products/${id}`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-white/10 text-white font-bold rounded-xl border border-white/5">
             <Building2 className="w-4 h-4" />
             Detalhes do Produto
           </Link>
-          <Link href={`/dashboard/products/${id}/plans`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors">
+          <Link href={`/dashboard/products/${id}/plans`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-white/60 hover:bg-white/5 hover:text-white font-medium rounded-xl transition-colors">
             <CreditCard className="w-4 h-4" />
             Planos de Venda
           </Link>
-          <Link href={`/dashboard/products/${id}/integrations`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors">
+          <Link href={`/dashboard/products/${id}/integrations`} className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 text-white/60 hover:bg-white/5 hover:text-white font-medium rounded-xl transition-colors">
             <Webhook className="w-4 h-4" />
             Webhooks / Integração
           </Link>
@@ -89,21 +89,21 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
         <IntegrationChecklist productId={id} />
 
         {/* Form */}
-        <form action={updateProduct} className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+        <form action={updateProduct} className="bg-[#111111] border border-white/10 rounded-3xl p-8 shadow-xl">
 
           {/* Section 1: Basic Info */}
           <div className="mb-10">
-            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-slate-700" />
+            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-[#00e88a]" />
               </span>
               Informações Básicas
             </h2>
 
             <div className="space-y-5">
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-2">
-                  Nome do Produto <span className="text-red-500">*</span>
+                <label htmlFor="name" className="block text-sm font-semibold text-white/70 mb-2">
+                  Nome do Produto <span className="text-[#00e88a]">*</span>
                 </label>
                 <input 
                   type="text" 
@@ -111,26 +111,26 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
                   name="name" 
                   defaultValue={product.name}
                   required 
-                  className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-black/20 focus:border-black transition-all outline-none shadow-sm" 
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3.5 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none shadow-sm" 
                 />
               </div>
             </div>
           </div>
 
-          <hr className="border-slate-100 mb-10" />
+          <hr className="border-white/5 mb-10" />
 
           {/* Section 2: Links & Media */}
           <div className="mb-10">
-            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <LinkIcon className="w-4 h-4 text-slate-700" />
+            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                <LinkIcon className="w-4 h-4 text-[#00e88a]" />
               </span>
               Links e Mídia
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="site_url" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label htmlFor="site_url" className="block text-sm font-semibold text-white/70 mb-2">
                   Página de Vendas
                 </label>
                 <input 
@@ -138,11 +138,11 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
                   id="site_url" 
                   name="site_url" 
                   defaultValue={product.site_url || ''}
-                  className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-black/20 focus:border-black transition-all outline-none shadow-sm" 
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3.5 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none shadow-sm" 
                 />
               </div>
               <div>
-                <label htmlFor="logo_url" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label htmlFor="logo_url" className="block text-sm font-semibold text-white/70 mb-2">
                   URL da Logo
                 </label>
                 <input 
@@ -150,26 +150,26 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
                   id="logo_url" 
                   name="logo_url" 
                   defaultValue={product.logo_url || ''}
-                  className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-black/20 focus:border-black transition-all outline-none shadow-sm" 
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3.5 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none shadow-sm" 
                 />
               </div>
             </div>
           </div>
 
-          <hr className="border-slate-100 mb-10" />
+          <hr className="border-white/5 mb-10" />
 
           {/* Section 3: Commission */}
           <div className="mb-10">
-            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <Percent className="w-4 h-4 text-slate-700" />
+            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                <Percent className="w-4 h-4 text-[#00e88a]" />
               </span>
               Comissão do Afiliado
             </h2>
 
             <div className="max-w-xs">
-              <label htmlFor="commission_rate" className="block text-sm font-semibold text-slate-700 mb-2">
-                Taxa de Comissão (%) <span className="text-red-500">*</span>
+              <label htmlFor="commission_rate" className="block text-sm font-semibold text-white/70 mb-2">
+                Taxa de Comissão (%) <span className="text-[#00e88a]">*</span>
               </label>
               <div className="relative">
                 <input 
@@ -181,18 +181,18 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
                   step="0.01" 
                   defaultValue={product.commission_rate} 
                   required 
-                  className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 pr-12 text-slate-900 text-lg font-bold focus:ring-2 focus:ring-black/20 focus:border-black transition-all outline-none shadow-sm" 
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3.5 px-4 pr-12 text-white text-lg font-bold focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none shadow-sm" 
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">%</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-lg">%</span>
               </div>
             </div>
           </div>
 
           {/* Submit */}
-          <div className="flex items-center justify-end pt-6 border-t border-slate-100">
+          <div className="flex items-center justify-end pt-6 border-t border-white/5">
             <button 
               type="submit" 
-              className="inline-flex items-center gap-2 bg-black hover:bg-slate-800 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg"
+              className="inline-flex items-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-3.5 px-8 rounded-xl transition-all shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)]"
             >
               <Save className="w-5 h-5" />
               Salvar Alterações
