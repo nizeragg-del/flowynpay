@@ -66,7 +66,7 @@ export default async function AffiliationsPage() {
   const { data: allAffPixels } = affIds.length > 0
     ? await supabase
         .from('affiliation_pixels')
-        .select('id, affiliation_id, pixel:pixels(id, name, platform, pixel_id)')
+        .select('id, affiliation_id, plan_id, pixel:pixels(id, name, platform, pixel_id)')
         .in('affiliation_id', affIds)
     : { data: [] }
 
@@ -185,12 +185,13 @@ export default async function AffiliationsPage() {
                   {(() => {
                     const affPixels = (allAffPixels ?? [])
                       .filter(ap => ap.affiliation_id === aff.id)
-                      .map(ap => ({ id: ap.id, pixel: ap.pixel as any }))
+                      .map(ap => ({ id: ap.id, pixel: ap.pixel as any, plan_id: (ap as any).plan_id ?? null }))
                     return (
                       <AffiliationPixelSection
                         affiliationId={aff.id}
                         affPixels={affPixels}
                         availablePixels={(userPixels ?? []) as any}
+                        plans={plans.map((pl: any) => ({ id: pl.id, name: pl.name }))}
                       />
                     )
                   })()}

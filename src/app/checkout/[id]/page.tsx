@@ -67,15 +67,16 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     .filter((p: any) => p?.is_active)
     .map((p: any) => ({ platform: p.platform, pixel_id: p.pixel_id }))
 
-  // Affiliate pixels linked to their affiliation (only if ref present)
+  // Affiliate pixels linked to their affiliation — scoped to this plan or global (plan_id IS NULL)
   let affiliatePixels: { platform: string; pixel_id: string }[] = []
   if (affiliationId) {
     const { data: affPixelRows } = await supabase
       .from('affiliation_pixels')
-      .select('pixel:pixels(platform, pixel_id, is_active)')
+      .select('pixel:pixels(platform, pixel_id, is_active), plan_id')
       .eq('affiliation_id', affiliationId)
 
     affiliatePixels = (affPixelRows ?? [])
+      .filter((r: any) => r.plan_id === null || r.plan_id === plan.id)
       .map((r: any) => r.pixel)
       .filter((p: any) => p?.is_active)
       .map((p: any) => ({ platform: p.platform, pixel_id: p.pixel_id }))
