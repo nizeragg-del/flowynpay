@@ -86,8 +86,8 @@ export default async function AffiliationsPage() {
               const plans = product.plans as any[] || []
               const minPrice = plans.length > 0 ? Math.min(...plans.map((p: any) => Number(p.price))) : null
 
-              // Use localhost for now, will be the real domain later
-              const checkoutBase = `http://localhost:3000`
+              // Use the production URL from env, fallback to localhost for dev
+              const checkoutBase = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
               const affiliateLinks = plans.map((pl: any) => ({
                 planName: pl.name,
                 url: `${checkoutBase}/checkout/${pl.id}?ref=${aff.tracking_id}`
