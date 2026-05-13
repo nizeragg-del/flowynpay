@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     // 1. Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('stripe_account_id, email:auth.users(email)')
+      .select('stripe_account_id')
       .eq('id', user.id)
       .single()
 
