@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ balance: 0, pending: 0 })
     }
 
-    const balance = await stripe.balance.retrieve({
+    const balance = await stripe.balance.retrieve({}, {
       stripeAccount: profile.stripe_account_id,
     })
 
