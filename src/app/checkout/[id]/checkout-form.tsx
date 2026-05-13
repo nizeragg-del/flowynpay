@@ -26,9 +26,8 @@ export function CheckoutForm({ planId, productId, amount, commissionRate, affili
     const formData = new FormData(e.currentTarget)
     const customerName = formData.get('customer_name') as string
     const customerEmail = formData.get('customer_email') as string
-    const customerCpfCnpj = formData.get('customer_cpfCnpj') as string
 
-    if (!customerName || !customerEmail || !customerCpfCnpj) {
+    if (!customerName || !customerEmail) {
       setError('Preencha todos os campos.')
       setLoading(false)
       return
@@ -42,7 +41,6 @@ export function CheckoutForm({ planId, productId, amount, commissionRate, affili
           plan_id: planId,
           customer_name: customerName,
           customer_email: customerEmail,
-          customer_cpfCnpj: customerCpfCnpj,
           affiliate_id: affiliateId,
           tracking_id: trackingId,
         }),
@@ -56,10 +54,12 @@ export function CheckoutForm({ planId, productId, amount, commissionRate, affili
         return
       }
 
-      // Redirect to Asaas Checkout
+      // Redirect to Stripe Checkout
       if (data.checkout_url) {
         // Fire pixel Purchase event before navigating away
-        window.firePixelPurchase?.(Number(amount))
+        if (typeof window !== 'undefined' && (window as any).firePixelPurchase) {
+          (window as any).firePixelPurchase(Number(amount))
+        }
         window.location.href = data.checkout_url
         return // Don't setLoading(false) — we're navigating away
       }
@@ -111,25 +111,6 @@ export function CheckoutForm({ planId, productId, amount, commissionRate, affili
       </div>
 
       <div>
-        <label htmlFor="customer_cpfCnpj" className="block text-sm font-semibold text-slate-700 mb-2">
-          CPF ou CNPJ
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <ShieldCheck className="w-5 h-5 text-slate-400" />
-          </div>
-          <input
-            type="text"
-            id="customer_cpfCnpj"
-            name="customer_cpfCnpj"
-            required
-            placeholder="000.000.000-00"
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
-          />
-        </div>
-      </div>
-
-      <div>
         <label htmlFor="customer_email" className="block text-sm font-semibold text-slate-700 mb-2">
           E-mail
         </label>
@@ -167,13 +148,13 @@ export function CheckoutForm({ planId, productId, amount, commissionRate, affili
         ) : (
           <>
             <ShieldCheck className="w-5 h-5" />
-            Finalizar Compra
+            Ir para Pagamento Seguro
           </>
         )}
       </button>
 
       <p className="text-center text-xs text-slate-400 mt-3">
-        🔒 Seus dados estão protegidos com criptografia de ponta.
+        🔒 Seus dados estão protegidos com criptografia de ponta pelo Stripe.
       </p>
     </form>
   )

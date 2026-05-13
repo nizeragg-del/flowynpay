@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { asaasRequest, calculateAsaasSplit, getOrCreateAsaasCustomer } from '@/lib/asaas'
+import { stripe, PLATFORM_FEE_PERCENT, PLATFORM_FEE_FIXED } from '@/lib/stripe'
 
 function getAdminClient() {
   return createClient(
@@ -11,21 +11,21 @@ function getAdminClient() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('[Checkout] Início da requisição POST')
+  console.log('[Checkout] Início da requisição POST (Stripe)')
   try {
     const body = await request.json()
-    const { plan_id, customer_name, customer_email, customer_cpfCnpj, affiliate_id, tracking_id } = body
+    const { plan_id, customer_name, customer_email, affiliate_id, tracking_id } = body
 
-    if (!plan_id || !customer_name || !customer_email || !customer_cpfCnpj) {
+    if (!plan_id || !customer_name || !customer_email) {
       return NextResponse.json(
-        { error: 'Campos obrigatórios: plan_id, customer_name, customer_email, customer_cpfCnpj' },
+        { error: 'Campos obrigatórios: plan_id, customer_name, customer_email' },
         { status: 400 }
       )
     }
 
     const supabase = getAdminClient()
 
-    // Fetch plan + product + producer
+    // 1. Buscar plano + produto + produtor
     const { data: plan, error: planError } = await supabase
       .from('plans')
       .select('*, product:products(id, name, commission_rate, webhook_url, owner_id)')
@@ -39,29 +39,12 @@ export async function POST(request: NextRequest) {
 
     const product = plan.product as any
     const commissionRate = Number(product.commission_rate)
-    const amount = Number(plan.price)
+    const amount = Number(plan.price) // Valor em Reais (ex: 97.00)
+    const amountInCents = Math.round(amount * 100)
     
-    // Fetch producer profile for Asaas Wallet ID
-    const { data: producer } = await supabase
-      .from('profiles')
-      .select('asaas_wallet_id')
-      .eq('id', product.owner_id)
-      .single()
-
-    // Fetch affiliate profile for Asaas Wallet ID (if applicable)
-    let affiliateWalletId = null
-    if (affiliate_id) {
-      const { data: affiliate } = await supabase
-        .from('profiles')
-        .select('asaas_wallet_id')
-        .eq('id', affiliate_id)
-        .single()
-      affiliateWalletId = affiliate?.asaas_wallet_id
-    }
-
-    // Create pending order
+    // 2. Criar pedido pendente no banco
     const orderId = crypto.randomUUID()
-    const commissionAmount = (amount * commissionRate) / 100
+    const commissionAmount = affiliate_id ? (amount * commissionRate) / 100 : 0
 
     const { error: orderError } = await supabase
       .from('orders')
@@ -84,95 +67,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erro ao criar pedido' }, { status: 500 })
     }
 
-    // 1. Ensure Customer exists in Asaas
-    const asaasCustomer = await getOrCreateAsaasCustomer(customer_name, customer_email, customer_cpfCnpj)
-    const asaasCustomerId = asaasCustomer.id
-
-
-    // 2. Calculate Split
-    const { platformFee, affiliateCommission, producerAmount } = calculateAsaasSplit(amount, commissionRate)
+    // 3. Criar Sessão de Checkout do Stripe
+    // Usamos metadata para passar informações de split para o webhook
+    const origin = new URL(request.url).origin
     
-    // Get platform's own wallet ID to avoid self-split error
-    let platformWalletId: string | null = null
-    try {
-      const walletsResponse = await asaasRequest('/wallets')
-      platformWalletId = walletsResponse.data?.[0]?.id || null
-      console.log('[Checkout] Platform wallet ID:', platformWalletId)
-    } catch (err: any) {
-      console.warn('[Checkout] Could not fetch platform wallet ID, skipping self-split check:', err.message)
-    }
-
-    const splitRules: Array<{ walletId: string; fixedValue: number }> = []
-    
-    // 1. Affiliate Split
-    const canSplitToAffiliate = !!(affiliate_id && affiliateWalletId && affiliateWalletId !== platformWalletId && affiliateCommission > 0)
-    
-    if (canSplitToAffiliate) {
-      splitRules.push({
-        walletId: affiliateWalletId!,
-        fixedValue: Number(affiliateCommission.toFixed(2)),
-      })
-    }
-
-    // 2. Producer Split
-    // If we can't split to affiliate, the producer gets that commission amount as well
-    const finalProducerAmount = canSplitToAffiliate ? producerAmount : (producerAmount + affiliateCommission)
-    
-    if (producer?.asaas_wallet_id && producer.asaas_wallet_id !== platformWalletId) {
-      splitRules.push({
-        walletId: producer.asaas_wallet_id,
-        fixedValue: Number(finalProducerAmount.toFixed(2)),
-      })
-    }
-
-    console.log('[Checkout] Split rules:', JSON.stringify(splitRules))
-
-
-
-    // 3. Create Payment (One-time or Subscription)
-    const isSubscription = plan.billing_cycle && plan.billing_cycle !== 'NONE'
-    const endpoint = isSubscription ? '/subscriptions' : '/payments'
-    
-    const paymentRequest: any = {
-      customer: asaasCustomerId,
-      billingType: 'UNDEFINED',
-      value: Number(amount.toFixed(2)),
-      description: `${product.name} - ${plan.name}`,
-      externalReference: orderId,
-      split: splitRules.length > 0 ? splitRules : undefined,
-    }
-
-    if (isSubscription) {
-      paymentRequest.cycle = plan.billing_cycle
-      paymentRequest.nextDueDate = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString().split('T')[0]
-    } else {
-      paymentRequest.dueDate = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString().split('T')[0]
-    }
-
-    console.log(`[Checkout] Creating Asaas ${isSubscription ? 'subscription' : 'payment'}`)
-    const asaasResponse = await asaasRequest(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(paymentRequest)
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card', 'pix'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'brl',
+            product_data: {
+              name: `${product.name} - ${plan.name}`,
+              metadata: {
+                product_id: product.id,
+                plan_id: plan.id,
+              }
+            },
+            unit_amount: amountInCents,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/checkout/${plan.id}`,
+      customer_email: customer_email,
+      metadata: {
+        order_id: orderId,
+        producer_id: product.owner_id,
+        affiliate_id: affiliate_id || '',
+        commission_rate: commissionRate.toString(),
+      },
     })
 
-    // 4. Update order with Asaas ID and Invoice URL
+    // 4. Atualizar pedido com ID da sessão
     await supabase
       .from('orders')
       .update({ 
-        asaas_payment_id: isSubscription ? undefined : asaasResponse.id,
-        asaas_subscription_id: isSubscription ? asaasResponse.id : undefined,
-        asaas_invoice_url: asaasResponse.invoiceUrl,
-        platform_fee: platformFee,
-        producer_amount: Number(finalProducerAmount.toFixed(2)),
+        stripe_payment_id: session.id, // Armazenamos o Session ID aqui temporariamente
       })
       .eq('id', orderId)
 
-
-    console.log('[Checkout] Sucesso! Redirecionando para:', asaasResponse.invoiceUrl)
+    console.log('[Checkout] Sessão Stripe criada:', session.id)
     return NextResponse.json({
       success: true,
       order_id: orderId,
-      checkout_url: asaasResponse.invoiceUrl,
+      checkout_url: session.url,
     })
 
   } catch (err: any) {
@@ -180,4 +121,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: err.message || 'Erro interno do servidor' }, { status: 500 })
   }
 }
-
