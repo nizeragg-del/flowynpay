@@ -1,107 +1,156 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
-import { Plus, Package, ArrowRight, Settings2, Link2 } from 'lucide-react'
+import { PlusCircle, Box, BookOpen, FileText, Users, Layers, Globe, Lock, Eye, BarChart2, Zap } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+const TYPE_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
+  course:   { label: 'Curso',      color: 'text-blue-400 bg-blue-400/10',    icon: BookOpen },
+  ebook:    { label: 'E-book',     color: 'text-purple-400 bg-purple-400/10', icon: FileText },
+  mentoria: { label: 'Mentoria',   color: 'text-orange-400 bg-orange-400/10', icon: Users },
+  saas:     { label: 'SaaS',       color: 'text-[#00e88a] bg-[#00e88a]/10',   icon: Zap },
+  outros:   { label: 'Infoproduto',color: 'text-pink-400 bg-pink-400/10',     icon: Layers },
+}
 
-export default async function ProductsListPage() {
+export default async function ProductsPage() {
   const supabase = await createClient()
-
-  // Get user session
   const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return <div className="p-8 text-center text-white/50">Você precisa estar logado.</div>
-  }
+  if (!user) redirect('/login')
 
-  // Fetch products
-  const { data: products, error } = await supabase
+  const { data: products } = await supabase
     .from('products')
-    .select('*')
+    .select(`
+      id, name, logo_url, cover_url, product_type, is_public, is_flowyn_saas,
+      commission_rate, category, created_at,
+      plans(id, price),
+      affiliations(id)
+    `)
     .eq('owner_id', user.id)
     .order('created_at', { ascending: false })
 
+  const { data: sales } = await supabase
+    .from('orders')
+    .select('product_id, amount')
+    .eq('status', 'paid')
+    .in('product_id', (products ?? []).map(p => p.id))
+
+  const salesByProduct = (sales ?? []).reduce((acc: Record<string, number>, s) => {
+    acc[s.product_id] = (acc[s.product_id] || 0) + (s.amount || 0)
+    return acc
+  }, {})
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="py-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Meus Produtos</h1>
-          <p className="text-white/60 mt-1 font-medium">Gerencie os SaaS que você disponibiliza para afiliados.</p>
+          <h1 className="text-3xl font-extrabold text-white">Meus Produtos</h1>
+          <p className="text-white/50 text-sm mt-1">{products?.length ?? 0} produto(s) criado(s)</p>
         </div>
-        
-        <Link 
-          href="/dashboard/products/new" 
-          className="flex items-center justify-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black px-6 py-3 rounded-xl font-bold shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)] transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          Cadastrar Novo SaaS
+        <Link href="/dashboard/products/new"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00e88a] text-black font-bold text-sm shadow-[0_0_15px_rgba(0,232,138,0.2)] hover:shadow-[0_0_25px_rgba(0,232,138,0.4)] hover:-translate-y-0.5 transition-all">
+          <PlusCircle className="w-4 h-4" />
+          Criar Produto
         </Link>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20">
-          Erro ao carregar produtos: {error.message}
+      {/* Empty state */}
+      {(!products || products.length === 0) && (
+        <div className="text-center py-24 bg-[#111111] border border-white/10 rounded-3xl">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-5">
+            <Box className="w-8 h-8 text-white/20" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">Nenhum produto criado</h3>
+          <p className="text-white/50 text-sm mb-8">Crie seu primeiro produto e comece a vender hoje mesmo.</p>
+          <Link href="/dashboard/products/new"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#00e88a] text-black font-bold text-sm">
+            <PlusCircle className="w-4 h-4" /> Criar Primeiro Produto
+          </Link>
         </div>
       )}
 
-      {!products || products.length === 0 ? (
-        <div className="bg-[#111111] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-xl">
-          <div className="w-20 h-20 bg-white/5 flex items-center justify-center rounded-full mb-6 border border-white/10">
-            <Package className="w-10 h-10 text-white/40" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">Nenhum produto cadastrado</h2>
-          <p className="text-white/50 max-w-md mx-auto mb-8">
-            Você ainda não cadastrou nenhum Software ou SaaS na plataforma. Comece agora mesmo a gerenciar seus afiliados.
-          </p>
-          <Link 
-            href="/dashboard/products/new" 
-            className="flex items-center justify-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black px-8 py-3 rounded-xl font-bold shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)] transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Cadastrar Meu Primeiro SaaS
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <div key={product.id} className="bg-[#111111] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-[#00e88a]/30 transition-all flex flex-col relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#00e88a]/5 rounded-full blur-[40px] -mr-10 -mt-10 pointer-events-none group-hover:bg-[#00e88a]/10 transition-colors" />
-              <div className="flex items-start justify-between mb-4 relative z-10">
-                <div className="w-14 h-14 bg-[#0a0a0a] rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden">
-                  {product.logo_url ? (
-                    <img src={product.logo_url} alt={product.name} className="w-full h-full object-cover" />
+      {/* Products grid */}
+      {products && products.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {products.map(product => {
+            const cfg = TYPE_CONFIG[product.product_type] ?? TYPE_CONFIG['outros']
+            const Icon = cfg.icon
+            const minPrice = product.plans?.length
+              ? Math.min(...product.plans.map((p: any) => p.price))
+              : null
+            const affiliateCount = product.affiliations?.length ?? 0
+            const totalRevenue = salesByProduct[product.id] ?? 0
+
+            return (
+              <Link key={product.id} href={`/dashboard/products/${product.id}`}
+                className="group bg-[#111111] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 hover:-translate-y-1 transition-all">
+
+                {/* Cover image */}
+                <div className="h-36 bg-gradient-to-br from-white/5 to-white/0 relative overflow-hidden">
+                  {product.cover_url ? (
+                    <img src={product.cover_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <Package className="w-6 h-6 text-white/40" />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Icon className="w-12 h-12 text-white/10" />
+                    </div>
+                  )}
+                  {/* Type badge */}
+                  <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${cfg.color}`}>
+                    <Icon className="w-3.5 h-3.5" />
+                    {cfg.label}
+                  </div>
+                  {/* Visibility badge */}
+                  <div className={`absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${product.is_public ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'bg-white/5 text-white/40'}`}>
+                    {product.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                    {product.is_public ? 'Público' : 'Privado'}
+                  </div>
+                </div>
+
+                {/* Card body */}
+                <div className="p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    {product.logo_url ? (
+                      <img src={product.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-5 h-5 text-white/30" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-white truncate">{product.name}</h3>
+                      <p className="text-xs text-white/40 mt-0.5">{product.category || 'Sem categoria'}</p>
+                    </div>
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/5">
+                    <div className="text-center">
+                      <p className="text-xs text-white/40 mb-0.5">Comissão</p>
+                      <p className="text-sm font-bold text-[#00e88a]">{product.commission_rate}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-white/40 mb-0.5">A partir de</p>
+                      <p className="text-sm font-bold text-white">
+                        {minPrice !== null ? `R$ ${minPrice.toFixed(2).replace('.', ',')}` : '—'}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-white/40 mb-0.5">Afiliados</p>
+                      <p className="text-sm font-bold text-white">{affiliateCount}</p>
+                    </div>
+                  </div>
+
+                  {totalRevenue > 0 && (
+                    <div className="mt-3 flex items-center gap-2 bg-[#00e88a]/5 rounded-lg px-3 py-2">
+                      <BarChart2 className="w-3.5 h-3.5 text-[#00e88a]" />
+                      <span className="text-xs text-[#00e88a] font-semibold">
+                        R$ {totalRevenue.toFixed(2).replace('.', ',')} em vendas
+                      </span>
+                    </div>
                   )}
                 </div>
-                <div className="bg-[#00e88a]/10 text-[#00e88a] border border-[#00e88a]/20 text-xs font-bold px-3 py-1 rounded-full">
-                  SaaS
-                </div>
-              </div>
-              
-              <h3 className="text-xl font-bold text-white mb-1 relative z-10">{product.name}</h3>
-              <div className="flex items-center gap-2 text-sm text-white/50 mb-6 relative z-10">
-                <Link2 className="w-4 h-4" />
-                <span className="truncate">{product.site_url || 'Sem site cadastrado'}</span>
-              </div>
-              
-              <div className="mt-auto relative z-10">
-                <div className="flex items-center justify-between py-4 border-t border-white/10 mb-4">
-                  <span className="text-sm text-white/50">Comissão de Afiliado</span>
-                  <span className="font-bold text-[#00e88a]">{product.commission_rate}%</span>
-                </div>
-                
-                <Link 
-                  href={`/dashboard/products/${product.id}`}
-                  className="w-full border border-white/10 hover:border-[#00e88a] hover:bg-[#00e88a]/5 text-white/70 hover:text-[#00e88a] font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
-                >
-                  <Settings2 className="w-4 h-4" />
-                  Gerenciar Produto
-                  <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all" />
-                </Link>
-              </div>
-            </div>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

@@ -53,13 +53,12 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
     'use server'
     const name = formData.get('name') as string
     const price = formData.get('price') as string
-    const plan_identifier = formData.get('plan_identifier') as string
+    const billing_type = formData.get('billing_type') as string || 'one_time'
 
     if (!name || !price) return
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-
     if (!user) return
 
     await supabase
@@ -68,7 +67,7 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
         product_id: productId,
         name,
         price: parseFloat(price),
-        plan_identifier: plan_identifier || null
+        billing_type,
       })
 
     revalidatePath(`/dashboard/products/${productId}/plans`)
@@ -91,11 +90,6 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
               </p>
             </div>
           </div>
-          
-          <Link href={`/dashboard/products/${productId}/integrations`} className="inline-flex items-center gap-2 bg-[#111111] border border-white/10 text-white/70 font-semibold px-5 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition-all shadow-xl text-sm">
-            Integrações (Webhook)
-            <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -124,7 +118,7 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
                 </div>
 
                 <div>
-                  <label htmlFor="price" className="block text-sm font-semibold text-white/70 mb-2">Preço Mensal (R$)</label>
+                  <label htmlFor="price" className="block text-sm font-semibold text-white/70 mb-2">Preço (R$)</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">R$</span>
                     <input 
@@ -141,15 +135,21 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
                 </div>
 
                 <div>
-                  <label htmlFor="plan_identifier" className="block text-sm font-semibold text-white/70 mb-2">Identificador no SaaS <span className="text-white/40 font-normal">(Opcional)</span></label>
-                  <input 
-                    type="text" 
-                    id="plan_identifier" 
-                    name="plan_identifier" 
-                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none text-sm" 
-                    placeholder="Ex: pro" 
-                  />
-                  <p className="text-xs text-white/40 mt-1">Identificador usado na integração para o seu sistema saber qual plano liberar.</p>
+                  <label className="block text-sm font-semibold text-white/70 mb-2">Tipo de Cobrança</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: 'one_time', label: '💳 Pagamento Único' },
+                      { value: 'recurring', label: '🔁 Recorrente/Mês' },
+                    ].map(bt => (
+                      <label key={bt.value} className="cursor-pointer">
+                        <input type="radio" name="billing_type" value={bt.value} defaultChecked={bt.value === 'one_time'} className="sr-only peer" />
+                        <div className="py-2.5 px-3 rounded-xl border border-white/10 text-xs font-bold text-white/50 text-center
+                          peer-checked:border-[#00e88a] peer-checked:bg-[#00e88a]/10 peer-checked:text-[#00e88a] transition-all cursor-pointer">
+                          {bt.label}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
                 </div>
 
                 <button 

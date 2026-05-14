@@ -10,16 +10,6 @@ export default async function AffiliationsPage() {
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'affiliate') {
-    redirect('/dashboard')
-  }
-
   const { data: affiliations } = await supabase
     .from('affiliations')
     .select(`

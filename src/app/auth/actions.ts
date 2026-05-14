@@ -33,7 +33,9 @@ export async function signup(formData: FormData) {
     options: {
       data: {
         full_name: formData.get('full_name') as string,
-        role: formData.get('role') as string,
+        // Role defaults to 'affiliate' for DB compatibility.
+        // All users can create products AND affiliate — role distinction is UI-only.
+        role: 'affiliate',
       }
     }
   }

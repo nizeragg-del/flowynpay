@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowyn — O Fluxo de Vendas Perfeito para o seu SaaS</title>
+<title>Flowyn — Marketplace de Afiliados para Infoprodutos e MicroSaaS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -640,14 +640,14 @@
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-badge">Plataforma de vendas para SaaS e Micro SaaS</div>
-    <h1>Seu SaaS vendendo<br>sozinho, <em>24 horas</em><br>por dia.</h1>
-    <p class="hero-sub">Conecte o Flowyn ao seu produto e transforme cada venda num acesso automático. Sem código, sem webhook manual, sem dor de cabeça.</p>
+    <div class="hero-badge">Marketplace de Afiliados · Infoprodutos · MicroSaaS</div>
+    <h1>Crie, venda e<br>afilie-se em<br><em>um só lugar.</em></h1>
+    <p class="hero-sub">Publique seus cursos, e-books e mentorias — ou ganhe comissões promovendo os MicroSaaS da Flowyn. Checkout nativo, order bumps e split automático.</p>
     <div class="hero-ctas">
-      <button class="cta-main">Criar Conta como Produtor <span class="arrow">→</span></button>
-      <button class="cta-sec">Quero ser Afiliado</button>
+      <button class="cta-main" onclick="window.location='/register'">Criar Conta Gratuita <span class="arrow">→</span></button>
+      <button class="cta-sec" onclick="window.location='/market'">Ver Produtos na Vitrine</button>
     </div>
-    <p class="hero-disclaimer">Nenhum cartão de crédito • Setup em 3 minutos • Sem mensalidade</p>
+    <p class="hero-disclaimer">Sem mensalidade · Comece em minutos · Comissões automáticas via Stripe</p>
   </div>
 </section>
 
@@ -667,28 +667,28 @@
 <section class="pain-section">
   <div class="pain-inner">
     <div class="pain-left" data-reveal>
-      <h2>Integrações quebradas<br><span>custam vendas reais.</span></h2>
-      <p>Você passa noites configurando webhooks complexos, cruza os dedos para o pagamento cair e ainda torce para o cliente receber o acesso. O Flowyn elimina isso de vez.</p>
+      <h2>Venda mais.<br><span>Automatize tudo.</span></h2>
+      <p>Chega de configurar gateways, calcular comissões na planilha e enviar acessos manualmente. A Flowyn cuida de todo o fluxo — do checkout ao repasse — enquanto você foca no seu conteúdo.</p>
       <div class="pain-features">
         <div class="pain-feat">
           <div class="pain-feat-icon green">⚡</div>
           <div>
-            <h3>No-Code em 3 Minutos</h3>
-            <p>Integração nativa via Make.com — configure o webhook, defina o endpoint e está feito.</p>
+            <h3>Checkout Nativo com Order Bump</h3>
+            <p>Cada produto tem seu checkout customizável com imagem, vídeo e oferta adicional (order bump) que aumenta o ticket médio.</p>
           </div>
         </div>
         <div class="pain-feat">
           <div class="pain-feat-icon blue">🔒</div>
           <div>
-            <h3>Split Financeiro Nativo</h3>
-            <p>O dinheiro do afiliado e do produtor se separam automaticamente na raiz, sem reconciliação manual.</p>
+            <h3>Split Financeiro Automático</h3>
+            <p>O dinheiro do afiliado e do criador se separam automaticamente via Stripe Connect — sem reconciliação manual.</p>
           </div>
         </div>
         <div class="pain-feat">
           <div class="pain-feat-icon green">↻</div>
           <div>
-            <h3>Recorrência Real</h3>
-            <p>MRR previsível para o produtor. Renda passiva real para o afiliado. Sem cancelamentos silenciosos.</p>
+            <h3>Comissão Recorrente Real</h3>
+            <p>Nos MicroSaaS da Flowyn, afiliados recebem 75% todo mês enquanto o assinante estiver ativo. Renda passiva de verdade.</p>
           </div>
         </div>
       </div>
@@ -697,7 +697,7 @@
       <div class="flow-step">
         <div class="flow-step-left">
           <div class="flow-step-dot dot-green"></div>
-          <span class="flow-step-label">Venda Aprovada (Flowyn)</span>
+          <span class="flow-step-label">Compra via Checkout Flowyn</span>
         </div>
         <span class="flow-step-badge badge-success">✓ OK</span>
       </div>
@@ -705,7 +705,7 @@
       <div class="flow-step">
         <div class="flow-step-left">
           <div class="flow-step-dot dot-yellow"></div>
-          <span class="flow-step-label">Rotear Pagamento</span>
+          <span class="flow-step-label">Split: Criador + Afiliado</span>
         </div>
         <span class="flow-step-badge badge-success">✓ OK</span>
       </div>
@@ -713,13 +713,13 @@
       <div class="flow-step">
         <div class="flow-step-left">
           <div class="flow-step-dot dot-blue"></div>
-          <span class="flow-step-label">Criar Acesso no Supabase</span>
+          <span class="flow-step-label">Acesso Liberado / E-mail Enviado</span>
         </div>
         <span class="flow-step-badge badge-success">SUCCESS</span>
       </div>
       <div style="margin-top: 20px; padding: 14px; background: rgba(0,232,138,0.06); border: 1px solid rgba(0,232,138,0.15); border-radius: 10px; text-align: center;">
-        <span style="font-size: 13px; color: rgba(255,255,255,0.5);">Cliente cadastrado automaticamente</span><br>
-        <span style="font-size: 15px; font-weight: 500; color: var(--green);">✓ Sem intervenção manual</span>
+        <span style="font-size: 13px; color: rgba(255,255,255,0.5);">Comissão creditada automaticamente</span><br>
+        <span style="font-size: 15px; font-weight: 500; color: var(--green);">✓ Zero intervenção manual</span>
       </div>
     </div>
   </div>
@@ -730,24 +730,24 @@
   <div class="how-inner">
     <div class="how-header" data-reveal>
       <span class="section-tag">Como funciona</span>
-      <h2 class="section-title">Três passos.<br>Vendas automáticas.</h2>
-      <p class="section-sub">Do cadastro no Flowyn à primeira venda em menos de uma hora.</p>
+      <h2 class="section-title">Três passos.<br>Você no controle.</h2>
+      <p class="section-sub">Do cadastro à primeira venda ou comissão em menos de uma hora.</p>
     </div>
     <div class="steps-grid" data-reveal data-delay="1">
       <div class="step-card">
         <div class="step-num">01</div>
-        <h3 class="step-title">Cadastre seu produto</h3>
-        <p class="step-desc">Crie seu produto no Flowyn, defina o preço e configure a comissão dos afiliados. Em minutos seu SaaS está no ar.</p>
+        <h3 class="step-title">Crie ou explore</h3>
+        <p class="step-desc">Publique seus infoprodutos (cursos, e-books, mentorias) com checkout customizado — ou navegue na vitrine e escolha um produto da Flowyn para afiliar-se.</p>
       </div>
       <div class="step-card">
         <div class="step-num">02</div>
-        <h3 class="step-title">Configure o webhook no Make</h3>
-        <p class="step-desc">Cole a URL do webhook custom do Make.com no Flowyn, aponte para o endpoint do seu banco de dados. Pronto — zero código.</p>
+        <h3 class="step-title">Configure e divulgue</h3>
+        <p class="step-desc">Defina comissões, adicione order bumps e gere seu link rastreável. Compartilhe nas redes e veja as vendas chegando em tempo real.</p>
       </div>
       <div class="step-card">
         <div class="step-num">03</div>
-        <h3 class="step-title">Venda e escale</h3>
-        <p class="step-desc">A cada venda aprovada, o cliente é cadastrado automaticamente no seu SaaS. Você foca no produto, o Flowyn cuida da operação.</p>
+        <h3 class="step-title">Receba e escale</h3>
+        <p class="step-desc">O Stripe cuida do split automático a cada venda. Criadores e afiliados recebem sua parte sem nenhuma intervenção manual.</p>
       </div>
     </div>
   </div>
@@ -764,17 +764,17 @@
       </div>
     </div>
 
-    <!-- PRODUTOR -->
+    <!-- CRIADOR -->
     <div id="tab-produtor" class="tab-content active" data-reveal data-delay="1">
       <div>
-        <h2>Venda sem<br>custo de <span>anúncios.</span></h2>
-        <p class="desc">Sua rede de afiliados trabalha por você. Pague comissão apenas quando a venda acontecer — performance pura, sem risco.</p>
+        <h2>Publique e venda<br>seu <span>infoproduto.</span></h2>
+        <p class="desc">Crie cursos, e-books e mentorias com checkout nativo, order bumps e área de membros hospedada na Flowyn. Sua rede de afiliados trabalha por você.</p>
         <div class="benefit-list">
-          <div class="benefit-item"><div class="check">✓</div><span>Afiliados promovem seu produto em troca de comissão recorrente — você cresce sem gastar em mídia</span></div>
-          <div class="benefit-item"><div class="check">✓</div><span>Cada venda cadastra o cliente automaticamente no seu SaaS via Make.com</span></div>
-          <div class="benefit-item"><div class="check">✓</div><span>Split financeiro nativo: você recebe a sua parte, o afiliado a dele, automaticamente</span></div>
-          <div class="benefit-item"><div class="check">✓</div><span>Dashboard de MRR em tempo real — saiba exatamente quanto entra a cada renovação</span></div>
-          <div class="benefit-item"><div class="check">✓</div><span>Checkout otimizado para SaaS — taxa de conversão acima da média do mercado</span></div>
+          <div class="benefit-item"><div class="check">✓</div><span>Wizard de criação passo a passo — produto no ar em minutos</span></div>
+          <div class="benefit-item"><div class="check">✓</div><span>Checkout customizado com banner, vídeo e order bump nativo</span></div>
+          <div class="benefit-item"><div class="check">✓</div><span>Afiliados promovem seu produto por comissão — você paga só na venda</span></div>
+          <div class="benefit-item"><div class="check">✓</div><span>Split Stripe automático: cada parte recebe o seu, sem reconciliação</span></div>
+          <div class="benefit-item"><div class="check">✓</div><span>Área de membros integrada para hospedar vídeos e PDFs</span></div>
         </div>
       </div>
       <div class="benefit-visual">

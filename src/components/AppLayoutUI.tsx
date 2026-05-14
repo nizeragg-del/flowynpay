@@ -14,6 +14,7 @@ interface AppLayoutUIProps {
   totalSales: number
 }
 
+
 function formatCurrency(value: number) {
   if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`
   if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}k`
@@ -93,7 +94,7 @@ export function AppLayoutUI({ children, profile, user, isAffiliate, isProducer, 
 
       {/* Desktop Sidebar */}
       <div className="hidden md:flex flex-shrink-0 z-20">
-        <Sidebar isAffiliate={isAffiliate} isProducer={isProducer} />
+        <Sidebar profile={profile} />
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -119,7 +120,7 @@ export function AppLayoutUI({ children, profile, user, isAffiliate, isProducer, 
                 }
               }}
             >
-              <Sidebar isAffiliate={isAffiliate} isProducer={isProducer} />
+              <Sidebar profile={profile} />
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="absolute top-4 right-[-48px] w-10 h-10 bg-[#111] border border-white/10 rounded-xl flex items-center justify-center text-white"

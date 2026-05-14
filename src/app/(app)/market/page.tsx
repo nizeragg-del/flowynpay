@@ -13,18 +13,11 @@ export default async function MarketPage() {
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  const isAffiliate = profile?.role === 'affiliate'
-
-  // Fetch products with plans and owner
+  // Fetch only public products (is_public = true)
   const { data: products } = await supabase
     .from('products')
-    .select('*, owner:profiles(full_name), plans(*)')
+    .select('*, owner:profiles(full_name), plans(*), flowyn_saas_products(commission_rate)')
+    .eq('is_public', true)
     .order('created_at', { ascending: false })
 
   // Affiliations count per product
@@ -82,14 +75,12 @@ export default async function MarketPage() {
                 {productCount} {productCount === 1 ? 'produto disponível' : 'produtos disponíveis'} para afiliação. Promova e ganhe comissões recorrentes.
               </p>
             </div>
-            {isAffiliate && (
-              <Link
-                href="/dashboard/affiliations"
-                className="inline-flex items-center gap-2 bg-[#111111] border border-white/10 text-white px-5 py-2.5 rounded-xl font-semibold shadow-xl hover:bg-white/5 transition-all text-sm"
-              >
-                Minhas Afiliações
-              </Link>
-            )}
+            <Link
+              href="/dashboard/affiliations"
+              className="inline-flex items-center gap-2 bg-[#111111] border border-white/10 text-white px-5 py-2.5 rounded-xl font-semibold shadow-xl hover:bg-white/5 transition-all text-sm"
+            >
+              Minhas Afiliações
+            </Link>
           </div>
         </div>
 
@@ -106,7 +97,7 @@ export default async function MarketPage() {
             products={products as any}
             affiliatedProductIds={affiliatedProductIds}
             countMap={countMap}
-            isAffiliate={isAffiliate}
+            isAffiliate={true}
             promoteProduct={promoteProduct}
           />
         )}
