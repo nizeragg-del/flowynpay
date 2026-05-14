@@ -70,6 +70,7 @@ export function ProductWizard({
   const [step, setStep] = useState(1)
   const [data, setData] = useState<WizardData>(INITIAL)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   const set = (key: keyof WizardData, value: any) => setData(d => ({ ...d, [key]: value }))
@@ -88,7 +89,14 @@ export function ProductWizard({
 
   const handleSubmit = async () => {
     setLoading(true)
-    try { await createProductAction(data) } finally { setLoading(false) }
+    setError(null)
+    try {
+      await createProductAction(data)
+    } catch (err: any) {
+      console.error('[Wizard] Erro ao publicar produto:', err)
+      setError(err?.message || 'Erro desconhecido ao publicar o produto. Tente novamente.')
+      setLoading(false)
+    }
   }
 
   const steps = ['Tipo', 'Detalhes', 'Checkout', 'Preços', 'Publicar']
@@ -407,6 +415,21 @@ export function ProductWizard({
             <div className="flex justify-between text-sm"><span className="text-white/50">Comissão</span><span className="text-[#00e88a] font-bold">{data.commission_rate}%</span></div>
             <div className="flex justify-between text-sm"><span className="text-white/50">Entrega</span><span className="text-white font-semibold">{data.deliverable_file_path ? '📁 Arquivo enviado' : data.delivery_url ? '🔗 Link externo' : data.delivery_type === 'platform' ? '🎓 Área de membros' : '—'}</span></div>
             <div className="flex justify-between text-sm"><span className="text-white/50">Visibilidade</span><span className="text-white font-semibold">{data.is_public ? 'Público' : 'Privado'}</span></div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {error && (
+        <div style={{
+          background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
+          borderRadius: 14, padding: '14px 18px', marginTop: 24,
+          display: 'flex', alignItems: 'flex-start', gap: 12
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#ef4444', margin: '0 0 2px' }}>Erro ao publicar produto</p>
+            <p style={{ fontSize: 12, color: 'rgba(239,68,68,0.8)', margin: 0 }}>{error}</p>
           </div>
         </div>
       )}
