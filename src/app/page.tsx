@@ -7,12 +7,13 @@ import Benefits from "./_landing/Benefits";
 import Integrations from "./_landing/Integrations";
 import Testimonials from "./_landing/Testimonials";
 import Stats from "./_landing/Stats";
+import Rates from "./_landing/Rates";
 import FinalCTA from "./_landing/FinalCTA";
 import Footer from "./_landing/Footer";
 
 export const metadata = {
-  title: "Flowyn — Seu SaaS vendendo sozinho, 24 horas por dia.",
-  description: "Checkout, split financeiro e acesso automático para o seu cliente. Plataforma de vendas para SaaS com afiliados integrados. Comece grátis.",
+  title: "Flowyn — Marketplace de Afiliados para Infoprodutos e MicroSaaS",
+  description: "Publique cursos, e-books e mentorias ou afilie-se aos MicroSaaS da Flowyn. Checkout nativo, order bumps, split automático via Stripe e área de membros integrada.",
 };
 
 export default function Home() {
@@ -27,6 +28,7 @@ export default function Home() {
         <Benefits />
         <Integrations />
         <Testimonials />
+        <Rates />
         <Stats />
         <FinalCTA />
       </main>

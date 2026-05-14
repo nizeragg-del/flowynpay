@@ -2,12 +2,20 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { ProductWizard } from './ProductWizard'
 
+const ADMIN_EMAIL = 'dnlmarianoneto@gmail.com'
+
 // ─── Server Action: Create Product ───────────────────────────────────────────
 async function createProductAction(data: any) {
   'use server'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // Block SaaS/MicroSaaS creation for non-admin users
+  const isAdmin = user.email === ADMIN_EMAIL
+  if (!isAdmin && (data.product_type === 'saas' || data.product_type === 'microsaas' || data.is_flowyn_saas)) {
+    throw new Error('Apenas administradores da Flowyn podem criar produtos SaaS.')
+  }
 
   // 1. Create product
   const { data: product, error } = await supabase
