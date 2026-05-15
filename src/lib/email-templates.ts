@@ -1,10 +1,9 @@
 export function deliveryEmail(opts: {
   customerName: string
   productName: string
-  accessLink: string | null
-  isFile: boolean
+  accessLinks: { label: string; url: string; isFile: boolean }[]
 }) {
-  const { customerName, productName, accessLink, isFile } = opts
+  const { customerName, productName, accessLinks } = opts
   const G = '#00e88a'
 
   return `<!DOCTYPE html>
@@ -49,25 +48,29 @@ export function deliveryEmail(opts: {
               </p>
               <p style="color:rgba(255,255,255,0.55);font-size:15px;line-height:1.65;margin:0 0 32px;">
                 Seu acesso a <strong style="color:#fff;">${productName}</strong> está pronto.
-                ${isFile ? 'Clique no botão abaixo para baixar seu arquivo.' : 'Use o link abaixo para acessar o conteúdo.'}
+                ${accessLinks.length > 0 ? 'Use os botões abaixo para acessar seu conteúdo.' : ''}
               </p>
 
-              ${accessLink ? `
-              <a href="${accessLink}"
-                 style="display:inline-block;background:${G};color:#0a0a0a;font-weight:800;font-size:16px;
-                        padding:16px 40px;border-radius:14px;text-decoration:none;letter-spacing:-0.02em;">
-                ${isFile ? '📥 Baixar Agora' : '🔓 Acessar Conteúdo'}
-              </a>
-              ` : `
+              ${accessLinks.length > 0 ? 
+                accessLinks.map(link => `
+                  <div style="margin-bottom: 12px;">
+                    <a href="${link.url}"
+                       style="display:inline-block;background:${G};color:#0a0a0a;font-weight:800;font-size:16px;
+                              padding:16px 40px;border-radius:14px;text-decoration:none;letter-spacing:-0.02em;">
+                      ${link.label}
+                    </a>
+                  </div>
+                `).join('')
+              : `
               <p style="color:rgba(255,255,255,0.4);font-size:14px;">
                 Seu acesso está sendo processado. Em caso de dúvidas, entre em contato pelo suporte.
               </p>
               `}
 
-              ${accessLink && isFile ? `
+              ${accessLinks.some(link => link.isFile) ? `
               <p style="color:rgba(255,255,255,0.3);font-size:12px;margin-top:20px;">
-                ⚠️ Este link expira em <strong style="color:rgba(255,255,255,0.5);">48 horas</strong>.
-                Salve o arquivo após o download.
+                ⚠️ Os links de arquivo expiram em <strong style="color:rgba(255,255,255,0.5);">48 horas</strong>.
+                Salve os arquivos após o download.
               </p>
               ` : ''}
             </td>

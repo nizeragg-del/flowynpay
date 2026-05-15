@@ -37,11 +37,12 @@ async function createProductAction(data: any): Promise<{ error: string } | void>
       checkout_video_url: data.checkout_video_url || null,
       delivery_type: data.delivery_type,
       delivery_url: data.delivery_url || null,
-      deliverable_file_path: data.deliverable_file_path || null,
+      deliverable_file_paths: data.deliverable_file_paths?.length > 0 ? data.deliverable_file_paths : null,
       order_bump_title: data.order_bump_enabled ? data.order_bump_title : null,
       order_bump_description: data.order_bump_enabled ? data.order_bump_description : null,
       order_bump_price: data.order_bump_enabled && data.order_bump_price ? parseFloat(data.order_bump_price) : null,
       order_bump_discount_percent: data.order_bump_enabled && data.order_bump_discount_percent ? parseFloat(data.order_bump_discount_percent) : null,
+      order_bump_file_paths: data.order_bump_enabled && data.order_bump_file_paths?.length > 0 ? data.order_bump_file_paths : null,
     })
     .select('id')
     .single()

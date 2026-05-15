@@ -42,7 +42,8 @@ interface WizardData {
   commission_rate: string
   delivery_type: string
   delivery_url: string
-  deliverable_file_path: string
+  deliverable_file_paths: string[]
+  order_bump_file_paths: string[]
   is_public: boolean
 }
 
@@ -54,7 +55,7 @@ const INITIAL: WizardData = {
   order_bump_enabled: false, order_bump_title: '', order_bump_description: '',
   order_bump_price: '', order_bump_discount_percent: '',
   commission_rate: '40', delivery_type: 'external', delivery_url: '',
-  deliverable_file_path: '', is_public: true,
+  deliverable_file_paths: [], order_bump_file_paths: [], is_public: true,
 }
 
 const inputClass = 'w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none'
@@ -302,6 +303,25 @@ export function ProductWizard({
                     <input className={inputClass} type="number" min="0" max="100" placeholder="50" value={data.order_bump_discount_percent} onChange={e => set('order_bump_discount_percent', e.target.value)} />
                   </div>
                 </div>
+                {data.delivery_type === 'external' && !data.delivery_url && (
+                  <div className="pt-3">
+                    <FileUpload
+                      mode="file"
+                      label="Arquivos do Order Bump"
+                      hint="PDF, ZIP ou EPUB — máx. 100MB. Serão enviados caso o cliente adicione a oferta."
+                      userId={userId}
+                      folder="order_bumps"
+                      multiple={true}
+                      currentUrls={data.order_bump_file_paths}
+                      onUpload={(paths) => set('order_bump_file_paths', paths)}
+                      onRemove={(index) => {
+                        const newPaths = [...data.order_bump_file_paths]
+                        newPaths.splice(index, 1)
+                        set('order_bump_file_paths', newPaths)
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -351,17 +371,23 @@ export function ProductWizard({
               {!data.delivery_url && (
                 <FileUpload
                   mode="file"
-                  label={isDigitalFile ? 'Fazer upload do arquivo (PDF, ZIP, EPUB)' : 'Arquivo entregável (opcional)'}
-                  hint="PDF, ZIP ou EPUB — máx. 100MB. Link assinado de 48h enviado por e-mail."
+                  label={isDigitalFile ? 'Fazer upload dos arquivos (PDF, ZIP, EPUB)' : 'Arquivos entregáveis (opcional)'}
+                  hint="PDF, ZIP ou EPUB — máx. 100MB. Links enviados por e-mail."
                   userId={userId}
                   folder="deliverables"
-                  onUpload={(path) => set('deliverable_file_path', path)}
-                  onRemove={() => set('deliverable_file_path', '')}
+                  multiple={true}
+                  currentUrls={data.deliverable_file_paths}
+                  onUpload={(paths) => set('deliverable_file_paths', paths)}
+                  onRemove={(index) => {
+                    const newPaths = [...data.deliverable_file_paths]
+                    newPaths.splice(index, 1)
+                    set('deliverable_file_paths', newPaths)
+                  }}
                 />
               )}
 
               {/* Separador OU */}
-              {!data.deliverable_file_path && (
+              {data.deliverable_file_paths.length === 0 && (
                 <>
                   {!data.delivery_url && (
                     <div className="flex items-center gap-3">
@@ -384,10 +410,10 @@ export function ProductWizard({
                 </>
               )}
 
-              {data.deliverable_file_path && (
+              {data.deliverable_file_paths.length > 0 && (
                 <div className="bg-[#00e88a]/5 border border-[#00e88a]/20 rounded-xl p-3">
                   <p className="text-sm text-[#00e88a] font-medium">
-                    ✅ Arquivo salvo! Será enviado por e-mail com link de download de 48h após a compra.
+                    ✅ {data.deliverable_file_paths.length} arquivo(s) salvo(s)! Serão enviados por e-mail com link de download de 48h após a compra.
                   </p>
                 </div>
               )}

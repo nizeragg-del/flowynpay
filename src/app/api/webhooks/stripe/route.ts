@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         .select(`
           *,
           product:products(
-            id, name, delivery_type, delivery_url, deliverable_file_path, webhook_url
+            id, name, delivery_type, delivery_url, deliverable_file_paths, order_bump_file_paths, webhook_url
           )
         `)
         .eq('id', orderId)
@@ -116,21 +116,43 @@ export async function POST(req: NextRequest) {
 
       // 6. Entrega Digital: enviar e-mail com arquivo ou link
       if (product?.delivery_type === 'external') {
-        let accessLink: string | null = product.delivery_url || null
-        let isFile = false
+        const accessLinks: { label: string; url: string; isFile: boolean }[] = []
+
+        if (product.delivery_url) {
+          accessLinks.push({ label: '🔓 Acessar Conteúdo', url: product.delivery_url, isFile: false })
+        }
 
         // Se tem arquivo no Storage → gerar signed URL válido por 48h
-        if (product.deliverable_file_path) {
-          console.log('[Webhook] Gerando signed URL para:', product.deliverable_file_path)
-          const { data: signed, error: signedError } = await supabase.storage
-            .from('product-files')
-            .createSignedUrl(product.deliverable_file_path, 60 * 60 * 48) // 48h
+        if (product.deliverable_file_paths && Array.isArray(product.deliverable_file_paths)) {
+          for (const path of product.deliverable_file_paths) {
+            console.log('[Webhook] Gerando signed URL para:', path)
+            const { data: signed, error: signedError } = await supabase.storage
+              .from('product-files')
+              .createSignedUrl(path, 60 * 60 * 48) // 48h
 
-          if (signedError) {
-            console.error('[Webhook] Erro ao gerar signed URL:', signedError)
-          } else {
-            accessLink = signed?.signedUrl || accessLink
-            isFile = true
+            if (!signedError && signed) {
+              const filename = path.split('/').pop() || 'Baixar Arquivo'
+              accessLinks.push({ label: `📥 ${filename}`, url: signed.signedUrl, isFile: true })
+            } else {
+              console.error('[Webhook] Erro ao gerar signed URL:', signedError)
+            }
+          }
+        }
+
+        // Se comprou o order bump e tem arquivos
+        if (orderData.includes_order_bump && product.order_bump_file_paths && Array.isArray(product.order_bump_file_paths)) {
+          for (const path of product.order_bump_file_paths) {
+            console.log('[Webhook] Gerando signed URL para Order Bump:', path)
+            const { data: signed, error: signedError } = await supabase.storage
+              .from('product-files')
+              .createSignedUrl(path, 60 * 60 * 48) // 48h
+
+            if (!signedError && signed) {
+              const filename = path.split('/').pop() || 'Baixar Order Bump'
+              accessLinks.push({ label: `🎁 ${filename}`, url: signed.signedUrl, isFile: true })
+            } else {
+              console.error('[Webhook] Erro ao gerar signed URL para Order Bump:', signedError)
+            }
           }
         }
 
@@ -144,8 +166,7 @@ export async function POST(req: NextRequest) {
             html: deliveryEmail({
               customerName: orderData.customer_name,
               productName: product.name,
-              accessLink,
-              isFile,
+              accessLinks,
             }),
           })
           console.log('[Webhook] E-mail enviado:', emailResult)
