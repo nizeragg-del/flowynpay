@@ -67,3 +67,7 @@ ALTER TABLE public.products
 -- Comentário
 COMMENT ON COLUMN public.products.deliverable_file_path IS
   'Path do arquivo entregável no bucket product-files (ex: {user_id}/ebook.pdf). Usado para gerar signed URL após pagamento confirmado.';
+
+-- 6. Coluna short_description (subtítulo curto exibido na vitrine)
+ALTER TABLE public.products
+  ADD COLUMN IF NOT EXISTS short_description TEXT DEFAULT NULL;
