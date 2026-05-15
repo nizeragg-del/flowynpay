@@ -8,6 +8,29 @@ import { Suspense } from 'react'
 function SuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order_id')
+  // Stripe sends payment_intent param on redirect from confirmPayment
+  const paymentIntent = searchParams.get('payment_intent')
+  const redirectStatus = searchParams.get('redirect_status')
+
+  // If payment failed (e.g. 3D Secure cancelled)
+  if (redirectStatus && redirectStatus !== 'succeeded') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-4xl">❌</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Pagamento não concluído</h1>
+          <p className="text-slate-500 mb-6">
+            O pagamento foi cancelado ou não pôde ser processado. Nenhuma cobrança foi realizada.
+          </p>
+          <Link href="/" className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition-all">
+            Voltar ao Início <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4">
