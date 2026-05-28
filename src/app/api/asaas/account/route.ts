@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { createSubaccount, onlyDigits, retrieveSubaccount } from '@/lib/asaas'
+import { createSubaccount, listSubaccounts, onlyDigits, retrieveSubaccount } from '@/lib/asaas'
 
 type Profile = {
   asaas_account_id: string | null
@@ -112,9 +112,18 @@ export async function POST(request: NextRequest) {
     postalCode: onlyDigits(body.postalCode),
     incomeValue: Number(body.incomeValue || 0),
   }
+  const documentType = payload.cpfCnpj.length === 11 ? 'CPF' : payload.cpfCnpj.length === 14 ? 'CNPJ' : null
+  const subaccountPayload = documentType === 'CPF'
+    ? { ...payload, companyType: undefined }
+    : payload
+  let newSubaccountApiKey: string | null = null
 
   if (!payload.name || !payload.email || !payload.cpfCnpj || !payload.mobilePhone || !payload.postalCode || !payload.addressNumber || !payload.incomeValue) {
     return NextResponse.json({ error: 'Preencha nome, e-mail, CPF/CNPJ, celular, CEP, número e faturamento mensal.' }, { status: 400 })
+  }
+
+  if (!documentType) {
+    return NextResponse.json({ error: 'Informe um CPF com 11 digitos ou CNPJ com 14 digitos.' }, { status: 400 })
   }
 
   const admin = getAdminClient()
@@ -190,7 +199,29 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const account = await createSubaccount(payload)
+    let account = null
+
+    if (documentType === 'CPF') {
+      const existingAccounts = await listSubaccounts({ cpfCnpj: payload.cpfCnpj })
+      account = existingAccounts.data?.find(item => onlyDigits(item.cpfCnpj) === payload.cpfCnpj) || null
+
+      if (!account) {
+        return NextResponse.json({
+          error: 'Nao encontramos uma subconta Pessoa Fisica com esse CPF no Asaas. Crie a subconta no painel Asaas primeiro e tente novamente.',
+        }, { status: 404 })
+      }
+    }
+
+    if (!account) {
+      account = await createSubaccount(subaccountPayload)
+      newSubaccountApiKey = account.apiKey
+    }
+
+    if (!account.walletId) {
+      return NextResponse.json({
+        error: 'Subconta Asaas encontrada/criada, mas sem Wallet ID retornado. Verifique o cadastro no painel Asaas.',
+      }, { status: 409 })
+    }
 
     await admin
       .from('profiles')
@@ -209,7 +240,7 @@ export async function POST(request: NextRequest) {
         provider: 'asaas',
         provider_account_id: account.id,
         wallet_id: account.walletId,
-        api_key: account.apiKey,
+        api_key: newSubaccountApiKey,
         status: 'connected',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' })

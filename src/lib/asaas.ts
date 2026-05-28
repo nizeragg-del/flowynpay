@@ -121,6 +121,22 @@ export async function retrieveSubaccount(accountId: string) {
   }>(`/accounts/${accountId}`)
 }
 
+export async function listSubaccounts(filters: { cpfCnpj?: string; email?: string }) {
+  const params = new URLSearchParams()
+  if (filters.cpfCnpj) params.set('cpfCnpj', onlyDigits(filters.cpfCnpj))
+  if (filters.email) params.set('email', filters.email)
+
+  return asaasRequest<{
+    data?: Array<{
+      id: string
+      name: string
+      email?: string
+      cpfCnpj?: string
+      walletId?: string
+    }>
+  }>(`/accounts?${params.toString()}`)
+}
+
 export async function createCustomer(payload: AsaasCustomerPayload, apiKey: string) {
   return asaasRequest<{ id: string; name: string; email?: string }>('/customers', {
     apiKey,

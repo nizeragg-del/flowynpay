@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ShieldCheck, Wallet } from 'lucide-react'
 
+type AccountType = 'cpf' | 'cnpj'
+
 type AsaasStatus = {
   connected: boolean
   profile?: {
@@ -40,6 +42,7 @@ const initialForm = {
 
 function PaymentsContent() {
   const [status, setStatus] = useState<AsaasStatus | null>(null)
+  const [accountType, setAccountType] = useState<AccountType>('cpf')
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -61,6 +64,8 @@ function PaymentsContent() {
 
       setStatus(data)
       const profile = data.profile || {}
+      const documentDigits = (profile.document_number || '').replace(/\D/g, '')
+      if (documentDigits.length > 11) setAccountType('cnpj')
       setForm(current => ({
         ...current,
         name: profile.full_name || '',
@@ -88,6 +93,15 @@ function PaymentsContent() {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
+  function selectAccountType(type: AccountType) {
+    setAccountType(type)
+    setForm(prev => ({
+      ...prev,
+      cpfCnpj: '',
+      companyType: type === 'cpf' ? 'INDIVIDUAL' : 'MEI',
+    }))
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
@@ -98,7 +112,7 @@ function PaymentsContent() {
       const res = await fetch('/api/asaas/account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, accountType }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erro ao salvar cadastro Asaas')
@@ -122,6 +136,7 @@ function PaymentsContent() {
 
   const connected = Boolean(status?.connected)
   const walletId = status?.profile?.asaas_wallet_id
+  const isCpf = accountType === 'cpf'
 
   const inputClass = 'w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/25 focus:border-[#00e88a] focus:ring-2 focus:ring-[#00e88a]/10 outline-none transition-all'
 
@@ -156,6 +171,28 @@ function PaymentsContent() {
         </div>
       </div>
 
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-6">
+        <span className="block text-xs font-semibold text-white/50 mb-3 uppercase tracking-wide">Tipo de cadastro</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => selectAccountType('cpf')}
+            className={`text-left rounded-xl border px-4 py-4 transition-all ${isCpf ? 'border-[#00e88a] bg-[#00e88a]/10 text-white' : 'border-white/10 bg-[#0a0a0a] text-white/60 hover:text-white hover:border-white/20'}`}
+          >
+            <span className="block font-bold">Pessoa Fisica (CPF)</span>
+            <span className="block text-sm text-white/45 mt-1">Vincula uma subconta PF existente no Asaas pelo CPF.</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => selectAccountType('cnpj')}
+            className={`text-left rounded-xl border px-4 py-4 transition-all ${!isCpf ? 'border-[#00e88a] bg-[#00e88a]/10 text-white' : 'border-white/10 bg-[#0a0a0a] text-white/60 hover:text-white hover:border-white/20'}`}
+          >
+            <span className="block font-bold">Pessoa Juridica (CNPJ)</span>
+            <span className="block text-sm text-white/45 mt-1">Cria ou atualiza uma subconta PJ com os dados da empresa.</span>
+          </button>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="bg-[#111111] border border-white/10 rounded-2xl p-6 space-y-6">
         <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-4">
           <h3 className="text-white font-medium mb-2 flex items-center gap-2">
@@ -163,31 +200,35 @@ function PaymentsContent() {
             Dados exigidos pela Asaas
           </h3>
           <p className="text-sm text-white/50">
-            Se a carteira já existir, estes dados atualizam seu cadastro local e preservam o Wallet ID salvo.
+            {isCpf
+              ? 'Informe os dados da Pessoa Fisica. A Flowyn buscara uma subconta CPF existente no Asaas e salvara o Wallet ID.'
+              : 'Informe os dados da empresa. A Flowyn criara ou atualizara a subconta PJ no Asaas e salvara o Wallet ID.'}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Nome / razão social">
+          <Field label={isCpf ? 'Nome completo' : 'Razao social'}>
             <input required value={form.name} onChange={e => updateField('name', e.target.value)} className={inputClass} />
           </Field>
           <Field label="E-mail da conta Asaas">
             <input required type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className={inputClass} />
           </Field>
-          <Field label="CPF/CNPJ">
-            <input required value={form.cpfCnpj} onChange={e => updateField('cpfCnpj', e.target.value.replace(/\D/g, ''))} className={inputClass} />
+          <Field label={isCpf ? 'CPF' : 'CNPJ'}>
+            <input required value={form.cpfCnpj} maxLength={isCpf ? 11 : 14} onChange={e => updateField('cpfCnpj', e.target.value.replace(/\D/g, '').slice(0, isCpf ? 11 : 14))} className={inputClass} />
           </Field>
-          <Field label="Data de nascimento / abertura">
-            <input type="date" value={form.birthDate} onChange={e => updateField('birthDate', e.target.value)} className={inputClass} />
+          <Field label={isCpf ? 'Data de nascimento' : 'Data de abertura'}>
+            <input required={isCpf} type="date" value={form.birthDate} onChange={e => updateField('birthDate', e.target.value)} className={inputClass} />
           </Field>
-          <Field label="Tipo de empresa">
-            <select value={form.companyType} onChange={e => updateField('companyType', e.target.value)} className={inputClass}>
-              <option value="MEI">MEI</option>
-              <option value="LIMITED">Limitada</option>
-              <option value="INDIVIDUAL">Individual</option>
-              <option value="ASSOCIATION">Associação</option>
-            </select>
-          </Field>
+          {!isCpf && (
+            <Field label="Tipo de empresa">
+              <select value={form.companyType} onChange={e => updateField('companyType', e.target.value)} className={inputClass}>
+                <option value="MEI">MEI</option>
+                <option value="LIMITED">Limitada</option>
+                <option value="INDIVIDUAL">Individual</option>
+                <option value="ASSOCIATION">Associação</option>
+              </select>
+            </Field>
+          )}
           <Field label="Faturamento mensal estimado">
             <input required type="number" min="1" step="0.01" value={form.incomeValue} onChange={e => updateField('incomeValue', e.target.value)} className={inputClass} />
           </Field>

@@ -56,12 +56,12 @@ export async function POST(req: NextRequest) {
     const product = plan.product as any
     const { data: producerAccount } = await supabase
       .from('payment_accounts')
-      .select('api_key, wallet_id')
+      .select('wallet_id')
       .eq('user_id', product.owner_id)
       .eq('provider', 'asaas')
       .single()
 
-    if (!producerAccount?.api_key || !producerAccount?.wallet_id) {
+    if (!producerAccount?.wallet_id) {
       return NextResponse.json({ error: 'Produtor ainda não conectou a carteira Asaas.' }, { status: 409 })
     }
 
@@ -111,9 +111,9 @@ export async function POST(req: NextRequest) {
 
     let asaasCustomer
     if (body.asaas_customer_id) {
-      asaasCustomer = await updateCustomer(String(body.asaas_customer_id), customerPayload, producerAccount.api_key)
+      asaasCustomer = await updateCustomer(String(body.asaas_customer_id), customerPayload, process.env.ASAAS_API_KEY!)
     } else {
-      asaasCustomer = await createCustomer(customerPayload, producerAccount.api_key)
+      asaasCustomer = await createCustomer(customerPayload, process.env.ASAAS_API_KEY!)
     }
 
     const { data: order, error: orderError } = await supabase
@@ -144,9 +144,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Erro ao registrar pedido.' }, { status: 500 })
     }
 
-    const split = affiliateWalletId && commissionRate > 0
-      ? [{ walletId: affiliateWalletId, percentualValue: commissionRate }]
-      : undefined
+    const producerSplitRate = affiliateWalletId && commissionRate > 0
+      ? Number((100 - commissionRate).toFixed(2))
+      : 100
+
+    const split = [
+      { walletId: producerAccount.wallet_id, percentualValue: producerSplitRate },
+      ...(affiliateWalletId && commissionRate > 0
+        ? [{ walletId: affiliateWalletId, percentualValue: commissionRate }]
+        : []),
+    ]
 
     const payment = await createCreditCardPayment({
       customer: asaasCustomer.id,
@@ -173,7 +180,7 @@ export async function POST(req: NextRequest) {
         mobilePhone: onlyDigits(body.holder?.mobilePhone || customerPhone),
       },
       remoteIp: getClientIp(req),
-    }, producerAccount.api_key)
+    }, process.env.ASAAS_API_KEY!)
 
     await supabase
       .from('orders')
