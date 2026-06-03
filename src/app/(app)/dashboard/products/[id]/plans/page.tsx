@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Plus, ArrowRight, DollarSign, Package, Copy, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Save, Plus, ArrowRight, DollarSign, Package, Copy, ExternalLink, Building2, BookOpen, Users, CreditCard } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { getPlatformAccess } from '@/lib/platform-access'
 
@@ -94,6 +94,21 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#111] p-2">
+          <Link href={`/dashboard/products/${productId}`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
+            <Building2 className="mr-2 inline h-4 w-4" /> Detalhes
+          </Link>
+          <Link href={`/dashboard/products/${productId}/plans`} className="rounded-xl border border-white/5 bg-white/10 px-5 py-2.5 text-sm font-bold text-white">
+            <CreditCard className="mr-2 inline h-4 w-4" /> Planos
+          </Link>
+          <Link href={`/dashboard/products/${productId}/content`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
+            <BookOpen className="mr-2 inline h-4 w-4" /> Conteúdo
+          </Link>
+          <Link href={`/dashboard/products/${productId}/journey`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
+            <Users className="mr-2 inline h-4 w-4" /> Mentoria
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

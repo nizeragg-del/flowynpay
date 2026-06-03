@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Store, Box, Link2, User,
   Settings, LogOut, DollarSign, CreditCard,
-  ScanLine, Wallet, PlusCircle, BookOpen, ShoppingBag, BadgeCheck
+  ScanLine, Wallet, PlusCircle, BookOpen, ShoppingBag, BadgeCheck, PlaySquare
 } from 'lucide-react'
 
 export function Sidebar({ profile }: { profile: any }) {
@@ -30,6 +30,11 @@ export function Sidebar({ profile }: { profile: any }) {
         <Link href="/dashboard/wallet" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/wallet') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
           <Wallet className="w-5 h-5" />
           <span className="font-medium text-sm">Carteira</span>
+        </Link>
+
+        <Link href="/learn" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/learn') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+          <PlaySquare className="w-5 h-5" />
+          <span className="font-medium text-sm">Meus Acessos</span>
         </Link>
 
         {/* GANHAR DINHEIRO */}

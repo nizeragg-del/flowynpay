@@ -3,7 +3,7 @@ import { resetPassword } from '@/app/auth/actions'
 import { AlertCircle, CheckCircle2, ArrowLeft, ArrowRight, Lock } from 'lucide-react'
 
 export default async function ResetPasswordPage(props: {
-  searchParams: Promise<{ error?: string; success?: string; code?: string }>
+  searchParams: Promise<{ error?: string; success?: string; code?: string; next?: string }>
 }) {
   const searchParams = await props.searchParams
 
@@ -57,6 +57,7 @@ export default async function ResetPasswordPage(props: {
           {/* Form */}
           {searchParams.success !== 'password_reset' && (
             <form action={resetPassword} className="space-y-5">
+              <input type="hidden" name="next" value={searchParams.next || ''} />
               <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-white/80 mb-2">
                   Nova senha
@@ -101,7 +102,7 @@ export default async function ResetPasswordPage(props: {
           <div className="mt-6 text-center">
             {searchParams.success === 'password_reset' ? (
               <Link
-                href="/login"
+                href={searchParams.next?.startsWith('/') ? searchParams.next : '/login'}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#00e88a] hover:text-[#00e88a]/80 transition-colors"
               >
                 Ir para o login

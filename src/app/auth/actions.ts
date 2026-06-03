@@ -76,6 +76,8 @@ export async function resetPassword(formData: FormData) {
   const supabase = await createClient()
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirm_password') as string
+  const next = String(formData.get('next') || '')
+  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : ''
 
   if (password !== confirmPassword) {
     redirect('/reset-password?error=As senhas não coincidem')
@@ -89,6 +91,10 @@ export async function resetPassword(formData: FormData) {
 
   if (error) {
     redirect('/reset-password?error=Link expirado ou inválido. Solicite um novo e-mail.')
+  }
+
+  if (safeNext) {
+    redirect(safeNext)
   }
 
   redirect('/login?success=password_reset')

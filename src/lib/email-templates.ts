@@ -102,3 +102,68 @@ export function deliveryEmail(opts: {
 </body>
 </html>`
 }
+
+export function studentPasswordEmail(opts: {
+  customerName: string
+  productName: string
+  setupUrl: string
+  learnUrl: string
+}) {
+  const G = '#00e88a'
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#0a0a0a;border-radius:20px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="padding:32px 40px 20px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:22px;font-weight:800;color:#fff;">Flo<span style="color:${G}">wyn</span></span>
+        </td></tr>
+        <tr><td style="padding:36px 40px;text-align:center;">
+          <h1 style="color:#fff;font-size:26px;margin:0 0 12px;">Seu acesso está pronto</h1>
+          <p style="color:rgba(255,255,255,0.58);font-size:15px;line-height:1.65;margin:0 0 24px;">
+            Olá, <strong style="color:#fff;">${opts.customerName}</strong>. Criamos sua área do aluno para acessar <strong style="color:#fff;">${opts.productName}</strong>.
+          </p>
+          <a href="${opts.setupUrl}" style="display:inline-block;background:${G};color:#0a0a0a;font-weight:800;font-size:16px;padding:16px 34px;border-radius:14px;text-decoration:none;">
+            Definir senha e entrar
+          </a>
+          <p style="color:rgba(255,255,255,0.35);font-size:12px;line-height:1.6;margin:22px 0 0;">
+            Se você já definiu sua senha, acesse: <a href="${opts.learnUrl}" style="color:${G};">minha área do aluno</a>.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+export function learningNotificationEmail(opts: {
+  title: string
+  message: string
+  actionLabel: string
+  actionUrl: string
+}) {
+  const G = '#00e88a'
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#0a0a0a;border-radius:20px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="padding:32px 40px 20px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:22px;font-weight:800;color:#fff;">Flo<span style="color:${G}">wyn</span></span>
+        </td></tr>
+        <tr><td style="padding:36px 40px;text-align:center;">
+          <h1 style="color:#fff;font-size:24px;margin:0 0 12px;">${opts.title}</h1>
+          <p style="color:rgba(255,255,255,0.58);font-size:15px;line-height:1.65;margin:0 0 24px;">${opts.message}</p>
+          <a href="${opts.actionUrl}" style="display:inline-block;background:${G};color:#0a0a0a;font-weight:800;font-size:15px;padding:14px 30px;border-radius:14px;text-decoration:none;">
+            ${opts.actionLabel}
+          </a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}

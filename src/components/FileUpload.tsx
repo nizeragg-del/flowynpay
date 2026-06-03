@@ -2,9 +2,9 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Upload, X, CheckCircle, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Upload, X, CheckCircle, FileText, Image as ImageIcon, Loader2, Video } from 'lucide-react'
 
-type UploadMode = 'image' | 'file'
+type UploadMode = 'image' | 'file' | 'video'
 
 interface FileUploadProps {
   mode: UploadMode
@@ -46,8 +46,8 @@ export function FileUpload({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const bucket = mode === 'image' ? 'product-images' : 'product-files'
-  const maxSize = mode === 'image' ? 5 * 1024 * 1024 : 100 * 1024 * 1024
-  const maxSizeLabel = mode === 'image' ? '5MB' : '100MB'
+  const maxSize = mode === 'image' ? 5 * 1024 * 1024 : mode === 'video' ? 500 * 1024 * 1024 : 100 * 1024 * 1024
+  const maxSizeLabel = mode === 'image' ? '5MB' : mode === 'video' ? '500MB' : '100MB'
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     setError(null)
@@ -142,7 +142,9 @@ export function FileUpload({
 
   const inputAccept = accept || (mode === 'image'
     ? 'image/jpeg,image/png,image/webp'
-    : '.pdf,.zip,.epub,application/pdf,application/zip')
+    : mode === 'video'
+      ? 'video/mp4,video/webm,video/quicktime'
+      : '.pdf,.zip,.epub,application/pdf,application/zip')
 
   const G = '#00e88a'
 
@@ -251,13 +253,15 @@ export function FileUpload({
             <>
               {mode === 'image'
                 ? <ImageIcon style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.2)', margin: '0 auto 10px' }} />
-                : <FileText style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.2)', margin: '0 auto 10px' }} />
+                : mode === 'video'
+                  ? <Video style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.2)', margin: '0 auto 10px' }} />
+                  : <FileText style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.2)', margin: '0 auto 10px' }} />
               }
               <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px' }}>
                 Clique ou arraste {multiple ? 'seus arquivos' : 'o arquivo'} aqui
               </p>
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: 0 }}>
-                {hint || (mode === 'image' ? 'JPG, PNG ou WebP — máx. 5MB' : 'PDF, ZIP ou EPUB — máx. 100MB')}
+                {hint || (mode === 'image' ? 'JPG, PNG ou WebP — máx. 5MB' : mode === 'video' ? 'MP4, WebM ou MOV — máx. 500MB' : 'PDF, ZIP ou EPUB — máx. 100MB')}
               </p>
             </>
           )}
