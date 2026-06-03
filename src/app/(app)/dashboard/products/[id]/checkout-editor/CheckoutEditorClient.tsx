@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from 'react'
-import { Check, CreditCard, Eye, Lock, Monitor, Save, ShieldCheck, Smartphone, Sparkles, UploadCloud } from 'lucide-react'
+import { Check, CreditCard, Eye, Lock, Mail, MapPin, Monitor, Phone, Save, ShieldCheck, Smartphone, Sparkles, UploadCloud, User } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import type { CheckoutCustomizationConfig } from '@/lib/checkout-customization'
 import { publishCheckout, saveCheckoutDraft } from './actions'
@@ -85,7 +85,7 @@ export function CheckoutEditorClient({
         </div>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[360px_1fr]">
+      <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside className="space-y-4">
 
         <Panel title="Imagens">
@@ -148,7 +148,7 @@ export function CheckoutEditorClient({
 
       </aside>
 
-      <section className="rounded-3xl border border-white/10 bg-[#0f0f0f] p-4 lg:p-6">
+      <section className="min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f0f] p-4 lg:p-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-bold text-white/60">
             <Eye className="h-4 w-4 text-[#00e88a]" />
@@ -156,7 +156,7 @@ export function CheckoutEditorClient({
           </div>
           <span className="text-xs font-bold uppercase text-white/30">{viewport}</span>
         </div>
-        <div className={`mx-auto overflow-hidden rounded-[28px] border border-white/15 bg-white shadow-2xl transition-all ${viewport === 'mobile' ? 'max-w-[390px]' : 'max-w-6xl'}`}>
+        <div className={`mx-auto w-full max-w-full overflow-hidden rounded-[28px] border border-white/15 bg-white shadow-2xl transition-all ${viewport === 'mobile' ? 'max-w-[390px]' : ''}`}>
           <CheckoutPreview config={config} product={product} plan={plan} mobile={viewport === 'mobile'} />
         </div>
       </section>
@@ -169,46 +169,60 @@ function CheckoutPreview({ config, product, plan, mobile }: { config: CheckoutCu
   const orderBumpEnabled = Boolean(product.order_bump_price)
   const price = Number(plan?.price || 0)
   const bumpPrice = Number(product.order_bump_price || 0)
+  const productImage = config.mockupImageUrl || product.logo_url
+  const buyerFields = [
+    { label: 'Nome completo', icon: User, wide: true, placeholder: 'Seu nome completo' },
+    { label: 'E-mail', icon: Mail, wide: true, placeholder: 'seu@email.com' },
+    { label: 'CPF/CNPJ', icon: ShieldCheck, placeholder: 'Somente numeros' },
+    { label: 'Celular', icon: Phone, placeholder: 'DDD + numero' },
+  ]
 
   return (
-    <div style={{ backgroundColor: config.backgroundColor }} className="min-h-[820px] text-slate-900">
+    <div style={{ backgroundColor: config.backgroundColor }} className="text-slate-900">
       <div className="border-b border-slate-200 bg-white/95 px-5 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: `${config.primaryColor}22`, color: config.primaryColor }}>
-              <Lock className="h-4 w-4" />
-            </div>
+            {productImage ? (
+              <img src={productImage} alt={product.name} className="h-10 w-10 rounded-xl border border-slate-200 object-cover" />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                <span className="text-sm font-black" style={{ color: config.primaryColor }}>{product.name.charAt(0)}</span>
+              </div>
+            )}
             <div>
               <p className="text-sm font-black text-slate-950">{product.name}</p>
-              <p className="text-xs font-semibold text-slate-500">{config.securityText}</p>
+              <p className="text-xs font-semibold text-slate-500">Checkout seguro Flowyn</p>
             </div>
           </div>
-          <div className="hidden items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-bold text-slate-500 sm:flex">
-            <ShieldCheck className="h-3.5 w-3.5" style={{ color: config.primaryColor }} />
-            Dados protegidos
+          <div className="hidden items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 sm:flex">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            {config.securityText}
           </div>
         </div>
       </div>
 
       {config.blocks.banner && config.bannerImageUrl && (
         <div className="mx-auto max-w-6xl px-5 pt-6">
-          <img src={config.bannerImageUrl} alt="Banner" className="h-44 w-full rounded-3xl object-cover" />
+          <img src={config.bannerImageUrl} alt="Banner" className="h-40 w-full rounded-[26px] border border-slate-200 object-cover shadow-sm" />
         </div>
       )}
 
-      <div className={`mx-auto grid max-w-6xl gap-8 px-5 py-8 ${mobile ? 'grid-cols-1' : 'lg:grid-cols-[1fr_390px]'}`}>
+      <div className={`mx-auto grid max-w-6xl gap-5 px-5 py-6 ${mobile ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_300px]'}`}>
         <main className="space-y-6">
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start gap-4">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
-                {config.mockupImageUrl ? (
-                  <img src={config.mockupImageUrl} alt={product.name} className="h-full w-full object-cover" />
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                {productImage ? (
+                  <img src={productImage} alt={product.name} className="h-full w-full object-cover" />
                 ) : (
                   <UploadCloud className="h-7 w-7 text-slate-300" />
                 )}
               </div>
-              <div>
-                <h1 className="text-3xl font-black leading-tight text-slate-950">{config.headline}</h1>
+              <div className="min-w-0">
+                <p className="mb-2 text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: config.primaryColor }}>
+                  Acesso imediato
+                </p>
+                <h1 className="text-2xl font-black leading-tight text-slate-950">{config.headline}</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{config.subheadline}</p>
               </div>
             </div>
@@ -216,8 +230,8 @@ function CheckoutPreview({ config, product, plan, mobile }: { config: CheckoutCu
             {config.blocks.benefits && config.benefits.length > 0 && (
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 {config.benefits.map(benefit => (
-                  <div key={benefit} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-700">
-                    <Check className="mb-2 h-4 w-4" style={{ color: config.primaryColor }} />
+                  <div key={benefit} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700">
+                    <span className="mr-2 inline-block h-2 w-2 rounded-full align-middle" style={{ backgroundColor: config.primaryColor }} />
                     {benefit}
                   </div>
                 ))}
@@ -225,60 +239,114 @@ function CheckoutPreview({ config, product, plan, mobile }: { config: CheckoutCu
             )}
           </section>
 
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-slate-950">
-              <CreditCard className="h-5 w-5" style={{ color: config.primaryColor }} />
-              Dados de pagamento
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {['Nome completo', 'E-mail', 'CPF/CNPJ', 'Telefone', 'Número do cartão', 'Validade e CVV'].map(label => (
-                <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-[11px] font-black uppercase text-slate-400">{label}</p>
-                  <div className="mt-2 h-4 rounded bg-slate-200/70" />
+          <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Pagamento</p>
+                <h2 className="mt-1 text-xl font-black text-slate-950">Dados do comprador</h2>
+              </div>
+              <div className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-500">Cartao</div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {buyerFields.map(({ label, icon: Icon, wide, placeholder }) => (
+                <div key={label} className={wide ? 'sm:col-span-2' : ''}>
+                  <p className="mb-2 text-xs font-bold text-slate-700">{label}</p>
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-400">
+                    <Icon className="h-4 w-4 text-slate-300" />
+                    {placeholder}
+                  </div>
                 </div>
               ))}
             </div>
-          </section>
 
-          {orderBumpEnabled && (
-            <section className="rounded-3xl border-2 border-dashed bg-white p-5 shadow-sm" style={{ borderColor: config.primaryColor }}>
-              <div className="flex gap-4">
-                {config.orderBumpImageUrl && <img src={config.orderBumpImageUrl} alt="Order bump" className="h-24 w-24 rounded-2xl object-cover" />}
-                <div>
-                  <span className="rounded-full bg-red-50 px-3 py-1 text-[11px] font-black uppercase text-red-600">Oferta especial</span>
-                  <p className="mt-3 text-base font-black text-slate-950">{product.order_bump_title || 'Adicionar ao pedido'}</p>
-                  <p className="mt-1 text-sm text-slate-500">{product.order_bump_description || 'Adicione este bônus ao pedido.'}</p>
-                  <p className="mt-2 text-lg font-black" style={{ color: config.primaryColor }}>+ R$ {bumpPrice.toFixed(2).replace('.', ',')}</p>
+            {orderBumpEnabled && (
+              <div className="mt-5 rounded-2xl border-2 border-dashed bg-slate-50 p-4" style={{ borderColor: `${config.primaryColor}66` }}>
+                <div className="flex gap-3">
+                  <div className="mt-1 h-5 w-5 rounded border border-slate-300 bg-white" />
+                  {config.orderBumpImageUrl && <img src={config.orderBumpImageUrl} alt="Order bump" className="h-16 w-16 rounded-xl border border-slate-200 object-cover" />}
+                  <div className="min-w-0">
+                    <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-black uppercase text-red-600">Oferta especial</span>
+                    <p className="mt-2 text-sm font-black text-slate-950">{product.order_bump_title || 'Adicionar ao pedido'}</p>
+                    <p className="mt-1 text-xs text-slate-500">{product.order_bump_description || 'Adicione este bonus ao pedido.'}</p>
+                    <p className="mt-2 text-sm font-black" style={{ color: config.primaryColor }}>R$ {bumpPrice.toFixed(2).replace('.', ',')}</p>
+                  </div>
                 </div>
               </div>
-            </section>
-          )}
+            )}
+
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <h3 className="mb-4 flex items-center gap-2 text-base font-black text-slate-950">
+                <CreditCard className="h-4 w-4" style={{ color: config.primaryColor }} />
+                Cartao de credito
+              </h3>
+              <div className="space-y-3">
+                <PreviewInput label="Nome impresso no cartao" placeholder="Como aparece no cartao" />
+                <PreviewInput label="Numero do cartao" placeholder="0000 0000 0000 0000" />
+                <div className="grid grid-cols-3 gap-3">
+                  <PreviewInput label="" placeholder="MM" />
+                  <PreviewInput label="" placeholder="AAAA" />
+                  <PreviewInput label="" placeholder="CVV" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <PreviewInput label="CEP do titular" placeholder="00000000" icon={MapPin} />
+                  <PreviewInput label="Numero" placeholder="123" />
+                </div>
+              </div>
+            </div>
+
+            <button style={{ backgroundColor: config.primaryColor }} className="mt-5 w-full rounded-xl px-5 py-4 text-sm font-black text-white shadow-lg">
+              <Lock className="mr-2 inline h-4 w-4" />
+              {config.buttonText} R$ {price.toFixed(2).replace('.', ',')}
+            </button>
+            <p className="mt-4 text-center text-xs font-semibold text-slate-400">Pagamento protegido pela Asaas. Os dados do cartao nao sao armazenados pela Flowyn.</p>
+          </section>
         </main>
 
         <aside>
-          <div className="sticky top-5 rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
-            <h2 className="text-lg font-black text-slate-950">Resumo do pedido</h2>
-            <div className="mt-5 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-              {config.mockupImageUrl && <img src={config.mockupImageUrl} alt={product.name} className="h-14 w-14 rounded-xl object-cover" />}
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black text-slate-950">{product.name}</p>
-                <p className="text-xs font-semibold text-slate-500">{plan?.name || 'Acesso completo'}</p>
+          <div className="sticky top-5 overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+            <div className="border-b border-slate-100 p-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Resumo do pedido</p>
+              <div className="mt-5 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+                {productImage && <img src={productImage} alt={product.name} className="h-14 w-14 rounded-xl object-cover" />}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-black text-slate-950">{product.name}</p>
+                  <p className="text-xs font-semibold text-slate-500">{plan?.name || 'Acesso completo'}</p>
+                </div>
               </div>
             </div>
-            <div className="mt-5 space-y-3 border-b border-slate-100 pb-5 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><strong>R$ {price.toFixed(2).replace('.', ',')}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-500">Taxa Flowyn</span><strong>R$ 0,00</strong></div>
-              <div className="flex justify-between text-lg"><span className="font-black text-slate-950">Total</span><strong>R$ {price.toFixed(2).replace('.', ',')}</strong></div>
+            <div className="space-y-4 p-5">
+              <div className="flex justify-between gap-4 text-sm"><span className="text-slate-500">Produto</span><strong className="text-right text-slate-900">{product.name}</strong></div>
+              <div className="flex justify-between gap-4 text-sm"><span className="text-slate-500">Produtor</span><strong className="text-right text-slate-900">{product.owner?.full_name || 'Anonimo'}</strong></div>
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex justify-between text-sm"><span className="text-slate-500">Subtotal</span><strong>R$ {price.toFixed(2).replace('.', ',')}</strong></div>
+                <div className="mt-3 flex justify-between text-sm"><span className="text-slate-500">Taxa Flowyn</span><strong className="text-emerald-600">R$ 0,00</strong></div>
+              </div>
+              <div className="flex items-end justify-between border-t border-slate-100 pt-5">
+                <span className="font-black text-slate-950">Total</span>
+                <strong className="text-2xl font-black text-slate-950">R$ {price.toFixed(2).replace('.', ',')}</strong>
+              </div>
             </div>
-            <button style={{ backgroundColor: config.primaryColor }} className="mt-6 w-full rounded-2xl px-5 py-4 text-sm font-black text-black shadow-lg">
-              {config.buttonText}
-            </button>
-            <p className="mt-4 text-center text-xs font-bold text-slate-400">{config.securityText}</p>
-            {config.blocks.guarantee && (
-              <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-xs leading-5 text-slate-500">{config.guaranteeText}</div>
-            )}
+            <div className="space-y-3 bg-slate-50 p-5">
+              <div className="rounded-2xl bg-white p-4 text-xs font-bold leading-5 text-slate-500">{config.securityText}. A Flowyn nao armazena os dados do cartao.</div>
+              {config.blocks.guarantee && (
+                <div className="rounded-2xl bg-white p-4 text-xs font-bold leading-5 text-slate-500">{config.guaranteeText}</div>
+              )}
+            </div>
           </div>
         </aside>
+      </div>
+    </div>
+  )
+}
+
+function PreviewInput({ label, placeholder, icon: Icon }: { label: string; placeholder: string; icon?: typeof MapPin }) {
+  return (
+    <div>
+      {label && <p className="mb-2 text-xs font-bold text-slate-700">{label}</p>}
+      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-400">
+        {Icon && <Icon className="h-4 w-4 text-slate-300" />}
+        {placeholder}
       </div>
     </div>
   )
