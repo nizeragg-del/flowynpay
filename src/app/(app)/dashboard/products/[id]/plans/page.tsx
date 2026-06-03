@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Plus, ArrowRight, DollarSign, Package, Copy, ExternalLink } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
+import { getPlatformAccess } from '@/lib/platform-access'
 
 import { EditablePlanCard } from './EditablePlanCard'
 import { PlanPixelSection } from './PlanPixelSection'
@@ -25,6 +26,8 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
   if (!product || product.owner_id !== user.id) {
     redirect('/dashboard')
   }
+
+  const access = await getPlatformAccess(user.id)
 
   const { data: plans } = await supabase
     .from('plans')
@@ -53,13 +56,14 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
     'use server'
     const name = formData.get('name') as string
     const price = formData.get('price') as string
-    const billing_type = formData.get('billing_type') as string || 'one_time'
 
     if (!name || !price) return
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    const access = await getPlatformAccess(user.id)
+    if (!access.allowed) return
 
     await supabase
       .from('plans')
@@ -67,7 +71,7 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
         product_id: productId,
         name,
         price: parseFloat(price),
-        billing_type,
+        billing_type: 'one_time',
       })
 
     revalidatePath(`/dashboard/products/${productId}/plans`)
@@ -134,32 +138,24 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-white/70 mb-2">Tipo de Cobrança</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { value: 'one_time', label: '💳 Pagamento Único' },
-                      { value: 'recurring', label: '🔁 Recorrente/Mês' },
-                    ].map(bt => (
-                      <label key={bt.value} className="cursor-pointer">
-                        <input type="radio" name="billing_type" value={bt.value} defaultChecked={bt.value === 'one_time'} className="sr-only peer" />
-                        <div className="py-2.5 px-3 rounded-xl border border-white/10 text-xs font-bold text-white/50 text-center
-                          peer-checked:border-[#00e88a] peer-checked:bg-[#00e88a]/10 peer-checked:text-[#00e88a] transition-all cursor-pointer">
-                          {bt.label}
-                        </div>
-                      </label>
-                    ))}
-                  </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm font-semibold text-white/60">
+                  Pagamento unico
                 </div>
 
                 <button 
                   type="submit" 
+                  disabled={!access.allowed}
                   className="w-full inline-flex items-center justify-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-3 px-4 rounded-xl transition-all shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)] text-sm mt-2"
                 >
                   <Save className="w-4 h-4" />
                   Adicionar Plano
                 </button>
               </form>
+              {!access.allowed && (
+                <Link href="/dashboard/settings/subscription" className="mt-4 block rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/15">
+                  Regularize sua assinatura para adicionar novos planos.
+                </Link>
+              )}
             </div>
           </div>
 

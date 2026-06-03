@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { CheckoutForm } from './checkout-form'
 import { PixelScripts } from '@/components/PixelScripts'
+import { getPlatformAccess } from '@/lib/platform-access'
 
 interface CheckoutPageProps {
   params: Promise<{ id: string }>
@@ -54,6 +55,21 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
   }
 
   const product = plan.product as any
+  const producerAccess = await getPlatformAccess(product.owner_id)
+
+  if (!producerAccess.allowed) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">!</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Checkout temporariamente indisponivel</h1>
+          <p className="text-slate-500">Este produto esta pausado enquanto o produtor regulariza o acesso a plataforma.</p>
+        </div>
+      </div>
+    )
+  }
 
   // ── Fetch pixels ──────────────────────────────────────────────────────────
   // Producer pixels linked to this plan
@@ -183,7 +199,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
                   R$ {Number(plan.price).toFixed(2).replace('.', ',')}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-2 text-right">Cobrança recorrente mensal</p>
+              {plan.billing_type === 'recurring' && <p className="text-xs text-slate-400 mt-2 text-right">Cobranca recorrente mensal</p>}
             </div>
           </div>
 
@@ -191,7 +207,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       </main>
 
       <footer className="text-center py-8 text-xs text-slate-400">
-        Powered by <span className="font-bold text-primary">Flowyn</span> — Plataforma de Afiliados para SaaS
+        Powered by <span className="font-bold text-primary">Flowyn</span> - Checkout e afiliados
       </footer>
     </div>
   )

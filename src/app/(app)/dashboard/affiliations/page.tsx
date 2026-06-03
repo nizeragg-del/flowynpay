@@ -92,7 +92,7 @@ export default async function AffiliationsPage() {
             <Link2 className="w-16 h-16 text-white/10 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">Nenhuma afiliação ainda</h3>
             <p className="text-white/50 mb-6 max-w-md mx-auto">
-              Visite o Marketplace para encontrar produtos de alta conversão e começar a ganhar comissões recorrentes.
+              Visite o Marketplace para encontrar produtos de alta conversão e começar a ganhar comissões.
             </p>
             <Link href="/market" className="bg-[#00e88a] text-black font-bold px-6 py-3 rounded-xl hover:bg-[#00e88a]/90 transition-all shadow-[0_0_20px_rgba(0,232,138,0.3)] hover:-translate-y-0.5 inline-block">
               Ir para o Mercado

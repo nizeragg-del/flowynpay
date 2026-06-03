@@ -102,7 +102,7 @@ export default function DashboardPage() {
               Visão do {isProducer ? 'Produtor' : 'Afiliado'}
             </h2>
             <p className="text-white/60 mt-1 font-medium">
-              {isProducer ? 'Acompanhe seu faturamento global e assinaturas.' : 'Acompanhe seus cliques, conversões e comissões.'}
+              {isProducer ? 'Acompanhe seu faturamento global e suas vendas.' : 'Acompanhe seus cliques, conversões e comissões.'}
             </p>
           </div>
           

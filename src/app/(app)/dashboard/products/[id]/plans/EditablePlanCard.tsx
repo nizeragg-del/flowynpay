@@ -10,6 +10,7 @@ interface Plan {
   name: string
   price: number
   plan_identifier: string | null
+  billing_type?: string | null
 }
 
 export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: string }) {
@@ -130,7 +131,7 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
           <span className="text-xl font-extrabold text-white">
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
           </span>
-          <span className="text-xs text-white/40 font-medium ml-1">/mês</span>
+          {plan.billing_type === 'recurring' && <span className="text-xs text-white/40 font-medium ml-1">/mes</span>}
         </div>
 
         <div className="flex items-center gap-2">

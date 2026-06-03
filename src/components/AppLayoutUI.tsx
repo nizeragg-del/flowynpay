@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Sidebar } from '@/components/Sidebar'
-import { Bell, Menu, X, Target, BellOff } from 'lucide-react'
+import Link from 'next/link'
+import { Bell, Menu, X, Target, BellOff, CalendarClock } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface AppLayoutUIProps {
@@ -12,6 +13,11 @@ interface AppLayoutUIProps {
   isAffiliate: boolean
   isProducer: boolean
   totalSales: number
+  subscription?: {
+    status: string
+    trial_ends_at: string | null
+    grace_period_ends_at: string | null
+  } | null
 }
 
 
@@ -63,9 +69,46 @@ function SalesGoal({ totalSales }: { totalSales: number }) {
 }
 
 // Placeholder notifications — in future, replace with real DB fetch
+function formatShortDate(value: string | null | undefined) {
+  if (!value) return ''
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value))
+}
+
+function SubscriptionBanner({ subscription }: { subscription: AppLayoutUIProps['subscription'] }) {
+  if (!subscription || subscription.status === 'active') return null
+
+  const isTrial = subscription.status === 'trialing'
+  const isScheduled = subscription.status === 'scheduled'
+  const isGrace = subscription.status === 'grace_period'
+  const isBlocked = ['suspended', 'cancelled'].includes(subscription.status)
+
+  if (!isTrial && !isScheduled && !isGrace && !isBlocked) return null
+
+  const text = isTrial
+    ? `Seu teste gratis termina em ${formatShortDate(subscription.trial_ends_at)}.`
+    : isScheduled
+      ? `Mensalidade configurada. Primeiro ciclo em ${formatShortDate(subscription.trial_ends_at)}.`
+      : isGrace
+        ? `Regularize ate ${formatShortDate(subscription.grace_period_ends_at)} para manter os checkouts ativos.`
+        : 'Assinatura pendente. Regularize para manter produtos e checkouts ativos.'
+
+  return (
+    <Link
+      href="/dashboard/settings/subscription"
+      className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[#00e88a]/25 bg-[#00e88a]/10 px-4 py-3 text-sm text-[#c7ffe3] transition hover:bg-[#00e88a]/15 md:mx-8"
+    >
+      <span className="flex items-center gap-2">
+        <CalendarClock className="h-4 w-4 text-[#00e88a]" />
+        <span className="font-semibold">{text}</span>
+      </span>
+      <span className="shrink-0 text-xs font-black uppercase text-[#00e88a]">Ver assinatura</span>
+    </Link>
+  )
+}
+
 const MOCK_NOTIFICATIONS: { id: number; title: string; body: string; time: string; read: boolean }[] = []
 
-export function AppLayoutUI({ children, profile, user, isAffiliate, isProducer, totalSales }: AppLayoutUIProps) {
+export function AppLayoutUI({ children, profile, user, isAffiliate, isProducer, totalSales, subscription }: AppLayoutUIProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
@@ -234,6 +277,8 @@ export function AppLayoutUI({ children, profile, user, isAffiliate, isProducer, 
             </div>
           </div>
         </header>
+
+        <SubscriptionBanner subscription={subscription} />
 
         {/* Page Content */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-full">

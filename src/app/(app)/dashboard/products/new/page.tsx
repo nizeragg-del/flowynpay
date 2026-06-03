@@ -3,6 +3,9 @@ import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { ProductWizard } from './ProductWizard'
 import crypto from 'crypto'
+import Link from 'next/link'
+import { Lock, BadgeCheck } from 'lucide-react'
+import { getPlatformAccess } from '@/lib/platform-access'
 
 const ADMIN_EMAIL = 'dnlmarianoneto@gmail.com'
 
@@ -17,6 +20,11 @@ async function createProductAction(data: any): Promise<{ error: string } | void>
   const isAdmin = user.email === ADMIN_EMAIL
   if (!isAdmin && (data.product_type === 'saas' || data.product_type === 'microsaas' || data.is_flowyn_saas)) {
     return { error: 'Apenas administradores da Flowyn podem criar produtos SaaS.' }
+  }
+
+  const access = await getPlatformAccess(user.id)
+  if (!access.allowed) {
+    return { error: 'Sua assinatura Flowyn Pro precisa estar ativa para criar produtos.' }
   }
 
   // 1. Create product
@@ -70,7 +78,7 @@ async function createProductAction(data: any): Promise<{ error: string } | void>
       product_id: product.id,
       name: p.name,
       price: parseFloat(p.price) || 0,
-      billing_type: p.billing_type || 'one_time',
+      billing_type: 'one_time',
     }))
     const { error: plansError } = await supabase.from('plans').insert(plans)
     if (plansError) {
@@ -87,6 +95,7 @@ export default async function NewProductPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const access = await getPlatformAccess(user.id)
 
   return (
     <div className="py-4">
@@ -98,9 +107,30 @@ export default async function NewProductPage() {
         </p>
       </div>
 
-      <div className="bg-[#111111] border border-white/10 rounded-3xl p-8 md:p-12">
-        <ProductWizard createProductAction={createProductAction} userId={user.id} />
-      </div>
+      {access.allowed ? (
+        <div className="bg-[#111111] border border-white/10 rounded-3xl p-8 md:p-12">
+          <ProductWizard createProductAction={createProductAction} userId={user.id} />
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-white/10 bg-[#111111] p-8 md:p-12">
+          <div className="max-w-2xl">
+            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#00e88a]/10 text-[#00e88a]">
+              <Lock className="h-6 w-6" />
+            </div>
+            <h2 className="text-2xl font-black text-white">Assinatura necessaria</h2>
+            <p className="mt-2 text-sm text-white/50">
+              Para manter a Flowyn sem taxa por venda, a criacao de produtos fica liberada para contas em teste gratis, ativas ou em regularizacao.
+            </p>
+            <Link
+              href="/dashboard/settings/subscription"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#00e88a] px-5 py-3 text-sm font-black text-black transition hover:bg-[#04f294]"
+            >
+              <BadgeCheck className="h-4 w-4" />
+              Ativar Flowyn Pro
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

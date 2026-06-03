@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { createSubaccount, listSubaccounts, onlyDigits, retrieveSubaccount } from '@/lib/asaas'
@@ -96,6 +97,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const admin = getAdminClient()
+  const { data: withinRateLimit, error: rateLimitError } = await admin.rpc('consume_rate_limit', {
+    requested_bucket: 'asaas-account',
+    requested_identifier_hash: createHash('sha256').update(user.id).digest('hex'),
+    max_requests: 10,
+    window_seconds: 900,
+  })
+
+  if (rateLimitError) {
+    console.error('[Asaas Account] Rate limiter unavailable.')
+    return NextResponse.json({ error: 'Cadastro Asaas temporariamente indisponivel.' }, { status: 503 })
+  }
+
+  if (!withinRateLimit) {
+    return NextResponse.json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }, { status: 429 })
+  }
+
   const body = await request.json()
   const payload = {
     name: String(body.name || '').trim(),
@@ -126,7 +144,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Informe um CPF com 11 digitos ou CNPJ com 14 digitos.' }, { status: 400 })
   }
 
-  const admin = getAdminClient()
   const { data: currentProfile } = await admin
     .from('profiles')
     .select('asaas_account_id, asaas_wallet_id, asaas_account_status')
@@ -190,6 +207,14 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' })
 
+    await admin.from('security_audit_log').insert({
+      actor_user_id: user.id,
+      action: 'ASAAS_ACCOUNT_UPDATED',
+      entity_type: 'payment_account',
+      entity_id: user.id,
+      metadata: { provider: 'asaas', document_type: documentType },
+    })
+
     return NextResponse.json({
       connected: true,
       updated: true,
@@ -244,6 +269,14 @@ export async function POST(request: NextRequest) {
         status: 'connected',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' })
+
+    await admin.from('security_audit_log').insert({
+      actor_user_id: user.id,
+      action: newSubaccountApiKey ? 'ASAAS_ACCOUNT_CREATED' : 'ASAAS_ACCOUNT_LINKED',
+      entity_type: 'payment_account',
+      entity_id: user.id,
+      metadata: { provider: 'asaas', document_type: documentType },
+    })
 
     return NextResponse.json({
       connected: true,

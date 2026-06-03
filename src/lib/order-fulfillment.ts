@@ -1,3 +1,4 @@
+import 'server-only'
 import { getResendClient } from '@/lib/resend'
 import { deliveryEmail } from '@/lib/email-templates'
 import { dispatchWebhook } from '@/lib/webhook'
@@ -38,6 +39,14 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
   }
 
   const product = orderData.product as any
+  const { data: privateCustomer } = await supabase
+    .from('order_customer_private')
+    .select('customer_name, customer_email')
+    .eq('order_id', orderId)
+    .single()
+
+  const deliveryCustomerName = privateCustomer?.customer_name || orderData.customer_name
+  const deliveryCustomerEmail = privateCustomer?.customer_email || orderData.customer_email
 
   if (product?.delivery_type === 'external') {
     const accessLinks: { label: string; url: string; isFile: boolean }[] = []
@@ -74,10 +83,10 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
     if (resendClient) {
       await resendClient.emails.send({
         from: 'Flowyn <noreply@flowyn.com.br>',
-        to: orderData.customer_email,
+        to: deliveryCustomerEmail,
         subject: `Seu acesso a "${product.name}" esta pronto!`,
         html: deliveryEmail({
-          customerName: orderData.customer_name,
+          customerName: deliveryCustomerName,
           productName: product.name,
           accessLinks,
         }),

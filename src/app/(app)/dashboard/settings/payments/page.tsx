@@ -40,6 +40,8 @@ const initialForm = {
   incomeValue: '',
 }
 
+const asaasCpfSignupUrl = process.env.NEXT_PUBLIC_ASAAS_CPF_SIGNUP_URL || 'https://www.asaas.com/cadastro'
+
 function PaymentsContent() {
   const [status, setStatus] = useState<AsaasStatus | null>(null)
   const [accountType, setAccountType] = useState<AccountType>('cpf')
@@ -180,7 +182,7 @@ function PaymentsContent() {
             className={`text-left rounded-xl border px-4 py-4 transition-all ${isCpf ? 'border-[#00e88a] bg-[#00e88a]/10 text-white' : 'border-white/10 bg-[#0a0a0a] text-white/60 hover:text-white hover:border-white/20'}`}
           >
             <span className="block font-bold">Pessoa Fisica (CPF)</span>
-            <span className="block text-sm text-white/45 mt-1">Vincula uma subconta PF existente no Asaas pelo CPF.</span>
+            <span className="block text-sm text-white/45 mt-1">Busca e vincula uma subconta PF ja existente no Asaas pelo CPF.</span>
           </button>
           <button
             type="button"
@@ -188,16 +190,35 @@ function PaymentsContent() {
             className={`text-left rounded-xl border px-4 py-4 transition-all ${!isCpf ? 'border-[#00e88a] bg-[#00e88a]/10 text-white' : 'border-white/10 bg-[#0a0a0a] text-white/60 hover:text-white hover:border-white/20'}`}
           >
             <span className="block font-bold">Pessoa Juridica (CNPJ)</span>
-            <span className="block text-sm text-white/45 mt-1">Cria ou atualiza uma subconta PJ com os dados da empresa.</span>
+            <span className="block text-sm text-white/45 mt-1">Cria uma nova subconta PJ via API ou atualiza o vinculo existente.</span>
           </button>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-[#111111] border border-white/10 rounded-2xl p-6 space-y-6">
+        {isCpf && !connected && (
+          <div className="bg-[#00e88a]/5 border border-[#00e88a]/20 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="text-white font-semibold">Ainda nao tem conta CPF no Asaas?</h3>
+              <p className="text-sm text-white/50 mt-1">
+                Crie sua conta Pessoa Fisica no Asaas, depois volte aqui e vincule pelo CPF.
+              </p>
+            </div>
+            <a
+              href={asaasCpfSignupUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold px-5 py-3 rounded-xl transition-all whitespace-nowrap"
+            >
+              Criar conta CPF no Asaas
+            </a>
+          </div>
+        )}
+
         <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-4">
           <h3 className="text-white font-medium mb-2 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#00e88a]" />
-            Dados exigidos pela Asaas
+            {isCpf ? 'Vincular subconta Asaas existente' : 'Criar subconta Asaas'}
           </h3>
           <p className="text-sm text-white/50">
             {isCpf
@@ -263,7 +284,7 @@ function PaymentsContent() {
           disabled={saving}
           className="w-full bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : connected ? 'Atualizar cadastro Asaas' : 'Criar carteira Asaas'}
+          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : connected ? 'Atualizar cadastro Asaas' : isCpf ? 'Vincular carteira Asaas existente' : 'Criar carteira Asaas'}
         </button>
       </form>
     </div>

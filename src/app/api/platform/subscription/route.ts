@@ -1,0 +1,243 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
+import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
+import {
+  cancelSubscription,
+  createCreditCardSubscription,
+  createCustomer,
+  onlyDigits,
+} from '@/lib/asaas'
+
+const FLOWYN_PRO_PRICE = 49
+
+function getClientIp(req: NextRequest) {
+  const forwardedFor = req.headers.get('x-forwarded-for')
+  if (forwardedFor) return forwardedFor.split(',')[0].trim()
+  return req.headers.get('x-real-ip') || '127.0.0.1'
+}
+
+function hashIdentifier(value: string) {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function isoDate(value: string | null | undefined) {
+  const date = value ? new Date(value) : new Date()
+  return date.toISOString().slice(0, 10)
+}
+
+function isFuture(value: string | null | undefined) {
+  return Boolean(value && new Date(value).getTime() > Date.now())
+}
+
+async function getCurrentUserId() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return null
+  return user.id
+}
+
+export async function GET() {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return NextResponse.json({ error: 'Nao autenticado.' }, { status: 401 })
+  }
+
+  const admin = createAdminClient()
+  const { data: subscription } = await admin
+    .from('platform_subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  const { data: invoices } = subscription
+    ? await admin
+        .from('platform_subscription_invoices')
+        .select('asaas_payment_id, status, value, due_date, paid_at, created_at')
+        .eq('platform_subscription_id', subscription.id)
+        .order('created_at', { ascending: false })
+        .limit(10)
+    : { data: [] }
+
+  return NextResponse.json({ subscription, invoices: invoices || [] })
+}
+
+export async function POST(req: NextRequest) {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return NextResponse.json({ error: 'Nao autenticado.' }, { status: 401 })
+  }
+
+  const admin = createAdminClient()
+  const { data: withinRateLimit, error: rateLimitError } = await admin.rpc('consume_rate_limit', {
+    requested_bucket: 'platform-subscription',
+    requested_identifier_hash: hashIdentifier(userId),
+    max_requests: 5,
+    window_seconds: 15 * 60,
+  })
+
+  if (rateLimitError) {
+    return NextResponse.json({ error: 'Assinatura temporariamente indisponivel.' }, { status: 503 })
+  }
+
+  if (!withinRateLimit) {
+    return NextResponse.json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }, { status: 429 })
+  }
+
+  const body = await req.json()
+  const name = String(body.name || '').trim()
+  const email = String(body.email || '').trim()
+  const cpfCnpj = onlyDigits(body.cpfCnpj)
+  const phone = onlyDigits(body.phone)
+  const postalCode = onlyDigits(body.postalCode)
+  const addressNumber = String(body.addressNumber || '').trim()
+  const cardNumber = onlyDigits(body.card?.number)
+  const cardCcv = onlyDigits(body.card?.ccv)
+
+  if (!name || !email || !cpfCnpj || !phone || !postalCode || !addressNumber) {
+    return NextResponse.json({ error: 'Preencha todos os dados obrigatorios.' }, { status: 400 })
+  }
+
+  if (!email.includes('@') || ![11, 14].includes(cpfCnpj.length)) {
+    return NextResponse.json({ error: 'Informe e-mail e CPF/CNPJ validos.' }, { status: 400 })
+  }
+
+  if (cardNumber.length < 13 || cardNumber.length > 19 || cardCcv.length < 3 || cardCcv.length > 4) {
+    return NextResponse.json({ error: 'Confira os dados do cartao.' }, { status: 400 })
+  }
+
+  let { data: localSubscription } = await admin
+    .from('platform_subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (!localSubscription) {
+    const { data: createdSubscription, error: createError } = await admin
+      .from('platform_subscriptions')
+      .insert({ user_id: userId })
+      .select('*')
+      .single()
+
+    if (createError || !createdSubscription) {
+      return NextResponse.json({ error: 'Nao foi possivel iniciar o periodo gratuito.' }, { status: 500 })
+    }
+
+    localSubscription = createdSubscription
+  }
+
+  if (localSubscription.asaas_subscription_id && ['scheduled', 'active'].includes(localSubscription.status)) {
+    return NextResponse.json({ success: true, subscription: localSubscription })
+  }
+
+  const apiKey = process.env.ASAAS_API_KEY
+  if (!apiKey) {
+    return NextResponse.json({ error: 'ASAAS_API_KEY nao configurada.' }, { status: 503 })
+  }
+
+  const customer = await createCustomer({
+    name,
+    email,
+    cpfCnpj,
+    mobilePhone: phone,
+    externalReference: userId,
+    notificationDisabled: true,
+  }, apiKey)
+
+  const trialEndsAt = localSubscription.trial_ends_at as string | null
+  const nextDueDate = isoDate(isFuture(trialEndsAt) ? trialEndsAt : new Date().toISOString())
+  const asaasSubscription = await createCreditCardSubscription({
+    customer: customer.id,
+    billingType: 'CREDIT_CARD',
+    value: FLOWYN_PRO_PRICE,
+    nextDueDate,
+    cycle: 'MONTHLY',
+    description: 'Flowyn Pro - mensalidade sem taxa por venda',
+    externalReference: String(localSubscription.id),
+    creditCard: {
+      holderName: String(body.card?.holderName || name).trim(),
+      number: cardNumber,
+      expiryMonth: String(body.card?.expiryMonth || '').padStart(2, '0'),
+      expiryYear: String(body.card?.expiryYear || ''),
+      ccv: cardCcv,
+    },
+    creditCardHolderInfo: {
+      name,
+      email,
+      cpfCnpj,
+      postalCode,
+      addressNumber,
+      addressComplement: String(body.addressComplement || '').trim() || null,
+      mobilePhone: phone,
+    },
+    remoteIp: getClientIp(req),
+  }, apiKey)
+
+  const nextStatus = isFuture(trialEndsAt) ? 'scheduled' : 'active'
+  const { data: updatedSubscription, error: updateError } = await admin
+    .from('platform_subscriptions')
+    .update({
+      asaas_customer_id: customer.id,
+      asaas_subscription_id: asaasSubscription.id,
+      status: nextStatus,
+      last_payment_status: asaasSubscription.status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', localSubscription.id)
+    .select('*')
+    .single()
+
+  if (updateError || !updatedSubscription) {
+    return NextResponse.json({ error: 'Assinatura criada na Asaas, mas nao foi salva na Flowyn.' }, { status: 500 })
+  }
+
+  await admin.from('security_audit_log').insert({
+    user_id: userId,
+    action: 'FLOWYN_PRO_SUBSCRIPTION_CREATED',
+    entity_type: 'platform_subscription',
+    entity_id: updatedSubscription.id,
+    metadata: { asaas_subscription_id: asaasSubscription.id, next_due_date: nextDueDate },
+  })
+
+  return NextResponse.json({ success: true, subscription: updatedSubscription })
+}
+
+export async function DELETE() {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return NextResponse.json({ error: 'Nao autenticado.' }, { status: 401 })
+  }
+
+  const admin = createAdminClient()
+  const { data: subscription } = await admin
+    .from('platform_subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (!subscription) {
+    return NextResponse.json({ error: 'Assinatura nao encontrada.' }, { status: 404 })
+  }
+
+  const apiKey = process.env.ASAAS_API_KEY
+  if (subscription.asaas_subscription_id && apiKey) {
+    await cancelSubscription(subscription.asaas_subscription_id, apiKey)
+  }
+
+  await admin
+    .from('platform_subscriptions')
+    .update({
+      status: 'cancelled',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', subscription.id)
+
+  await admin.from('security_audit_log').insert({
+    user_id: userId,
+    action: 'FLOWYN_PRO_SUBSCRIPTION_CANCELLED',
+    entity_type: 'platform_subscription',
+    entity_id: subscription.id,
+  })
+
+  return NextResponse.json({ success: true })
+}

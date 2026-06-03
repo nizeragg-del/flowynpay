@@ -89,6 +89,57 @@ body::before {
   animation: glow-green 3s ease-in-out infinite;
 }
 
+@keyframes sales-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes sales-split-grow {
+  from { width: 0; opacity: 0.45; }
+  to { width: var(--split-width); opacity: 1; }
+}
+
+.sales-reveal {
+  animation: reveal-up 700ms ease-out both;
+}
+.sales-delay-1 {
+  animation-delay: 120ms;
+}
+.sales-delay-2 {
+  animation-delay: 240ms;
+}
+.sales-float {
+  animation: reveal-up 700ms ease-out both, sales-float 5s ease-in-out 950ms infinite;
+}
+.sales-split-bar {
+  width: 0;
+  animation: sales-split-grow 900ms ease-out 700ms forwards;
+}
+.sales-feature,
+.sales-price-card {
+  transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+}
+.sales-feature:hover,
+.sales-price-card:hover {
+  border-color: rgba(0,232,138,0.42);
+  box-shadow: 0 16px 42px rgba(0,0,0,0.22);
+  transform: translateY(-5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sales-reveal,
+  .sales-float,
+  .sales-split-bar {
+    animation: none;
+  }
+  .sales-split-bar {
+    width: var(--split-width);
+  }
+  .sales-feature,
+  .sales-price-card {
+    transition: none;
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }

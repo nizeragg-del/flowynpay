@@ -72,7 +72,7 @@ export default async function MarketPage() {
               </div>
               <h1 className="text-3xl font-extrabold text-white tracking-tight mb-1">Vitrine de Produtos</h1>
               <p className="text-white/60 font-medium">
-                {productCount} {productCount === 1 ? 'produto disponível' : 'produtos disponíveis'} para afiliação. Promova e ganhe comissões recorrentes.
+                {productCount} {productCount === 1 ? 'produto disponível' : 'produtos disponíveis'} para afiliação. Promova produtos e ganhe comissões.
               </p>
             </div>
             <Link

@@ -1,3 +1,4 @@
+import 'server-only'
 import crypto from 'crypto'
 import { createAdminClient } from '@/utils/supabase/admin'
 
@@ -54,6 +55,13 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
   const product = order.product as any
   const plan = order.plan as any
   const webhookUrl = product?.webhook_url
+  const { data: privateCustomer } = await supabaseAdmin
+    .from('order_customer_private')
+    .select('customer_name, customer_email')
+    .eq('order_id', orderId)
+    .single()
+  const customerName = privateCustomer?.customer_name || order.customer_name
+  const customerEmail = privateCustomer?.customer_email || order.customer_email
 
   if (!webhookUrl) {
     // No webhook configured — not an error, just skip
@@ -71,8 +79,8 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
     plan_id: order.plan_id,
     plan_identifier: plan?.plan_identifier || undefined,
     customer: {
-      name: order.customer_name,
-      email: order.customer_email,
+      name: customerName,
+      email: customerEmail,
     },
     amount: Number(order.amount),
     commission: {
@@ -87,8 +95,8 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
     timestamp: new Date().toISOString(),
     
     // Campos em PT-BR exigidos para a Make.com
-    email: order.customer_email,
-    nome: order.customer_name,
+    email: customerEmail,
+    nome: customerName,
     id_do_pedido: orderId,
     id_do_produto: product.id,
     id_do_plano: order.plan_id,
@@ -130,7 +138,7 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
 
       clearTimeout(timeout)
 
-      const responseBody = await response.text().catch(() => '')
+      await response.text().catch(() => '')
 
       // Log the attempt
       await supabaseAdmin.from('webhook_logs').insert({
@@ -139,7 +147,7 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
         webhook_url: webhookUrl,
         request_payload: payload,
         response_status: response.status,
-        response_body: responseBody.slice(0, 2000), // Limit stored response
+        response_body: null,
         success: response.ok,
         attempt_number: attempt,
         error_message: response.ok ? null : `HTTP ${response.status}: ${response.statusText}`,
@@ -152,11 +160,11 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
           .update({ webhook_status: 'delivered', webhook_attempts: attempt })
           .eq('id', orderId)
 
-        console.log(`[Webhook] ✅ Delivered for order ${orderId} on attempt ${attempt}. Status: ${response.status} - Body: ${responseBody.slice(0, 300)}`)
+        console.log(`[Webhook] Delivered for order ${orderId} on attempt ${attempt}. Status: ${response.status}`)
         return { success: true }
       }
 
-      console.warn(`[Webhook] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed for order ${orderId}: HTTP ${response.status} - Response: ${responseBody.slice(0, 300)}`)
+      console.warn(`[Webhook] Attempt ${attempt}/${MAX_RETRIES} failed for order ${orderId}: HTTP ${response.status}`)
 
     } catch (err: any) {
       const errorMessage = err.name === 'AbortError' ? 'Request timeout (10s)' : err.message
@@ -174,7 +182,7 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
         error_message: errorMessage,
       })
 
-      console.warn(`[Webhook] ⚠️ Attempt ${attempt}/${MAX_RETRIES} error for order ${orderId}: ${errorMessage}`)
+      console.warn(`[Webhook] Attempt ${attempt}/${MAX_RETRIES} error for order ${orderId}: ${errorMessage}`)
     }
 
     // Wait before retrying (but not after the last attempt)
@@ -190,7 +198,7 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
     .update({ webhook_status: 'failed', webhook_attempts: MAX_RETRIES })
     .eq('id', orderId)
 
-  console.error(`[Webhook] ❌ All ${MAX_RETRIES} attempts failed for order ${orderId}`)
+  console.error(`[Webhook] All ${MAX_RETRIES} attempts failed for order ${orderId}`)
   return { success: false, error: `All ${MAX_RETRIES} delivery attempts failed` }
 }
 

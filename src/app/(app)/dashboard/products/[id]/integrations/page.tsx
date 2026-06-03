@@ -104,7 +104,7 @@ export default async function IntegrationsPage(props: { params: Promise<{ id: st
           </div>
 
           <p className="text-sm text-white/60 mb-6 leading-relaxed">
-            Quando uma assinatura for processada com sucesso, nosso sistema fará automaticamente um <code className="bg-[#111111] px-2 py-0.5 rounded text-[#00e88a] text-xs font-bold border border-white/10">POST</code> para a URL abaixo com os dados do cliente.
+            Quando uma venda for processada com sucesso, nosso sistema fará automaticamente um <code className="bg-[#111111] px-2 py-0.5 rounded text-[#00e88a] text-xs font-bold border border-white/10">POST</code> para a URL abaixo com os dados do cliente.
           </p>
 
 

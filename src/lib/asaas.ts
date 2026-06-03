@@ -1,3 +1,5 @@
+import 'server-only'
+
 const DEFAULT_ASAAS_API_URL = 'https://api-sandbox.asaas.com/v3'
 
 export type AsaasCustomerPayload = {
@@ -42,7 +44,7 @@ export type AsaasCreditCardHolderInfo = {
 
 type RequestOptions = {
   apiKey?: string
-  method?: 'GET' | 'POST' | 'PUT'
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: unknown
 }
 
@@ -179,6 +181,41 @@ export async function createCreditCardPayment(
     apiKey,
     method: 'POST',
     body: payload,
+  })
+}
+
+export async function createCreditCardSubscription(
+  payload: {
+    customer: string
+    billingType: 'CREDIT_CARD'
+    value: number
+    nextDueDate: string
+    cycle: 'MONTHLY'
+    description?: string
+    externalReference?: string
+    creditCard: AsaasCreditCardPayload
+    creditCardHolderInfo: AsaasCreditCardHolderInfo
+    remoteIp: string
+  },
+  apiKey: string
+) {
+  return asaasRequest<{
+    id: string
+    status: string
+    cycle: string
+    value: number
+    nextDueDate?: string
+  }>('/subscriptions', {
+    apiKey,
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function cancelSubscription(subscriptionId: string, apiKey: string) {
+  return asaasRequest<{ id: string; status?: string }>(`/subscriptions/${subscriptionId}`, {
+    apiKey,
+    method: 'DELETE',
   })
 }
 

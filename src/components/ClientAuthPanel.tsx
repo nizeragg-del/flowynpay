@@ -170,6 +170,23 @@ export function ClientAuthPanel({ initialError, initialType, initialSuccess }: C
                 />
               </div>
               <div>
+                <span className="block text-sm font-semibold text-white/80 mb-2">Como voce quer comecar?</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="cursor-pointer">
+                    <input type="radio" name="role" value="producer" defaultChecked className="sr-only peer" />
+                    <div className="rounded-xl border border-white/10 bg-[#0a0a0a] px-3 py-2.5 text-center text-xs font-bold text-white/55 transition-all peer-checked:border-[#00e88a] peer-checked:bg-[#00e88a]/10 peer-checked:text-[#00e88a]">
+                      Produtor
+                    </div>
+                  </label>
+                  <label className="cursor-pointer">
+                    <input type="radio" name="role" value="affiliate" className="sr-only peer" />
+                    <div className="rounded-xl border border-white/10 bg-[#0a0a0a] px-3 py-2.5 text-center text-xs font-bold text-white/55 transition-all peer-checked:border-[#00e88a] peer-checked:bg-[#00e88a]/10 peer-checked:text-[#00e88a]">
+                      Afiliado
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div>
                 <label htmlFor="email_register" className="block text-sm font-semibold text-white/80 mb-1">E-mail</label>
                 <input
                   id="email_register"
@@ -226,7 +243,7 @@ export function ClientAuthPanel({ initialError, initialType, initialSuccess }: C
                 >
                   <h2 className="text-4xl font-extrabold text-white mb-4">Ainda não tem conta?</h2>
                   <p className="text-base text-white/50 mb-8 max-w-sm mx-auto">
-                    Crie produtos digitais, curso online, e-books — ou se afilie aos melhores produtos do mercado e ganhe comissões recorrentes.
+                    Crie produtos digitais, cursos e e-books ou encontre produtos para promover como afiliado.
                   </p>
                   <button
                     onClick={() => setIsLogin(false)}

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Store, Box, Link2, User,
   Settings, LogOut, DollarSign, CreditCard,
-  ScanLine, Wallet, PlusCircle, BookOpen, ShoppingBag
+  ScanLine, Wallet, PlusCircle, BookOpen, ShoppingBag, BadgeCheck
 } from 'lucide-react'
 
 export function Sidebar({ profile }: { profile: any }) {
@@ -82,9 +82,14 @@ export function Sidebar({ profile }: { profile: any }) {
           <span className="font-medium text-sm">Pixels</span>
         </Link>
 
-        <Link href="/dashboard/settings/payments" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+        <Link href="/dashboard/settings/payments" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/payments') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
           <CreditCard className="w-5 h-5" />
           <span className="font-medium text-sm">Pagamentos</span>
+        </Link>
+
+        <Link href="/dashboard/settings/subscription" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/subscription') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+          <BadgeCheck className="w-5 h-5" />
+          <span className="font-medium text-sm">Assinatura</span>
         </Link>
 
         <Link href="/dashboard/settings/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/profile') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>

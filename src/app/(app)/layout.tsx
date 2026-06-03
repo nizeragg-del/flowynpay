@@ -23,6 +23,12 @@ export default async function AppLayout({
   const isAffiliate = profile?.role === 'affiliate'
   const isProducer = profile?.role === 'producer'
 
+  const { data: subscription } = await supabase
+    .from('platform_subscriptions')
+    .select('status, trial_ends_at, grace_period_ends_at')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
   // Fetch total sales depending on role
   let totalSales = 0
   if (isProducer) {
@@ -58,6 +64,7 @@ export default async function AppLayout({
       isAffiliate={isAffiliate}
       isProducer={isProducer}
       totalSales={totalSales}
+      subscription={subscription}
     >
       {children}
     </AppLayoutUI>

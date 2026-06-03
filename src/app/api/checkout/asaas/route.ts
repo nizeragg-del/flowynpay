@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import {
   createCreditCardPayment,
   createCustomer,
   onlyDigits,
-  updateCustomer,
 } from '@/lib/asaas'
 import { fulfillPaidOrder } from '@/lib/order-fulfillment'
+import { getPlatformAccess } from '@/lib/platform-access'
 import { createAdminClient } from '@/utils/supabase/admin'
 
 function today() {
@@ -18,12 +19,42 @@ function getClientIp(req: NextRequest) {
   return req.headers.get('x-real-ip') || '127.0.0.1'
 }
 
+function hashIdentifier(value: string) {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function maskEmail(email: string) {
+  const [localPart, domain] = email.split('@')
+  return localPart && domain ? `${localPart.charAt(0)}***@${domain}` : '***'
+}
+
+function firstName(name: string) {
+  return name.split(/\s+/)[0] || 'Cliente'
+}
+
 const PAID_STATUSES = new Set(['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH'])
 
 export async function POST(req: NextRequest) {
   const supabase = createAdminClient()
 
   try {
+    const clientIp = getClientIp(req)
+    const { data: withinRateLimit, error: rateLimitError } = await supabase.rpc('consume_rate_limit', {
+      requested_bucket: 'checkout',
+      requested_identifier_hash: hashIdentifier(clientIp),
+      max_requests: 12,
+      window_seconds: 60,
+    })
+
+    if (rateLimitError) {
+      console.error('[Asaas Checkout] Rate limiter unavailable.')
+      return NextResponse.json({ error: 'Checkout temporariamente indisponivel.' }, { status: 503 })
+    }
+
+    if (!withinRateLimit) {
+      return NextResponse.json({ error: 'Muitas tentativas. Aguarde um minuto e tente novamente.' }, { status: 429 })
+    }
+
     const body = await req.json()
     const planId = String(body.plan_id || '')
     const customerName = String(body.customer_name || '').trim()
@@ -35,6 +66,16 @@ export async function POST(req: NextRequest) {
 
     if (!planId || !customerName || !customerEmail || !customerDocument || !customerPhone) {
       return NextResponse.json({ error: 'Preencha nome, e-mail, CPF/CNPJ e telefone.' }, { status: 400 })
+    }
+
+    if (!customerEmail.includes('@') || ![11, 14].includes(customerDocument.length)) {
+      return NextResponse.json({ error: 'Informe um e-mail e CPF/CNPJ validos.' }, { status: 400 })
+    }
+
+    const cardNumber = onlyDigits(body.card?.number)
+    const cardCcv = onlyDigits(body.card?.ccv)
+    if (cardNumber.length < 13 || cardNumber.length > 19 || cardCcv.length < 3 || cardCcv.length > 4) {
+      return NextResponse.json({ error: 'Confira os dados do cartao.' }, { status: 400 })
     }
 
     const { data: plan, error: planError } = await supabase
@@ -54,6 +95,11 @@ export async function POST(req: NextRequest) {
     }
 
     const product = plan.product as any
+    const producerAccess = await getPlatformAccess(product.owner_id)
+    if (!producerAccess.allowed) {
+      return NextResponse.json({ error: 'Checkout indisponivel. Produtor precisa regularizar a assinatura Flowyn Pro.' }, { status: 402 })
+    }
+
     const { data: producerAccount } = await supabase
       .from('payment_accounts')
       .select('wallet_id')
@@ -96,6 +142,18 @@ export async function POST(req: NextRequest) {
     const totalAmount = Number((baseAmount + orderBumpAmount).toFixed(2))
     const commissionAmount = affiliateId ? Number(((totalAmount * commissionRate) / 100).toFixed(2)) : 0
 
+    if (!Number.isFinite(baseAmount) || baseAmount <= 0 || !Number.isFinite(totalAmount) || totalAmount <= 0) {
+      return NextResponse.json({ error: 'Valor do produto invalido.' }, { status: 400 })
+    }
+
+    if (!Number.isFinite(commissionRate) || commissionRate < 0 || commissionRate > 100) {
+      return NextResponse.json({ error: 'Comissao configurada fora do intervalo permitido.' }, { status: 409 })
+    }
+
+    if (affiliateWalletId && affiliateWalletId === producerAccount.wallet_id) {
+      return NextResponse.json({ error: 'Produtor e afiliado nao podem utilizar a mesma carteira Asaas.' }, { status: 409 })
+    }
+
     if (affiliateId && !affiliateWalletId) {
       return NextResponse.json({ error: 'Afiliado ainda não conectou a carteira Asaas.' }, { status: 409 })
     }
@@ -109,12 +167,7 @@ export async function POST(req: NextRequest) {
       notificationDisabled: true,
     }
 
-    let asaasCustomer
-    if (body.asaas_customer_id) {
-      asaasCustomer = await updateCustomer(String(body.asaas_customer_id), customerPayload, process.env.ASAAS_API_KEY!)
-    } else {
-      asaasCustomer = await createCustomer(customerPayload, process.env.ASAAS_API_KEY!)
-    }
+    const asaasCustomer = await createCustomer(customerPayload, process.env.ASAAS_API_KEY!)
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -122,10 +175,8 @@ export async function POST(req: NextRequest) {
         product_id: product.id,
         plan_id: plan.id,
         affiliate_id: affiliateId,
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_document: customerDocument,
-        customer_phone: customerPhone,
+        customer_name: firstName(customerName),
+        customer_email: maskEmail(customerEmail),
         amount: totalAmount,
         commission_rate: affiliateId ? commissionRate : 0,
         commission_amount: commissionAmount,
@@ -142,6 +193,22 @@ export async function POST(req: NextRequest) {
 
     if (orderError || !order) {
       return NextResponse.json({ error: 'Erro ao registrar pedido.' }, { status: 500 })
+    }
+
+    const { error: privateCustomerError } = await supabase
+      .from('order_customer_private')
+      .insert({
+        order_id: order.id,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        document_number: customerDocument,
+        phone: customerPhone,
+      })
+
+    if (privateCustomerError) {
+      console.error('[Asaas Checkout] Could not persist private customer data.')
+      await supabase.from('orders').delete().eq('id', order.id)
+      return NextResponse.json({ error: 'Erro ao registrar os dados do pedido.' }, { status: 500 })
     }
 
     const producerSplitRate = affiliateWalletId && commissionRate > 0
@@ -165,10 +232,10 @@ export async function POST(req: NextRequest) {
       split,
       creditCard: {
         holderName: String(body.card?.holderName || '').trim(),
-        number: onlyDigits(body.card?.number),
+        number: cardNumber,
         expiryMonth: String(body.card?.expiryMonth || '').padStart(2, '0'),
         expiryYear: String(body.card?.expiryYear || ''),
-        ccv: onlyDigits(body.card?.ccv),
+        ccv: cardCcv,
       },
       creditCardHolderInfo: {
         name: String(body.holder?.name || customerName).trim(),
@@ -179,7 +246,7 @@ export async function POST(req: NextRequest) {
         addressComplement: String(body.holder?.addressComplement || '').trim() || null,
         mobilePhone: onlyDigits(body.holder?.mobilePhone || customerPhone),
       },
-      remoteIp: getClientIp(req),
+      remoteIp: clientIp,
     }, process.env.ASAAS_API_KEY!)
 
     await supabase

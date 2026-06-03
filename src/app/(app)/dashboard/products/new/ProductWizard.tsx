@@ -21,7 +21,7 @@ const CATEGORIES = [
   'Culinária', 'Arte & Design', 'Outros',
 ]
 
-interface Plan { name: string; price: string; billing_type: 'one_time' | 'recurring' }
+interface Plan { name: string; price: string; billing_type: 'one_time' }
 interface WizardData {
   product_type: string
   name: string
@@ -255,16 +255,8 @@ export function ProductWizard({
                     </div>
                   </div>
                 </div>
-                <div>
-                  <label className={labelClass}>Tipo de Cobrança</label>
-                  <div className="flex gap-3">
-                    {['one_time', 'recurring'].map(bt => (
-                      <button key={bt} type="button" onClick={() => updatePlan(i, 'billing_type', bt as any)}
-                        className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${plan.billing_type === bt ? 'border-[#00e88a] bg-[#00e88a]/10 text-[#00e88a]' : 'border-white/10 text-white/50 hover:border-white/20'}`}>
-                        {bt === 'one_time' ? '💳 Pagamento Único' : '🔄 Assinatura Mensal'}
-                      </button>
-                    ))}
-                  </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm font-semibold text-white/60">
+                  Pagamento unico
                 </div>
               </div>
             ))}
