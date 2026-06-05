@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { getResendClient } from '@/lib/resend'
 import { learningNotificationEmail } from '@/lib/email-templates'
+import { getAppUrl } from '@/lib/app-url'
 
 export async function toggleLessonProgress(productId: string, lessonId: string, completed: boolean) {
   const supabase = await createClient()
@@ -123,7 +124,7 @@ export async function bookMentorshipSlot(productId: string, slotId: string) {
     if (resendClient && user.email) {
       const admin = createAdminClient()
       const { data: product } = await admin.from('products').select('name').eq('id', productId).single()
-      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+      const appUrl = getAppUrl()
       await resendClient.emails.send({
         from: 'Flowyn <noreply@flowyn.com.br>',
         to: user.email,

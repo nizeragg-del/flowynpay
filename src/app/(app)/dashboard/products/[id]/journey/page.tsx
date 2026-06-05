@@ -18,6 +18,7 @@ import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { getResendClient } from '@/lib/resend'
 import { learningNotificationEmail } from '@/lib/email-templates'
+import { getAppUrl } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -167,7 +168,7 @@ export default async function MentorshipJourneyPage(props: { params: Promise<{ i
         .eq('user_id', studentId)
         .maybeSingle()
       const { data: product } = await admin.from('products').select('name').eq('id', id).single()
-      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+      const appUrl = getAppUrl()
 
       if (access?.access_email) {
         await resendClient.emails.send({

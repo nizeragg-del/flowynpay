@@ -33,7 +33,7 @@ export function ClientAuthPanel({ initialError, initialType, initialSuccess }: C
               Checkout para produtores
             </div>
             <h1 className="max-w-md text-4xl font-black leading-tight text-white">
-              Venda infoprodutos sem taxa Flowyn por venda.
+              Venda infoprodutos e receba diretamente na sua conta sem taxas abusivas.
             </h1>
             <p className="mt-5 max-w-md text-sm leading-6 text-white/50">
               Crie produtos, publique checkouts, conecte a Asaas e acompanhe suas vendas em um painel simples.

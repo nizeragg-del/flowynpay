@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { Check, Eye, Monitor, Save, Smartphone, Sparkles } from 'lucide-react'
+import { AlertCircle, Check, ExternalLink, Eye, Loader2, Monitor, RefreshCw, Save, Smartphone, Sparkles } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import type { CheckoutCustomizationConfig } from '@/lib/checkout-customization'
 import { publishCheckout, saveCheckoutDraft } from './actions'
@@ -27,7 +27,10 @@ export function CheckoutEditorClient({
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [previewKey, setPreviewKey] = useState(0)
   const [previewFrameWidth, setPreviewFrameWidth] = useState(0)
+  const [previewLoading, setPreviewLoading] = useState(Boolean(plans[0]?.id))
+  const [previewError, setPreviewError] = useState(false)
   const previewFrameRef = useRef<HTMLDivElement | null>(null)
+  const previewTimeoutRef = useRef<number | null>(null)
   const [isPending, startTransition] = useTransition()
   const plan = plans[0]
   const orderBumpEnabled = Boolean(product.order_bump_price)
@@ -36,6 +39,22 @@ export function CheckoutEditorClient({
   const intrinsicPreviewHeight = viewport === 'mobile' ? 1900 : 2200
   const previewScale = previewFrameWidth ? Math.min(1, previewFrameWidth / intrinsicPreviewWidth) : 1
   const previewHeight = Math.ceil(intrinsicPreviewHeight * previewScale)
+
+  useEffect(() => {
+    if (!previewUrl) return
+
+    setPreviewLoading(true)
+    setPreviewError(false)
+    if (previewTimeoutRef.current) window.clearTimeout(previewTimeoutRef.current)
+    previewTimeoutRef.current = window.setTimeout(() => {
+      setPreviewLoading(false)
+      setPreviewError(true)
+    }, 10000)
+
+    return () => {
+      if (previewTimeoutRef.current) window.clearTimeout(previewTimeoutRef.current)
+    }
+  }, [previewUrl])
 
   useEffect(() => {
     const element = previewFrameRef.current
@@ -67,6 +86,10 @@ export function CheckoutEditorClient({
       await saveCheckoutDraft(productId, config)
       setPreviewKey(current => current + 1)
     })
+  }
+
+  function handleRefreshPreview() {
+    handleSaveDraft()
   }
 
   function handlePublish() {
@@ -189,14 +212,62 @@ export function CheckoutEditorClient({
             <Eye className="h-4 w-4 text-[#00e88a]" />
             Preview do checkout
           </div>
-          <span className="text-xs font-bold uppercase text-white/30">{viewport}</span>
+          <div className="flex items-center gap-2">
+            {previewUrl && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRefreshPreview}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-bold text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
+                  title="Salvar rascunho e atualizar preview"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isPending ? 'animate-spin' : ''}`} />
+                  Atualizar
+                </button>
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-bold text-white/60 transition hover:bg-white/10 hover:text-white"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Abrir
+                </a>
+              </>
+            )}
+            <span className="text-xs font-bold uppercase text-white/30">{viewport}</span>
+          </div>
         </div>
         {previewUrl ? (
           <div
             ref={previewFrameRef}
-            className={`mx-auto max-w-full overflow-hidden rounded-[28px] border border-white/15 bg-white shadow-2xl transition-all ${viewport === 'mobile' ? 'w-[390px]' : 'w-full'}`}
+            className={`relative mx-auto max-w-full overflow-hidden rounded-[28px] border border-white/15 bg-white shadow-2xl transition-all ${viewport === 'mobile' ? 'w-[390px]' : 'w-full'}`}
             style={{ height: previewHeight }}
           >
+            {previewLoading && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white text-slate-500">
+                <Loader2 className="h-6 w-6 animate-spin text-[#00e88a]" />
+                <p className="text-sm font-bold">Carregando preview real...</p>
+              </div>
+            )}
+            {previewError && (
+              <div className="absolute inset-4 z-20 flex flex-col items-center justify-center rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900">
+                <AlertCircle className="mb-3 h-7 w-7" />
+                <p className="text-sm font-black">Nao foi possivel carregar o preview dentro do editor.</p>
+                <p className="mt-2 max-w-md text-xs leading-5 text-amber-800/75">
+                  Salve o rascunho e tente atualizar. Se continuar em branco, abra o preview real em outra aba para conferir o checkout.
+                </p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <button onClick={handleRefreshPreview} className="rounded-xl bg-amber-900 px-4 py-2 text-xs font-black text-white">
+                    Salvar e recarregar
+                  </button>
+                  <a href={previewUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-amber-300 px-4 py-2 text-xs font-black text-amber-950">
+                    Abrir preview real
+                  </a>
+                </div>
+              </div>
+            )}
             <div
               style={{
                 width: intrinsicPreviewWidth,
@@ -211,6 +282,11 @@ export function CheckoutEditorClient({
                 title="Preview real do checkout"
                 className="block h-full w-full border-0 bg-white"
                 sandbox="allow-same-origin allow-scripts"
+                onLoad={() => {
+                  if (previewTimeoutRef.current) window.clearTimeout(previewTimeoutRef.current)
+                  setPreviewLoading(false)
+                  setPreviewError(false)
+                }}
               />
             </div>
           </div>

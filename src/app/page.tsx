@@ -3,224 +3,340 @@ import {
   ArrowRight,
   BadgeCheck,
   BarChart3,
-  Check,
+  CheckCircle2,
   CreditCard,
-  FileCheck2,
-  Layers3,
-  LineChart,
-  MousePointerClick,
+  LockKeyhole,
   PackageCheck,
+  Receipt,
   ShieldCheck,
   Sparkles,
   WalletCards,
-  Webhook,
+  Zap,
 } from 'lucide-react'
 
 export const metadata = {
-  title: 'Flowyn - Checkout para infoprodutores sem taxa por venda',
-  description: 'Venda infoprodutos, cursos e mentorias com checkout transparente, area de membros e taxa Flowyn zero por venda.',
+  title: 'Flowyn - Venda infoprodutos sem taxas abusivas',
+  description: 'Checkout transparente, entrega digital e recebimento via Asaas para produtores que querem previsibilidade e margem.',
 }
 
-const readyFeatures = [
-  { icon: MousePointerClick, title: 'Checkout transparente', text: 'Uma experiencia branca, direta e otimizada para fechar a compra.' },
-  { icon: Layers3, title: 'Order bump nativo', text: 'Aumente o ticket medio com uma oferta complementar no checkout.' },
-  { icon: PackageCheck, title: 'Entrega automatica', text: 'Libere acesso, arquivos, cursos e mentorias apos a confirmacao.' },
-  { icon: LineChart, title: 'Pixels de conversao', text: 'Conecte Meta, Google e TikTok aos seus planos de venda.' },
-  { icon: BarChart3, title: 'Relatorios de vendas', text: 'Acompanhe pedidos, receita, status e produtos em um painel simples.' },
-  { icon: Webhook, title: 'Webhooks com logs', text: 'Integre entregas externas com historico e reenvio de eventos.' },
-  { icon: WalletCards, title: 'Asaas conectado', text: 'Receba pela sua carteira Asaas CPF ou CNPJ, sem taxa Flowyn por venda.' },
-  { icon: FileCheck2, title: 'Area do aluno', text: 'Cursos, mentorias, progresso, certificados e materiais em um so lugar.' },
+const productPillars = [
+  {
+    icon: CreditCard,
+    title: 'Checkout feito para converter',
+    text: 'Pagina branca, objetiva, com order bump, pagamento por cartao e uma experiencia familiar para o comprador.',
+  },
+  {
+    icon: WalletCards,
+    title: 'Recebimento via Asaas',
+    text: 'Conecte sua conta CPF ou CNPJ e receba pelas vendas sem a Flowyn cobrar percentual por transacao.',
+  },
+  {
+    icon: PackageCheck,
+    title: 'Entrega depois do pagamento',
+    text: 'Libere e-book, arquivos, cursos, mentorias e acessos automaticamente quando a venda for aprovada.',
+  },
+]
+
+const features = [
+  'Produtos digitais com planos e order bump',
+  'Editor visual de checkout',
+  'Area do aluno para cursos e mentorias',
+  'Upload de arquivos e video nativo',
+  'Pixels por plano',
+  'Webhooks e logs de entrega',
+  'Relatorios de vendas',
+  'Carteira Asaas CPF/CNPJ',
 ]
 
 const comparisonRows = [
-  ['Taxa da plataforma por venda', 'R$ 0,00', 'Percentual + valor fixo'],
-  ['Mensalidade', 'R$ 49', 'Geralmente R$ 0'],
-  ['Checkout', 'Transparente e personalizavel', 'Varia por plataforma'],
-  ['Area de membros', 'Inclusa', 'Pode ter limite ou custo extra'],
-  ['Recebimento', 'Direto via Asaas', 'Saldo interno ou repasse'],
+  ['Modelo de cobranca', 'Mensalidade fixa', 'Percentual por venda'],
+  ['Taxa Flowyn por venda', 'R$ 0,00', 'Cresce junto com seu faturamento'],
+  ['Recebimento', 'Via sua conta Asaas', 'Saldo interno ou repasse posterior'],
+  ['Controle da oferta', 'Checkout privado por produto', 'Oferta exposta em ecossistema publico'],
+  ['Entrega', 'Arquivos, curso, mentoria e webhooks', 'Varia conforme o plano'],
 ]
 
-const savingsRows = [
-  ['50 vendas de R$ 100', 'R$ 5.000,00', 'R$ 5.000,00'],
-  ['Custo da plataforma', 'R$ 49,00', 'R$ 574,00'],
-  ['Economia estimada', 'R$ 525,00', '-'],
+const economyRows = [
+  ['Vendas no mes', '50 x R$ 100', 'R$ 5.000'],
+  ['Custo Flowyn', 'R$ 49 fixos', 'R$ 49'],
+  ['Custo estimado em plataforma com taxa', '8,99% + R$ 2,49 por venda', 'R$ 574'],
+  ['Margem preservada', 'Estimativa mensal', 'R$ 525'],
+]
+
+const objections = [
+  {
+    title: 'E se eu vender pouco no comeco?',
+    text: 'Voce tem 7 dias gratis para testar. O modelo faz mais sentido quando voce quer crescer sem ver a taxa da plataforma comer sua margem.',
+  },
+  {
+    title: 'A Flowyn processa meu dinheiro?',
+    text: 'Os pagamentos sao feitos via Asaas. A Flowyn organiza checkout, produto, entrega e acompanhamento.',
+  },
+  {
+    title: 'Preciso de pagina de vendas dentro da plataforma?',
+    text: 'Nao. A Flowyn e focada no checkout. Voce pode mandar trafego de onde quiser: Instagram, anuncios, WhatsApp, landing page propria ou comunidade.',
+  },
 ]
 
 export default function Home() {
   return (
-    <main className="sales-page min-h-screen bg-[#070908] text-white">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070908]/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
-          <img src="/logo2.png" alt="Flowyn" className="h-11 w-auto" />
-          <nav className="hidden items-center gap-7 text-sm text-white/60 md:flex">
-            <a href="#vantagens" className="hover:text-white">Vantagens</a>
-            <a href="#comparativo" className="hover:text-white">Comparativo</a>
-            <a href="#recursos" className="hover:text-white">Recursos</a>
+    <main className="min-h-screen bg-[#070908] text-white">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070908]/92 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
+          <Link href="/" className="inline-flex items-center">
+            <img src="/logo2.png" alt="Flowyn" className="h-20 w-auto" />
+          </Link>
+          <nav className="hidden items-center gap-7 text-sm font-semibold text-white/55 md:flex">
+            <a href="#como-funciona" className="transition hover:text-white">Como funciona</a>
+            <a href="#economia" className="transition hover:text-white">Economia</a>
+            <a href="#recursos" className="transition hover:text-white">Recursos</a>
+            <a href="#duvidas" className="transition hover:text-white">Duvidas</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden text-sm font-semibold text-white/70 hover:text-white sm:inline">Entrar</Link>
-            <Link href="/register" className="inline-flex items-center gap-2 rounded-lg bg-[#00e88a] px-4 py-2.5 text-sm font-bold text-black hover:bg-[#00d77f]">
+            <Link href="/login" className="hidden text-sm font-bold text-white/65 transition hover:text-white sm:inline">Entrar</Link>
+            <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black transition hover:bg-[#05f294]">
               Testar gratis <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="border-b border-white/10">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-[1.05fr_.95fr] md:items-center md:py-24">
-          <div className="sales-reveal">
-            <div className="sales-reveal sales-delay-1 mb-5 inline-flex items-center gap-2 rounded-full border border-[#00e88a]/30 bg-[#00e88a]/10 px-3 py-1.5 text-xs font-bold text-[#00e88a]">
-              <Sparkles className="h-3.5 w-3.5" /> 7 dias gratis. Depois, R$ 49 por mes.
+      <section className="relative overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(0,232,138,0.16),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent)]" />
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-[1.02fr_.98fr] md:items-center md:py-24">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#00e88a]/25 bg-[#00e88a]/10 px-3 py-1.5 text-xs font-black uppercase text-[#00e88a]">
+              <Sparkles className="h-3.5 w-3.5" />
+              7 dias gratis. Depois R$ 49/mes.
             </div>
-            <h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-5xl md:text-6xl">
-              Venda seu infoproduto sem entregar uma porcentagem para a plataforma.
+            <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-white sm:text-5xl md:text-6xl">
+              Venda infoprodutos e receba diretamente na sua conta sem taxas abusivas.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/60">
-              A Flowyn une checkout transparente, area do aluno, order bump, pixels e pagamentos via Asaas. Voce paga uma mensalidade previsivel e nenhuma taxa Flowyn por venda.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/62">
+              A Flowyn e o checkout para produtores digitais que querem controlar a oferta, entregar automaticamente e parar de perder margem para taxas que crescem a cada venda.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00e88a] px-6 py-3.5 font-bold text-black hover:bg-[#00d77f]">
-                Comecar teste de 7 dias <ArrowRight className="h-5 w-5" />
+              <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-6 py-4 text-base font-black text-black transition hover:-translate-y-0.5 hover:bg-[#05f294]">
+                Comecar teste gratis <ArrowRight className="h-5 w-5" />
               </Link>
-              <a href="#comparativo" className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 px-6 py-3.5 font-bold text-white hover:bg-white/5">
-                Ver economia
+              <a href="#economia" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-4 text-base font-black text-white transition hover:bg-white/5">
+                Ver exemplo de economia
               </a>
             </div>
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/50">
-              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-[#00e88a]" /> Taxa Flowyn zero por venda</span>
-              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-[#00e88a]" /> Checkout focado em conversao</span>
-              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-[#00e88a]" /> CPF ou CNPJ via Asaas</span>
+            <div className="mt-8 grid gap-3 text-sm text-white/55 sm:grid-cols-3">
+              <TrustItem icon={ShieldCheck} text="Taxa Flowyn zero por venda" />
+              <TrustItem icon={WalletCards} text="Asaas CPF ou CNPJ" />
+              <TrustItem icon={LockKeyhole} text="Checkout seguro" />
             </div>
           </div>
 
-          <div className="sales-float sales-reveal sales-delay-2 overflow-hidden rounded-lg border border-white/10 bg-[#101412] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-              <div>
-                <p className="text-xs font-bold uppercase text-white/40">Venda aprovada</p>
-                <p className="mt-1 text-2xl font-black">R$ 197,00</p>
-              </div>
-              <div className="rounded-full bg-[#00e88a]/10 p-3 text-[#00e88a]"><BadgeCheck className="h-6 w-6" /></div>
-            </div>
-            <div className="space-y-4 p-5">
-              <div className="rounded-lg border border-white/10 bg-black/20 p-4">
-                <div className="mb-4 flex items-center justify-between text-sm"><span className="text-white/50">Pagamento</span><span className="font-bold text-[#00e88a]">Asaas conectado</span></div>
-                <div className="space-y-3">
-                  <Metric label="Taxa Flowyn" value="R$ 0,00" />
-                  <Metric label="Produto" value="Curso online" />
-                  <Metric label="Entrega" value="Acesso liberado" />
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-[2rem] border border-[#00e88a]/15 bg-[#00e88a]/5 blur-2xl" />
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#101412] shadow-2xl">
+              <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+                <div>
+                  <p className="text-xs font-black uppercase text-white/35">Checkout aprovado</p>
+                  <p className="mt-1 text-3xl font-black">R$ 297,00</p>
+                </div>
+                <div className="rounded-2xl bg-[#00e88a]/10 p-3 text-[#00e88a]">
+                  <BadgeCheck className="h-7 w-7" />
                 </div>
               </div>
-              <p className="text-xs leading-5 text-white/40">Tarifas financeiras da Asaas continuam aplicaveis conforme o meio de pagamento.</p>
+              <div className="grid gap-4 p-6">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                  <div className="mb-4 flex items-center justify-between text-sm">
+                    <span className="text-white/45">Recebimento</span>
+                    <span className="font-black text-[#00e88a]">Conta Asaas conectada</span>
+                  </div>
+                  <div className="space-y-3">
+                    <Metric label="Taxa Flowyn" value="R$ 0,00" />
+                    <Metric label="Entrega" value="Acesso liberado" />
+                    <Metric label="Produto" value="Curso, e-book ou mentoria" />
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <MiniCard icon={Receipt} label="Order bump" value="+ R$ 47" />
+                  <MiniCard icon={BarChart3} label="Relatorio" value="Venda rastreada" />
+                </div>
+                <p className="text-xs leading-5 text-white/40">
+                  Tarifas financeiras da Asaas continuam aplicaveis conforme o meio de pagamento.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="vantagens" className="border-b border-white/10 bg-[#0b0e0d]">
+      <section id="como-funciona" className="border-b border-white/10 bg-[#0b0e0d]">
         <div className="mx-auto max-w-7xl px-5 py-16 md:py-20">
           <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase text-[#00e88a]">Checkout primeiro</p>
-            <h2 className="mt-3 text-3xl font-black md:text-4xl">Tudo gira em torno da venda do produtor.</h2>
-            <p className="mt-4 text-white/60">Sem exposicao publica de ofertas. Seus produtos ficam sob seu controle, seus links apontam para seu checkout e seus alunos recebem acesso apos o pagamento.</p>
+            <p className="text-sm font-black uppercase text-[#00e88a]">O conceito</p>
+            <h2 className="mt-3 text-3xl font-black md:text-4xl">A Flowyn nao quer ser dona da sua venda.</h2>
+            <p className="mt-4 text-white/60">
+              O produto e seu. O trafego e seu. A audiencia e sua. A Flowyn entra onde faz sentido: checkout, pagamento, entrega e gestao.
+            </p>
           </div>
-          <div className="sales-reveal mt-10 grid gap-4 md:grid-cols-3">
-            <FlowStep icon={ShieldCheck} number="01" title="Conecte Asaas" text="Vincule sua conta CPF ou CNPJ para receber pelas vendas." />
-            <FlowStep icon={CreditCard} number="02" title="Publique o checkout" text="Crie produto, plano, order bump e personalize a pagina de pagamento." />
-            <FlowStep icon={PackageCheck} number="03" title="Entregue automaticamente" text="Libere curso, mentoria, arquivo ou link externo quando o pagamento for confirmado." />
-          </div>
-        </div>
-      </section>
-
-      <section id="comparativo" className="border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-5 py-16 md:py-20">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <div>
-              <p className="text-sm font-bold uppercase text-[#00e88a]">Previsibilidade</p>
-              <h2 className="mt-3 text-3xl font-black md:text-4xl">Sua plataforma nao precisa virar socia de cada venda.</h2>
-              <p className="mt-4 text-white/60">Um preco fixo mensal fica mais vantajoso conforme seu negocio cresce. As tarifas financeiras da Asaas continuam aplicaveis.</p>
-              <div className="mt-8 overflow-hidden rounded-lg border border-white/10">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-white/5 text-white/60">
-                    <tr><th className="px-4 py-3">Comparacao</th><th className="px-4 py-3 text-[#00e88a]">Flowyn</th><th className="px-4 py-3">Outras plataformas</th></tr>
-                  </thead>
-                  <tbody>{comparisonRows.map(row => <tr key={row[0]} className="border-t border-white/10"><td className="px-4 py-3 text-white/60">{row[0]}</td><td className="px-4 py-3 font-bold text-white">{row[1]}</td><td className="px-4 py-3 text-white/55">{row[2]}</td></tr>)}</tbody>
-                </table>
-              </div>
-            </div>
-            <div className="rounded-lg border border-[#00e88a]/25 bg-[#00e88a]/5 p-6">
-              <p className="text-sm font-bold uppercase text-[#00e88a]">Exemplo pratico</p>
-              <h3 className="mt-2 text-2xl font-black">50 vendas de R$ 100 em um mes</h3>
-              <p className="mt-2 text-sm text-white/55">Comparacao estimada com uma plataforma que cobra 8,99% + R$ 2,49 por venda. Tarifas financeiras nao incluidas.</p>
-              <div className="mt-6 overflow-hidden rounded-lg border border-white/10 bg-[#0b0e0d]">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-white/5 text-white/60"><tr><th className="px-4 py-3">Item</th><th className="px-4 py-3 text-[#00e88a]">Flowyn</th><th className="px-4 py-3">Outra</th></tr></thead>
-                  <tbody>{savingsRows.map(row => <tr key={row[0]} className="border-t border-white/10"><td className="px-4 py-3 text-white/60">{row[0]}</td><td className="px-4 py-3 font-bold text-white">{row[1]}</td><td className="px-4 py-3 text-white/55">{row[2]}</td></tr>)}</tbody>
-                </table>
-              </div>
-              <p className="mt-5 text-xl font-black text-[#00e88a]">R$ 6.300 de economia estimada em 12 meses.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="recursos" className="border-b border-white/10 bg-[#0b0e0d]">
-        <div className="mx-auto max-w-7xl px-5 py-16 md:py-20">
-          <p className="text-center text-sm font-bold uppercase text-[#00e88a]">Ferramentas para operar de verdade</p>
-          <h2 className="mx-auto mt-3 max-w-3xl text-center text-3xl font-black md:text-4xl">Do checkout ao acompanhamento da venda.</h2>
-          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {readyFeatures.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="sales-feature rounded-lg border border-white/10 bg-[#101412] p-5">
-                <Icon className="h-5 w-5 text-[#00e88a]" />
-                <h3 className="mt-4 font-bold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-white/50">{text}</p>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {productPillars.map(({ icon: Icon, title, text }, index) => (
+              <div key={title} className="rounded-2xl border border-white/10 bg-[#101412] p-6">
+                <div className="flex items-center justify-between">
+                  <Icon className="h-6 w-6 text-[#00e88a]" />
+                  <span className="text-xs font-black text-white/25">0{index + 1}</span>
+                </div>
+                <h3 className="mt-6 text-xl font-black">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/50">{text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-b border-white/10">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-16 md:grid-cols-[1fr_360px] md:items-center md:py-20">
+      <section id="economia" className="border-b border-white/10">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[.9fr_1.1fr] lg:items-start md:py-20">
           <div>
-            <p className="text-sm font-bold uppercase text-[#00e88a]">Um plano simples</p>
-            <h2 className="mt-3 text-3xl font-black md:text-4xl">Comece sem risco. Cresca sem punicao.</h2>
-            <p className="mt-4 max-w-2xl text-white/60">Use a Flowyn por 7 dias. Depois, mantenha sua operacao ativa por R$ 49 ao mes, sem percentual adicional sobre vendas.</p>
+            <p className="text-sm font-black uppercase text-[#00e88a]">Margem previsivel</p>
+            <h2 className="mt-3 text-3xl font-black md:text-4xl">Quanto mais voce vende, mais taxa por venda incomoda.</h2>
+            <p className="mt-4 text-white/60">
+              Plataformas com percentual parecem baratas quando voce ainda vende pouco. Mas conforme a operacao cresce, elas viram uma linha pesada no seu caixa.
+            </p>
+            <div className="mt-8 rounded-2xl border border-[#00e88a]/25 bg-[#00e88a]/10 p-6">
+              <p className="text-sm font-black uppercase text-[#00e88a]">Exemplo</p>
+              <p className="mt-2 text-4xl font-black">50 vendas de R$ 100</p>
+              <p className="mt-3 text-sm leading-6 text-white/55">
+                Em uma plataforma que cobra 8,99% + R$ 2,49 por venda, o custo estimado passa de quinhentos reais no mes. Na Flowyn, o custo da plataforma permanece R$ 49.
+              </p>
+            </div>
           </div>
-          <div className="sales-price-card rounded-lg border border-[#00e88a]/35 bg-[#101412] p-6">
-            <p className="text-sm font-bold text-[#00e88a]">Flowyn Pro</p>
-            <div className="mt-3 flex items-baseline gap-2"><span className="text-5xl font-black">R$ 49</span><span className="text-white/45">/mes</span></div>
-            <p className="mt-2 text-sm text-white/50">7 dias gratis para testar.</p>
-            <Link href="/register" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#00e88a] px-5 py-3 font-bold text-black hover:bg-[#00d77f]">Comecar agora <ArrowRight className="h-4 w-4" /></Link>
-            <div className="mt-5 space-y-2 text-sm text-white/60">
-              <p className="flex gap-2"><Check className="h-4 w-4 text-[#00e88a]" /> Sem taxa Flowyn por venda</p>
-              <p className="flex gap-2"><Check className="h-4 w-4 text-[#00e88a]" /> Checkout e area do aluno</p>
-              <p className="flex gap-2"><Check className="h-4 w-4 text-[#00e88a]" /> Pagamentos via Asaas</p>
+
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101412]">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/5 text-white/60">
+                <tr>
+                  <th className="px-5 py-4">Cenario</th>
+                  <th className="px-5 py-4">Base</th>
+                  <th className="px-5 py-4 text-[#00e88a]">Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {economyRows.map(row => (
+                  <tr key={row[0]} className="border-t border-white/10">
+                    <td className="px-5 py-4 text-white/65">{row[0]}</td>
+                    <td className="px-5 py-4 text-white/50">{row[1]}</td>
+                    <td className="px-5 py-4 font-black text-white">{row[2]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="border-t border-white/10 bg-black/20 p-5">
+              <p className="text-lg font-black text-[#00e88a]">Estimativa: R$ 6.300 preservados em 12 meses.</p>
+              <p className="mt-1 text-xs text-white/40">Exemplo ilustrativo. Tarifas financeiras da Asaas nao estao incluidas.</p>
             </div>
           </div>
         </div>
       </section>
 
+      <section className="border-b border-white/10 bg-[#0b0e0d]">
+        <div className="mx-auto max-w-7xl px-5 py-16 md:py-20">
+          <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr] lg:items-center">
+            <div>
+              <p className="text-sm font-black uppercase text-[#00e88a]">Comparacao direta</p>
+              <h2 className="mt-3 text-3xl font-black md:text-4xl">Voce paga para usar a ferramenta, nao para dividir cada venda.</h2>
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101412]">
+              <table className="w-full text-left text-sm">
+                <tbody>
+                  {comparisonRows.map(row => (
+                    <tr key={row[0]} className="border-b border-white/10 last:border-b-0">
+                      <td className="px-5 py-4 text-white/45">{row[0]}</td>
+                      <td className="px-5 py-4 font-black text-[#00e88a]">{row[1]}</td>
+                      <td className="px-5 py-4 text-white/45">{row[2]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="recursos" className="border-b border-white/10">
+        <div className="mx-auto max-w-7xl px-5 py-16 md:py-20">
+          <p className="text-center text-sm font-black uppercase text-[#00e88a]">O que vem junto</p>
+          <h2 className="mx-auto mt-3 max-w-3xl text-center text-3xl font-black md:text-4xl">A estrutura minima para vender sem improviso.</h2>
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map(feature => (
+              <div key={feature} className="rounded-2xl border border-white/10 bg-[#101412] p-5">
+                <CheckCircle2 className="h-5 w-5 text-[#00e88a]" />
+                <p className="mt-4 text-sm font-bold leading-6 text-white/70">{feature}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="duvidas" className="border-b border-white/10 bg-[#0b0e0d]">
+        <div className="mx-auto max-w-5xl px-5 py-16 md:py-20">
+          <p className="text-center text-sm font-black uppercase text-[#00e88a]">Antes de comecar</p>
+          <h2 className="text-center text-3xl font-black md:text-4xl">Perguntas que um produtor esperto faria.</h2>
+          <div className="mt-10 grid gap-4">
+            {objections.map(item => (
+              <div key={item.title} className="rounded-2xl border border-white/10 bg-[#101412] p-6">
+                <h3 className="font-black text-white">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/50">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#00e88a] text-black">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-5 py-12 md:flex-row md:items-center">
-          <div><h2 className="text-3xl font-black">Sua margem merece respirar.</h2><p className="mt-2 font-medium text-black/65">Teste a Flowyn por 7 dias e compare na pratica.</p></div>
-          <Link href="/register" className="inline-flex items-center gap-2 rounded-lg bg-black px-6 py-3.5 font-bold text-white hover:bg-black/85">Criar minha conta <ArrowRight className="h-5 w-5" /></Link>
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-14 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black md:text-4xl">Teste sem risco. Venda sem taxa abusiva.</h2>
+            <p className="mt-2 max-w-2xl font-semibold text-black/65">
+              Crie seu primeiro produto, publique o checkout e compare a conta no fim do mes.
+            </p>
+          </div>
+          <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-black px-6 py-4 font-black text-white transition hover:bg-black/85">
+            Criar conta gratis <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
       </section>
 
       <footer className="border-t border-white/10 bg-[#070908]">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-sm text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <img src="/logo2.png" alt="Flowyn" className="h-9 w-auto opacity-80" />
-          <p>Flowyn. Checkout para infoprodutores via Asaas.</p>
+          <img src="/logo2.png" alt="Flowyn" className="h-16 w-auto opacity-90" />
+          <p>Checkout para infoprodutores via Asaas.</p>
         </div>
       </footer>
     </main>
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-white/45">{label}</p><p className="mt-1 font-bold">{value}</p></div>
+function TrustItem({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+      <Icon className="h-4 w-4 text-[#00e88a]" />
+      {text}
+    </div>
+  )
 }
 
-function FlowStep({ icon: Icon, number, title, text }: { icon: typeof ShieldCheck; number: string; title: string; text: string }) {
-  return <div className="rounded-lg border border-white/10 bg-[#101412] p-5"><div className="flex items-center justify-between"><Icon className="h-5 w-5 text-[#00e88a]" /><span className="text-xs font-black text-white/25">{number}</span></div><h3 className="mt-5 text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-white/50">{text}</p></div>
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+      <p className="text-xs text-white/45">{label}</p>
+      <p className="font-black">{value}</p>
+    </div>
+  )
+}
+
+function MiniCard({ icon: Icon, label, value }: { icon: typeof Zap; label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <Icon className="h-5 w-5 text-[#00e88a]" />
+      <p className="mt-3 text-xs text-white/40">{label}</p>
+      <p className="mt-1 font-black text-white">{value}</p>
+    </div>
+  )
 }

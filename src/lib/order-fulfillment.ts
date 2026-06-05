@@ -2,6 +2,7 @@ import 'server-only'
 import { getResendClient } from '@/lib/resend'
 import { deliveryEmail, studentPasswordEmail } from '@/lib/email-templates'
 import { dispatchWebhook } from '@/lib/webhook'
+import { getAppUrl } from '@/lib/app-url'
 
 type SupabaseAdmin = any
 
@@ -47,7 +48,7 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
 
   const deliveryCustomerName = privateCustomer?.customer_name || orderData.customer_name
   const deliveryCustomerEmail = privateCustomer?.customer_email || orderData.customer_email
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const appUrl = getAppUrl()
 
   if (product?.delivery_type === 'platform') {
     const { data: matchedUser } = await supabase

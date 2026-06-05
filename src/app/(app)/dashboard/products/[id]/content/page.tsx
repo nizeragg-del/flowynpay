@@ -1,22 +1,17 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import {
-  ArrowLeft,
-  BookOpen,
-  CheckCircle2,
-  Clapperboard,
-  GripVertical,
-  Layers,
-  Palette,
-  Plus,
-  Trash2,
-} from 'lucide-react'
+import type { ReactNode } from 'react'
+import { ArrowLeft, BookOpen, CalendarDays, CheckCircle2, Clapperboard, GripVertical, Palette, Trash2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
-import { CourseLessonForm } from './CourseLessonForm'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { getResendClient } from '@/lib/resend'
 import { learningNotificationEmail } from '@/lib/email-templates'
+import { getAppUrl } from '@/lib/app-url'
+import { CourseLessonForm } from './CourseLessonForm'
+import { CourseModuleForm } from './CourseModuleForm'
+import { DigitalDeliveryForm } from './DigitalDeliveryForm'
+import type { CourseContentFormState } from './form-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +32,7 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
 
   const { data: product } = await supabase
     .from('products')
-    .select('id, owner_id, name, product_type, cover_url, short_description, description')
+    .select('id, owner_id, name, product_type, cover_url, short_description, description, delivery_type, delivery_url, deliverable_file_paths')
     .eq('id', id)
     .eq('owner_id', user.id)
     .single()
@@ -50,46 +45,54 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
     .eq('product_id', id)
     .order('sort_order', { ascending: true })
 
-  async function createModule(formData: FormData) {
+  async function createModule(_state: CourseContentFormState, formData: FormData): Promise<CourseContentFormState> {
     'use server'
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) return { ok: false, message: 'Sua sessao expirou. Entre novamente para continuar.' }
 
     const title = String(formData.get('title') || '').trim()
-    if (!title) return
+    if (!title) return { ok: false, message: 'Informe o nome do modulo antes de salvar.' }
+    if (title.length < 3) return { ok: false, message: 'O nome do modulo precisa ter pelo menos 3 caracteres.' }
 
     const { count } = await supabase
       .from('course_modules')
       .select('id', { count: 'exact', head: true })
       .eq('product_id', id)
 
-    await supabase.from('course_modules').insert({
+    const { error } = await supabase.from('course_modules').insert({
       product_id: id,
       title,
       description: String(formData.get('description') || '').trim() || null,
       sort_order: count || 0,
     })
 
+    if (error) return { ok: false, message: 'Nao foi possivel criar o modulo. Tente novamente.' }
+
     revalidatePath(`/dashboard/products/${id}/content`)
+    return { ok: true, message: `Modulo "${title}" criado com sucesso.` }
   }
 
-  async function createLesson(formData: FormData) {
+  async function createLesson(_state: CourseContentFormState, formData: FormData): Promise<CourseContentFormState> {
     'use server'
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) return { ok: false, message: 'Sua sessao expirou. Entre novamente para continuar.' }
 
     const moduleId = String(formData.get('module_id') || '')
     const title = String(formData.get('title') || '').trim()
-    if (!moduleId || !title) return
+    if (!moduleId) return { ok: false, message: 'Modulo nao encontrado. Recarregue a pagina e tente novamente.' }
+    if (!title) return { ok: false, message: 'Informe o titulo da aula antes de salvar.' }
+    if (title.length < 3) return { ok: false, message: 'O titulo da aula precisa ter pelo menos 3 caracteres.' }
 
     const { count } = await supabase
       .from('course_lessons')
       .select('id', { count: 'exact', head: true })
       .eq('module_id', moduleId)
 
-    const { data: lesson } = await supabase.from('course_lessons').insert({
+    const { data: lesson, error } = await supabase.from('course_lessons').insert({
       product_id: id,
       module_id: moduleId,
       title,
@@ -103,8 +106,10 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
       sort_order: count || 0,
     }).select('id, title').single()
 
+    if (error || !lesson) return { ok: false, message: 'Nao foi possivel criar a aula. Tente novamente.' }
+
     const resendClient = getResendClient()
-    if (resendClient && lesson) {
+    if (resendClient) {
       const admin = createAdminClient()
       const { data: product } = await admin
         .from('products')
@@ -116,20 +121,22 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
         .select('user_id, access_email')
         .eq('product_id', id)
 
-      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+      const appUrl = getAppUrl()
       for (const access of accessRows || []) {
         if (!access.access_email) continue
+
         await resendClient.emails.send({
           from: 'Flowyn <noreply@flowyn.com.br>',
           to: access.access_email,
           subject: `Nova aula em "${product?.name || 'seu curso'}"`,
           html: learningNotificationEmail({
-            title: 'Nova aula disponível',
+            title: 'Nova aula disponivel',
             message: `A aula "${lesson.title}" foi adicionada ao seu curso.`,
             actionLabel: 'Assistir agora',
             actionUrl: `${appUrl}/learn/${id}`,
           }),
         })
+
         await admin.from('notification_events').insert({
           user_id: access.user_id,
           product_id: id,
@@ -143,6 +150,44 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
     }
 
     revalidatePath(`/dashboard/products/${id}/content`)
+    return { ok: true, message: `Aula "${title}" criada com sucesso.` }
+  }
+
+  async function updateDigitalDelivery(_state: CourseContentFormState, formData: FormData): Promise<CourseContentFormState> {
+    'use server'
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false, message: 'Sua sessao expirou. Entre novamente para continuar.' }
+
+    const deliveryType = String(formData.get('delivery_type') || 'external')
+    const deliveryUrl = String(formData.get('delivery_url') || '').trim()
+    const filePaths = parseJsonStringArray(String(formData.get('deliverable_file_paths') || '[]'))
+
+    if (deliveryType === 'external' && !deliveryUrl) {
+      return { ok: false, message: 'Informe o link de acesso para usar entrega externa.' }
+    }
+
+    if (deliveryType === 'platform' && filePaths.length === 0 && !deliveryUrl) {
+      return { ok: false, message: 'Anexe pelo menos um arquivo ou informe um link de acesso.' }
+    }
+
+    const { error } = await supabase
+      .from('products')
+      .update({
+        delivery_type: deliveryType,
+        delivery_url: deliveryUrl || null,
+        deliverable_file_paths: filePaths,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('owner_id', user.id)
+
+    if (error) return { ok: false, message: 'Nao foi possivel salvar a entrega. Tente novamente.' }
+
+    revalidatePath(`/dashboard/products/${id}/content`)
+    revalidatePath(`/dashboard/products/${id}`)
+    return { ok: true, message: 'Entrega digital salva com sucesso.' }
   }
 
   async function deleteModule(formData: FormData) {
@@ -164,6 +209,7 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
   }
 
   const isCourse = product.product_type === 'course'
+  const isMentorship = product.product_type === 'mentoria'
   const moduleRows = (modules || []) as any[]
   const lessonCount = moduleRows.reduce((sum, module) => sum + (module.lessons?.length || 0), 0)
 
@@ -175,39 +221,49 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
             <ArrowLeft className="h-5 w-5 text-white/70" />
           </Link>
           <div>
-            <h1 className="text-2xl font-black text-white">Conteúdo: {product.name}</h1>
-            <p className="mt-1 text-sm text-white/50">Monte uma experiência Flowyn Play com módulos, aulas e materiais.</p>
+            <h1 className="text-2xl font-black text-white">Conteudo: {product.name}</h1>
+            <p className="mt-1 text-sm text-white/50">Monte uma experiencia Flowyn Play com modulos, aulas e materiais.</p>
           </div>
         </div>
 
         <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#111] p-2">
-          <Link href={`/dashboard/products/${id}`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            Detalhes
-          </Link>
-          <Link href={`/dashboard/products/${id}/plans`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            Planos
-          </Link>
+          <NavLink href={`/dashboard/products/${id}`}>Detalhes</NavLink>
+          <NavLink href={`/dashboard/products/${id}/plans`}>Planos</NavLink>
           <Link href={`/dashboard/products/${id}/content`} className="rounded-xl border border-white/5 bg-white/10 px-5 py-2.5 text-sm font-bold text-white">
-            Conteúdo
+            Conteudo
           </Link>
-          <Link href={`/dashboard/products/${id}/journey`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            Mentoria
-          </Link>
-          <Link href={`/dashboard/products/${id}/checkout-editor`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
+          <NavLink href={`/dashboard/products/${id}/journey`}>Mentoria</NavLink>
+          <NavLink href={`/dashboard/products/${id}/checkout-editor`}>
             <Palette className="mr-2 inline h-4 w-4" /> Checkout
-          </Link>
+          </NavLink>
         </div>
 
-        {!isCourse ? (
-          <div className="rounded-3xl border border-amber-500/25 bg-amber-500/10 p-8">
-            <h2 className="text-xl font-black text-white">Este produto não está marcado como curso</h2>
-            <p className="mt-2 text-sm text-amber-100/75">
-              Altere o tipo para Curso Online nos detalhes do produto para usar módulos, aulas e a área Flowyn Play.
-            </p>
+        {isMentorship ? (
+          <div className="rounded-3xl border border-white/10 bg-[#111] p-8">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-2xl">
+                <div className="mb-4 inline-flex rounded-2xl bg-[#00e88a]/10 p-3 text-[#00e88a]">
+                  <CalendarDays className="h-6 w-6" />
+                </div>
+                <h2 className="text-2xl font-black text-white">Conteudo de mentoria fica na aba Mentoria</h2>
+                <p className="mt-2 text-sm leading-6 text-white/50">
+                  Para mentorias, use a aba Mentoria para configurar diagnostico, sessoes, tarefas e acompanhamento dos alunos.
+                </p>
+              </div>
+              <Link href={`/dashboard/products/${id}/journey`} className="inline-flex items-center justify-center rounded-xl bg-[#00e88a] px-5 py-3 text-sm font-black text-black transition hover:bg-[#04f294]">
+                Abrir mentoria
+              </Link>
+            </div>
           </div>
+        ) : !isCourse ? (
+          <DigitalDeliveryForm
+            userId={user.id}
+            product={product}
+            updateDigitalDelivery={updateDigitalDelivery}
+          />
         ) : (
           <div className="grid gap-8 lg:grid-cols-3">
-            <section className="lg:col-span-2 space-y-4">
+            <section className="space-y-4 lg:col-span-2">
               <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#111]">
                 <div className="relative min-h-[240px] bg-black">
                   {product.cover_url ? (
@@ -222,7 +278,9 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
                       Flowyn Play
                     </div>
                     <h2 className="max-w-2xl text-3xl font-black text-white">{product.name}</h2>
-                    <p className="mt-2 max-w-xl text-sm text-white/65">{product.short_description || product.description || 'Curso pronto para receber uma experiência premium.'}</p>
+                    <p className="mt-2 max-w-xl text-sm text-white/65">
+                      {product.short_description || product.description || 'Curso pronto para receber uma experiencia premium.'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -230,8 +288,8 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
               {moduleRows.length === 0 ? (
                 <div className="rounded-3xl border border-dashed border-white/15 bg-[#111] p-10 text-center">
                   <BookOpen className="mx-auto h-12 w-12 text-white/20" />
-                  <h3 className="mt-4 text-lg font-black text-white">Nenhum módulo ainda</h3>
-                  <p className="mt-1 text-sm text-white/45">Crie o primeiro módulo para começar a montar a trilha do aluno.</p>
+                  <h3 className="mt-4 text-lg font-black text-white">Nenhum modulo ainda</h3>
+                  <p className="mt-1 text-sm text-white/45">Crie o primeiro modulo para comecar a montar a trilha do aluno.</p>
                 </div>
               ) : (
                 moduleRows.map((module, moduleIndex) => {
@@ -250,7 +308,7 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
                         </div>
                         <form action={deleteModule}>
                           <input type="hidden" name="module_id" value={module.id} />
-                          <button className="rounded-xl p-2 text-white/30 transition hover:bg-red-500/10 hover:text-red-300">
+                          <button className="rounded-xl p-2 text-white/30 transition hover:bg-red-500/10 hover:text-red-300" aria-label="Excluir modulo">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </form>
@@ -267,13 +325,13 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-bold text-white">{lesson.title}</p>
                                 <p className="truncate text-xs text-white/35">
-                                  {lesson.duration_minutes ? `${lesson.duration_minutes} min` : 'Sem duração'} {lesson.is_free_preview ? '· preview grátis' : ''}
+                                  {lesson.duration_minutes ? `${lesson.duration_minutes} min` : 'Sem duracao'} {lesson.is_free_preview ? '- preview gratis' : ''}
                                 </p>
                               </div>
                             </div>
                             <form action={deleteLesson}>
                               <input type="hidden" name="lesson_id" value={lesson.id} />
-                              <button className="rounded-xl p-2 text-white/30 transition hover:bg-red-500/10 hover:text-red-300">
+                              <button className="rounded-xl p-2 text-white/30 transition hover:bg-red-500/10 hover:text-red-300" aria-label="Excluir aula">
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </form>
@@ -289,31 +347,18 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
             </section>
 
             <aside className="space-y-5">
-              <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
-                <h2 className="flex items-center gap-2 text-lg font-black text-white">
-                  <Layers className="h-5 w-5 text-[#00e88a]" />
-                  Nova trilha
-                </h2>
-                <form action={createModule} className="mt-5 space-y-3">
-                  <Input name="title" placeholder="Nome do módulo" required />
-                  <textarea name="description" placeholder="Descrição curta" className="min-h-24 w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#00e88a]" />
-                  <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black transition hover:bg-[#04f294]">
-                    <Plus className="h-4 w-4" />
-                    Criar módulo
-                  </button>
-                </form>
-              </div>
+              <CourseModuleForm createModule={createModule} />
 
               <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
                 <h2 className="text-lg font-black text-white">Resumo</h2>
                 <div className="mt-5 space-y-3">
-                  <Metric label="Módulos" value={moduleRows.length} />
+                  <Metric label="Modulos" value={moduleRows.length} />
                   <Metric label="Aulas" value={lessonCount} />
                   <Metric label="Entrega" value="Flowyn Play" />
                 </div>
                 <div className="mt-5 rounded-2xl border border-[#00e88a]/20 bg-[#00e88a]/10 p-4 text-sm text-[#c7ffe3]">
                   <CheckCircle2 className="mb-2 h-5 w-5 text-[#00e88a]" />
-                  Compradores com acesso liberado verão este conteúdo em uma experiência de aluno estilo streaming.
+                  Compradores com acesso liberado verao este conteudo em uma experiencia de aluno estilo streaming.
                 </div>
               </div>
             </aside>
@@ -324,25 +369,11 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
   )
 }
 
-function Input({
-  name,
-  placeholder,
-  type = 'text',
-  required = false,
-}: {
-  name: string
-  placeholder: string
-  type?: string
-  required?: boolean
-}) {
+function NavLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <input
-      name={name}
-      type={type}
-      required={required}
-      className="w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#00e88a]"
-      placeholder={placeholder}
-    />
+    <Link href={href} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
+      {children}
+    </Link>
   )
 }
 
