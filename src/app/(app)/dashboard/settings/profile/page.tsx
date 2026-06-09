@@ -1,14 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { updateProfile, changePassword } from '@/app/auth/actions'
-import {
-  User,
-  Lock,
-  CheckCircle2,
-  AlertCircle,
-  Save,
-  Shield,
-} from 'lucide-react'
+import { AlertCircle, CheckCircle2, Lock, Save, Shield, User } from 'lucide-react'
 
 export default async function ProfilePage(props: {
   searchParams: Promise<{ error?: string; success?: string; tab?: string }>
@@ -28,225 +21,127 @@ export default async function ProfilePage(props: {
   const activeTab = searchParams.tab === 'security' ? 'security' : 'profile'
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-white">Minha Conta</h1>
-        <p className="text-white/50 text-sm mt-1">Gerencie seus dados pessoais e segurança</p>
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-950">Minha conta</h2>
+          <p className="mt-2 text-sm text-slate-400">Gerencie seus dados pessoais e seguranca.</p>
+        </div>
       </div>
 
-      {/* Global banners */}
-      {searchParams.success === 'profile_updated' && activeTab === 'profile' && (
-        <div className="bg-[#00e88a]/10 text-[#00e88a] p-4 rounded-xl text-sm flex items-start gap-3 border border-[#00e88a]/30 mb-6">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold">Perfil atualizado!</p>
-            <p className="text-[#00e88a]/70 text-xs mt-0.5">Suas informações foram salvas com sucesso.</p>
-          </div>
-        </div>
-      )}
-      {searchParams.success === 'password_changed' && activeTab === 'security' && (
-        <div className="bg-[#00e88a]/10 text-[#00e88a] p-4 rounded-xl text-sm flex items-start gap-3 border border-[#00e88a]/30 mb-6">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold">Senha alterada com sucesso! 🔒</p>
-            <p className="text-[#00e88a]/70 text-xs mt-0.5">Sua nova senha já está ativa.</p>
-          </div>
-        </div>
-      )}
-      {searchParams.error && (
-        <div className="bg-red-500/10 text-red-400 p-3 rounded-xl text-sm flex items-center gap-2 border border-red-500/20 mb-6">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          {searchParams.error}
+      {(searchParams.success || searchParams.error) && (
+        <div className={`mt-8 flex items-start gap-3 rounded-xl px-4 py-3 text-sm font-medium ring-1 ${searchParams.error ? 'bg-red-50 text-red-700 ring-red-100' : 'bg-emerald-50 text-emerald-700 ring-emerald-100'}`}>
+          {searchParams.error ? <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" /> : <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />}
+          <p>{searchParams.error || (searchParams.success === 'password_changed' ? 'Senha alterada com sucesso.' : 'Perfil atualizado com sucesso.')}</p>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 p-1 bg-[#0a0a0a] rounded-xl border border-white/5">
-        <a
-          href="/dashboard/settings/profile"
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === 'profile'
-              ? 'bg-[#111111] text-white border border-white/10 shadow-sm'
-              : 'text-white/40 hover:text-white/70'
-          }`}
-        >
-          <User className="w-4 h-4" />
-          Dados Pessoais
+      <div className="mt-8 flex gap-2 overflow-x-auto border-b border-slate-200">
+        <a href="/dashboard/settings/profile" className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${activeTab === 'profile' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+          <User className="h-4 w-4" />
+          Dados pessoais
         </a>
-        <a
-          href="/dashboard/settings/profile?tab=security"
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === 'security'
-              ? 'bg-[#111111] text-white border border-white/10 shadow-sm'
-              : 'text-white/40 hover:text-white/70'
-          }`}
-        >
-          <Shield className="w-4 h-4" />
-          Segurança
+        <a href="/dashboard/settings/profile?tab=security" className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${activeTab === 'security' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+          <Shield className="h-4 w-4" />
+          Seguranca
         </a>
       </div>
 
-      {/* ─── TAB: Dados Pessoais ─── */}
       {activeTab === 'profile' && (
-        <div className="bg-[#111111] border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6 pb-5 border-b border-white/5">
-            <div className="w-10 h-10 rounded-xl bg-[#00e88a]/10 border border-[#00e88a]/20 flex items-center justify-center">
-              <User className="w-5 h-5 text-[#00e88a]" />
-            </div>
-            <div>
-              <h2 className="font-bold text-white text-sm">Informações Pessoais</h2>
-              <p className="text-white/40 text-xs">Esses dados são usados em contratos e notas fiscais</p>
-            </div>
-          </div>
-
-          {/* Read-only: e-mail */}
-          <div className="mb-5">
-            <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">E-mail da conta</label>
-            <div className="block w-full rounded-xl border border-white/5 bg-[#0a0a0a]/50 px-4 py-3 text-white/40 text-sm font-medium cursor-not-allowed select-none">
-              {user.email}
-            </div>
-            <p className="text-xs text-white/30 mt-1.5">O e-mail da conta não pode ser alterado por aqui.</p>
-          </div>
-
-          {/* Read-only: role */}
-          <div className="mb-5">
-            <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">Tipo de conta</label>
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                profile?.role === 'producer'
-                  ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                  : 'bg-[#00e88a]/10 text-[#00e88a] border-[#00e88a]/20'
-              }`}>
-                {profile?.role === 'producer' ? 'Produtor' : 'Afiliado'}
-              </span>
+        <form action={updateProfile} className="mt-10 max-w-5xl">
+          <div className="grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Conta" description="Dados fixos da sua conta." />
+            <div className="grid gap-5 py-6 md:pl-8 lg:grid-cols-2">
+              <Field label="E-mail da conta">
+                <div className="flex h-12 items-center rounded-xl bg-slate-50 px-4 text-sm font-medium text-slate-400">{user.email}</div>
+              </Field>
+              <Field label="Tipo de conta">
+                <div className="flex h-12 items-center">
+                  <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
+                    {profile?.role === 'producer' ? 'Produtor' : 'Usuario'}
+                  </span>
+                </div>
+              </Field>
             </div>
           </div>
 
-          <form action={updateProfile} className="space-y-5">
-            <div>
-              <label htmlFor="full_name" className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">
-                Nome Completo
-              </label>
-              <input
-                id="full_name"
-                name="full_name"
-                type="text"
-                defaultValue={profile?.full_name ?? ''}
-                required
-                className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#00e88a] focus:outline-none focus:ring-1 focus:ring-[#00e88a] transition-all font-medium text-sm"
-                placeholder="João da Silva"
-              />
+          <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Perfil" description="Informacoes pessoais e contato." />
+            <div className="grid gap-5 py-6 md:pl-8 lg:grid-cols-2">
+              <Field label="Nome completo" required>
+                <input id="full_name" name="full_name" type="text" defaultValue={profile?.full_name ?? ''} required className={inputClass} placeholder="Joao da Silva" />
+              </Field>
+              <Field label="CPF / CNPJ">
+                <input id="document_number" name="document_number" type="text" defaultValue={profile?.document_number ?? ''} className={inputClass} placeholder="000.000.000-00" />
+              </Field>
+              <Field label="Telefone / WhatsApp">
+                <input id="phone" name="phone" type="tel" defaultValue={profile?.phone ?? ''} className={inputClass} placeholder="(11) 99999-9999" />
+              </Field>
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="document_number" className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">
-                CPF / CNPJ
-              </label>
-              <input
-                id="document_number"
-                name="document_number"
-                type="text"
-                defaultValue={profile?.document_number ?? ''}
-                className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#00e88a] focus:outline-none focus:ring-1 focus:ring-[#00e88a] transition-all font-medium text-sm"
-                placeholder="000.000.000-00"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">
-                Telefone / WhatsApp
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                defaultValue={profile?.phone ?? ''}
-                className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#00e88a] focus:outline-none focus:ring-1 focus:ring-[#00e88a] transition-all font-medium text-sm"
-                placeholder="(11) 99999-9999"
-              />
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="flex items-center gap-2 rounded-xl bg-[#00e88a] px-6 py-3 text-sm font-bold text-black shadow-[0_0_20px_rgba(0,232,138,0.2)] hover:shadow-[0_0_30px_rgba(0,232,138,0.4)] hover:-translate-y-0.5 transition-all"
-              >
-                <Save className="w-4 h-4" />
-                Salvar alterações
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="mt-8 flex justify-end">
+            <button type="submit" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+              <Save className="h-4 w-4" />
+              Salvar alteracoes
+            </button>
+          </div>
+        </form>
       )}
 
-      {/* ─── TAB: Segurança ─── */}
       {activeTab === 'security' && (
-        <div className="bg-[#111111] border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6 pb-5 border-b border-white/5">
-            <div className="w-10 h-10 rounded-xl bg-[#00e88a]/10 border border-[#00e88a]/20 flex items-center justify-center">
-              <Lock className="w-5 h-5 text-[#00e88a]" />
-            </div>
-            <div>
-              <h2 className="font-bold text-white text-sm">Alterar Senha</h2>
-              <p className="text-white/40 text-xs">Sua nova senha deve ter pelo menos 6 caracteres</p>
+        <form action={changePassword} className="mt-10 max-w-5xl">
+          <div className="grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Senha" description="Atualize sua senha de acesso." />
+            <div className="grid gap-5 py-6 md:pl-8 lg:grid-cols-2">
+              <Field label="Nova senha" required>
+                <input id="password" name="password" type="password" required minLength={6} className={inputClass} placeholder="Minimo 6 caracteres" />
+              </Field>
+              <Field label="Confirmar nova senha" required>
+                <input id="confirm_password" name="confirm_password" type="password" required minLength={6} className={inputClass} placeholder="Repita a nova senha" />
+              </Field>
             </div>
           </div>
 
-          <form action={changePassword} className="space-y-5">
-            <div>
-              <label htmlFor="password" className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">
-                Nova senha
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#00e88a] focus:outline-none focus:ring-1 focus:ring-[#00e88a] transition-all font-medium text-sm"
-                placeholder="••••••••"
-              />
+          <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Recuperacao" description="Alternativa por e-mail." />
+            <div className="py-6 md:pl-8">
+              <a href="/forgot-password" className="text-sm font-semibold text-orange-600 transition hover:text-orange-800">
+                Recuperar senha por e-mail
+              </a>
             </div>
-
-            <div>
-              <label htmlFor="confirm_password" className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wide">
-                Confirmar nova senha
-              </label>
-              <input
-                id="confirm_password"
-                name="confirm_password"
-                type="password"
-                required
-                minLength={6}
-                className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#00e88a] focus:outline-none focus:ring-1 focus:ring-[#00e88a] transition-all font-medium text-sm"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="flex items-center gap-2 rounded-xl bg-white/10 border border-white/10 px-6 py-3 text-sm font-bold text-white hover:bg-white/15 hover:-translate-y-0.5 transition-all"
-              >
-                <Lock className="w-4 h-4" />
-                Alterar senha
-              </button>
-            </div>
-          </form>
-
-          {/* Recuperação por e-mail */}
-          <div className="mt-6 pt-5 border-t border-white/5">
-            <p className="text-xs text-white/30 mb-3">Esqueceu sua senha atual?</p>
-            <a
-              href="/forgot-password"
-              className="text-sm text-[#00e88a]/70 hover:text-[#00e88a] transition-colors font-medium"
-            >
-              Recuperar senha por e-mail →
-            </a>
           </div>
-        </div>
+
+          <div className="mt-8 flex justify-end">
+            <button type="submit" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+              <Lock className="h-4 w-4" />
+              Alterar senha
+            </button>
+          </div>
+        </form>
       )}
+    </section>
+  )
+}
+
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'
+
+function RowTitle({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="py-6 md:pr-8">
+      <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
     </div>
+  )
+}
+
+function Field({ label, required = false, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-700">
+        {label}{required && <span className="text-red-500">*</span>}
+      </span>
+      {children}
+    </label>
   )
 }

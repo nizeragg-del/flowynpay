@@ -1,9 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
-import { createCreditCardPayment, createCustomer, onlyDigits } from '@/lib/asaas'
+import { createCreditCardPayment, createCustomer, createPixPayment, getPixQrCode, onlyDigits } from '@/lib/asaas'
 import { fulfillPaidOrder } from '@/lib/order-fulfillment'
 import { getPlatformAccess } from '@/lib/platform-access'
 import { createAdminClient } from '@/utils/supabase/admin'
+import { isValidCardNumber, isValidCpfCnpj, isValidEmail, isValidPhone, isValidCvv } from '@/lib/validation'
+
+type PlanProduct = {
+  id: string
+  name: string
+  owner_id: string
+}
+
+type PlanRow = {
+  id: string
+  name: string
+  price: number
+  product: PlanProduct
+}
+
+function getBody<T extends Record<string, unknown>>(req: NextRequest) {
+  return req.json() as Promise<T>
+}
 
 const PAID_STATUSES = new Set(['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH'])
 
@@ -55,26 +73,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Muitas tentativas. Aguarde um minuto e tente novamente.' }, { status: 429 })
     }
 
-    const body = await req.json()
+    const body = await getBody<Record<string, unknown>>(req)
     const planId = String(body.plan_id || '')
     const customerName = String(body.customer_name || '').trim()
     const customerEmail = String(body.customer_email || '').trim()
-    const customerDocument = onlyDigits(body.customer_document)
-    const customerPhone = onlyDigits(body.customer_phone)
+    const customerDocument = onlyDigits(String(body.customer_document || ''))
+    const customerPhone = onlyDigits(String(body.customer_phone || ''))
     const addOrderBump = Boolean(body.add_order_bump)
+    const billingType = String(body.billing_type || 'CREDIT_CARD')
+
+    if (billingType !== 'PIX' && billingType !== 'CREDIT_CARD') {
+      return NextResponse.json({ error: 'Forma de pagamento invalida.' }, { status: 400 })
+    }
 
     if (!planId || !customerName || !customerEmail || !customerDocument || !customerPhone) {
       return NextResponse.json({ error: 'Preencha nome, e-mail, CPF/CNPJ e telefone.' }, { status: 400 })
     }
 
-    if (!customerEmail.includes('@') || ![11, 14].includes(customerDocument.length)) {
-      return NextResponse.json({ error: 'Informe um e-mail e CPF/CNPJ validos.' }, { status: 400 })
+    if (!isValidEmail(customerEmail) || !isValidCpfCnpj(customerDocument) || !isValidPhone(customerPhone)) {
+      return NextResponse.json({ error: 'Informe um e-mail, CPF/CNPJ e telefone válidos.' }, { status: 400 })
     }
 
-    const cardNumber = onlyDigits(body.card?.number)
-    const cardCcv = onlyDigits(body.card?.ccv)
-    if (cardNumber.length < 13 || cardNumber.length > 19 || cardCcv.length < 3 || cardCcv.length > 4) {
-      return NextResponse.json({ error: 'Confira os dados do cartao.' }, { status: 400 })
+    const cardNumber = onlyDigits(String((body.card as Record<string, unknown> | undefined)?.number || ''))
+    const cardCcv = onlyDigits(String((body.card as Record<string, unknown> | undefined)?.ccv || ''))
+    const cardHolderName = String((body.card as Record<string, unknown> | undefined)?.holderName || '').trim()
+    const cardExpiryMonth = String((body.card as Record<string, unknown> | undefined)?.expiryMonth || '').padStart(2, '0')
+    const cardExpiryYear = String((body.card as Record<string, unknown> | undefined)?.expiryYear || '')
+    const holderPostalCode = onlyDigits(String((body.holder as Record<string, unknown> | undefined)?.postalCode || ''))
+    const holderAddressNumber = String((body.holder as Record<string, unknown> | undefined)?.addressNumber || '').trim()
+
+    if (billingType === 'CREDIT_CARD') {
+      if (!isValidCardNumber(cardNumber) || !isValidCvv(cardCcv) || !cardHolderName || !/^[0-9]{2}$/.test(cardExpiryMonth) || !/^[0-9]{2,4}$/.test(cardExpiryYear)) {
+        return NextResponse.json({ error: 'Confira os dados do cartão.' }, { status: 400 })
+      }
     }
 
     const { data: plan, error: planError } = await supabase
@@ -82,18 +113,17 @@ export async function POST(req: NextRequest) {
       .select(`
         *,
         product:products(
-          id, name, owner_id,
-          order_bump_title, order_bump_description, order_bump_price, order_bump_discount_percent
+          id, name, owner_id
         )
       `)
       .eq('id', planId)
-      .single()
+      .single<PlanRow>()
 
     if (planError || !plan) {
       return NextResponse.json({ error: 'Plano nao encontrado.' }, { status: 404 })
     }
 
-    const product = plan.product as any
+    const product = plan.product
     const producerAccess = await getPlatformAccess(product.owner_id)
     if (!producerAccess.allowed) {
       return NextResponse.json({ error: 'Checkout indisponivel. Produtor precisa regularizar a assinatura Flowyn Pro.' }, { status: 402 })
@@ -110,13 +140,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Produtor ainda nao conectou a carteira Asaas.' }, { status: 409 })
     }
 
-    const baseAmount = Number(plan.price)
-    const rawBumpAmount = addOrderBump && product.order_bump_price ? Number(product.order_bump_price) : 0
-    const discount = rawBumpAmount > 0 ? Number(product.order_bump_discount_percent || 0) : 0
-    const orderBumpAmount = rawBumpAmount > 0 && discount > 0 ? rawBumpAmount * (1 - discount / 100) : rawBumpAmount
-    const totalAmount = Number((baseAmount + orderBumpAmount).toFixed(2))
+    let orderBumpAmount = 0
+    if (addOrderBump) {
+      const { data: bumps } = await supabase
+        .from('product_order_bumps')
+        .select('price')
+        .eq('product_id', product.id)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+        .limit(1)
 
-    if (!Number.isFinite(baseAmount) || baseAmount <= 0 || !Number.isFinite(totalAmount) || totalAmount <= 0) {
+      if (bumps && bumps.length > 0) {
+        orderBumpAmount = Number(bumps[0].price)
+      }
+    }
+    const totalAmount = Number((Number(plan.price) + orderBumpAmount).toFixed(2))
+
+    if (!Number.isFinite(Number(plan.price)) || Number(plan.price) <= 0 || !Number.isFinite(totalAmount) || totalAmount <= 0) {
       return NextResponse.json({ error: 'Valor do produto invalido.' }, { status: 400 })
     }
 
@@ -129,7 +169,13 @@ export async function POST(req: NextRequest) {
       notificationDisabled: true,
     }
 
-    const asaasCustomer = await createCustomer(customerPayload, process.env.ASAAS_API_KEY!)
+    const asaasApiKey = process.env.ASAAS_API_KEY
+    if (!asaasApiKey) {
+      console.error('[Asaas Checkout] ASAAS_API_KEY is not configured.')
+      return NextResponse.json({ error: 'Pagamento indisponível no momento.' }, { status: 503 })
+    }
+
+    const asaasCustomer = await createCustomer(customerPayload, asaasApiKey)
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -179,6 +225,38 @@ export async function POST(req: NextRequest) {
       ? []
       : [{ walletId: producerAccount.wallet_id, percentualValue: 100 }]
 
+    if (billingType === 'PIX') {
+      const payment = await createPixPayment({
+        customer: asaasCustomer.id,
+        billingType: 'PIX',
+        value: totalAmount,
+        dueDate: today(),
+        description: `${product.name} - ${plan.name}`,
+        externalReference: order.id,
+        ...(split.length > 0 ? { split } : {}),
+      }, process.env.ASAAS_API_KEY!)
+
+      const pixData = await getPixQrCode(payment.id, process.env.ASAAS_API_KEY!)
+
+      await supabase
+        .from('orders')
+        .update({
+          asaas_payment_id: payment.id,
+          asaas_status: payment.status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id)
+
+      return NextResponse.json({
+        success: false,
+        order_id: order.id,
+        payment_id: payment.id,
+        status: payment.status,
+        pixQrCode: pixData.encodedImage,
+        pixKey: pixData.payload,
+      })
+    }
+
     const payment = await createCreditCardPayment({
       customer: asaasCustomer.id,
       billingType: 'CREDIT_CARD',
@@ -188,20 +266,20 @@ export async function POST(req: NextRequest) {
       externalReference: order.id,
       ...(split.length > 0 ? { split } : {}),
       creditCard: {
-        holderName: String(body.card?.holderName || '').trim(),
+        holderName: cardHolderName,
         number: cardNumber,
-        expiryMonth: String(body.card?.expiryMonth || '').padStart(2, '0'),
-        expiryYear: String(body.card?.expiryYear || ''),
+        expiryMonth: cardExpiryMonth,
+        expiryYear: cardExpiryYear,
         ccv: cardCcv,
       },
       creditCardHolderInfo: {
-        name: String(body.holder?.name || customerName).trim(),
-        email: String(body.holder?.email || customerEmail).trim(),
-        cpfCnpj: onlyDigits(body.holder?.cpfCnpj || customerDocument),
-        postalCode: onlyDigits(body.holder?.postalCode),
-        addressNumber: String(body.holder?.addressNumber || '').trim(),
-        addressComplement: String(body.holder?.addressComplement || '').trim() || null,
-        mobilePhone: onlyDigits(body.holder?.mobilePhone || customerPhone),
+        name: String((body.holder as Record<string, unknown> | undefined)?.name || customerName).trim(),
+        email: String((body.holder as Record<string, unknown> | undefined)?.email || customerEmail).trim(),
+        cpfCnpj: onlyDigits(String((body.holder as Record<string, unknown> | undefined)?.cpfCnpj || customerDocument)),
+        postalCode: holderPostalCode || '00000000',
+        addressNumber: holderAddressNumber || '0',
+        addressComplement: String((body.holder as Record<string, unknown> | undefined)?.addressComplement || '').trim() || null,
+        mobilePhone: onlyDigits(String((body.holder as Record<string, unknown> | undefined)?.mobilePhone || customerPhone)),
       },
       remoteIp: clientIp,
     }, process.env.ASAAS_API_KEY!)
@@ -226,8 +304,9 @@ export async function POST(req: NextRequest) {
       status: payment.status,
       invoice_url: payment.invoiceUrl,
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
     console.error('[Asaas Checkout] Error:', err)
-    return NextResponse.json({ error: err.message || 'Erro ao processar pagamento.' }, { status: 500 })
+    return NextResponse.json({ error: message || 'Erro ao processar pagamento.' }, { status: 500 })
   }
 }

@@ -150,10 +150,10 @@ export function SalesPageClient() {
       <Header />
 
       <section className="relative overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(0,232,138,0.16),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.025),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(249,115,22,0.16),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.025),transparent)]" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-[1.02fr_.98fr] md:items-center md:py-24">
           <div className="sales-reveal">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#00e88a]/25 bg-[#00e88a]/10 px-3 py-1.5 text-xs font-black uppercase text-[#00e88a]">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#f97316]/25 bg-[#f97316]/10 px-3 py-1.5 text-xs font-black uppercase text-[#f97316]">
               <Sparkles className="h-3.5 w-3.5" />
               Checkout para infoprodutores que querem margem e controle
             </div>
@@ -164,7 +164,7 @@ export function SalesPageClient() {
               Crie produtos digitais, publique um checkout transparente, receba pela sua conta Asaas e entregue cursos, e-books e mentorias automaticamente. A Flowyn cobra mensalidade fixa. As tarifas de pagamento continuam sendo da Asaas.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-6 py-4 text-base font-black text-black transition hover:-translate-y-0.5 hover:bg-[#05f294]">
+              <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f97316] px-6 py-4 text-base font-black text-black transition hover:-translate-y-0.5 hover:bg-[#fb923c]">
                 Comecar teste gratis <ArrowRight className="h-5 w-5" />
               </Link>
               <a href="#custos" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-6 py-4 text-base font-black text-white transition hover:bg-white/5">
@@ -209,7 +209,7 @@ export function SalesPageClient() {
           {flowSteps.map(([title, text], index) => (
             <div key={title} className="relative rounded-2xl border border-white/10 bg-[#101412] p-5">
               <div className="mb-5 flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00e88a]/10 text-sm font-black text-[#00e88a]">{index + 1}</span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f97316]/10 text-sm font-black text-[#f97316]">{index + 1}</span>
                 {index < flowSteps.length - 1 && <ChevronRight className="hidden h-5 w-5 text-white/18 lg:block" />}
               </div>
               <h3 className="font-black">{title}</h3>
@@ -226,7 +226,7 @@ export function SalesPageClient() {
               <button
                 key={tab.key}
                 onClick={() => setCheckoutTab(tab)}
-                className={`w-full rounded-2xl border p-5 text-left transition ${checkoutTab.key === tab.key ? 'border-[#00e88a] bg-[#00e88a]/10' : 'border-white/10 bg-[#101412] hover:border-white/20'}`}
+                className={`w-full rounded-2xl border p-5 text-left transition ${checkoutTab.key === tab.key ? 'border-[#f97316] bg-[#f97316]/10' : 'border-white/10 bg-[#101412] hover:border-white/20'}`}
               >
                 <span className="font-black text-white">{tab.label}</span>
                 <span className="mt-2 block text-sm leading-6 text-white/45">{tab.text}</span>
@@ -249,7 +249,7 @@ export function SalesPageClient() {
           <div className="space-y-4">
             {['CPF ou CNPJ', 'Wallet Asaas', 'Sem taxa Flowyn por venda', 'Painel de saldo na Asaas'].map(item => (
               <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#101412] p-4">
-                <WalletCards className="h-5 w-5 text-[#00e88a]" />
+                <WalletCards className="h-5 w-5 text-[#f97316]" />
                 <span className="font-bold text-white/75">{item}</span>
               </div>
             ))}
@@ -264,7 +264,7 @@ export function SalesPageClient() {
         <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
           <div className="rounded-3xl border border-white/10 bg-[#101412] p-6">
             <div className="mb-5 flex items-center gap-2 text-lg font-black">
-              <Calculator className="h-5 w-5 text-[#00e88a]" />
+              <Calculator className="h-5 w-5 text-[#f97316]" />
               Calculadora de taxa da plataforma
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -293,7 +293,7 @@ export function SalesPageClient() {
                 ].map(row => (
                   <tr key={row[0]} className="border-b border-white/10 last:border-b-0">
                     <td className="px-5 py-4 text-white/45">{row[0]}</td>
-                    <td className="px-5 py-4 font-black text-[#00e88a]">{row[1]}</td>
+                    <td className="px-5 py-4 font-black text-[#f97316]">{row[1]}</td>
                     <td className="px-5 py-4 text-white/45">{row[2]}</td>
                   </tr>
                 ))}
@@ -315,9 +315,9 @@ export function SalesPageClient() {
                 <button
                   key={tab.key}
                   onClick={() => setDeliveryTab(tab)}
-                  className={`w-full rounded-2xl border p-5 text-left transition ${deliveryTab.key === tab.key ? 'border-[#00e88a] bg-[#00e88a]/10' : 'border-white/10 bg-[#101412] hover:border-white/20'}`}
+                  className={`w-full rounded-2xl border p-5 text-left transition ${deliveryTab.key === tab.key ? 'border-[#f97316] bg-[#f97316]/10' : 'border-white/10 bg-[#101412] hover:border-white/20'}`}
                 >
-                  <Icon className="mb-4 h-5 w-5 text-[#00e88a]" />
+                  <Icon className="mb-4 h-5 w-5 text-[#f97316]" />
                   <span className="font-black text-white">{tab.label}</span>
                   <span className="mt-2 block text-sm leading-6 text-white/45">{tab.text}</span>
                 </button>
@@ -343,7 +343,7 @@ export function SalesPageClient() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {featureItems.map(([feature, Icon]) => (
             <div key={feature} className="sales-feature rounded-2xl border border-white/10 bg-[#101412] p-5">
-              <Icon className="h-5 w-5 text-[#00e88a]" />
+              <Icon className="h-5 w-5 text-[#f97316]" />
               <p className="mt-4 text-sm font-bold leading-6 text-white/70">{feature}</p>
             </div>
           ))}
@@ -361,12 +361,12 @@ export function SalesPageClient() {
       <section className="border-y border-white/10 bg-[#0b0e0d]">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-16 md:grid-cols-[1fr_390px] md:items-center md:py-20">
           <div>
-            <p className="text-sm font-black uppercase text-[#00e88a]">Flowyn Pro</p>
+            <p className="text-sm font-black uppercase text-[#f97316]">Flowyn Pro</p>
             <h2 className="mt-3 text-3xl font-black md:text-4xl">Uma mensalidade simples para parar de pagar taxa de plataforma por venda.</h2>
             <p className="mt-4 max-w-2xl text-white/60">Teste a Flowyn, publique um checkout e compare a diferenca entre pagar uma mensalidade fixa e entregar uma parte de cada venda.</p>
           </div>
-          <div className="sales-price-card rounded-3xl border border-[#00e88a]/35 bg-[#101412] p-6">
-            <p className="text-sm font-black text-[#00e88a]">Flowyn Pro</p>
+          <div className="sales-price-card rounded-3xl border border-[#f97316]/35 bg-[#101412] p-6">
+            <p className="text-sm font-black text-[#f97316]">Flowyn Pro</p>
             <div className="mt-3 flex items-baseline gap-2"><span className="text-5xl font-black">R$ 49</span><span className="text-white/45">/mes</span></div>
             <p className="mt-2 text-sm text-white/50">7 dias gratis para testar.</p>
             <div className="mt-5 space-y-2 text-sm text-white/65">
@@ -375,7 +375,7 @@ export function SalesPageClient() {
               ))}
             </div>
             <p className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-xs leading-5 text-amber-100/80">Tarifas financeiras da Asaas nao estao inclusas na mensalidade Flowyn.</p>
-            <Link href="/register" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-5 py-3 font-black text-black transition hover:bg-[#05f294]">Comecar teste gratis <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/register" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#f97316] px-5 py-3 font-black text-black transition hover:bg-[#fb923c]">Comecar teste gratis <ArrowRight className="h-4 w-4" /></Link>
           </div>
         </div>
       </section>
@@ -391,7 +391,7 @@ export function SalesPageClient() {
         </div>
       </Section>
 
-      <section className="bg-[#00e88a] text-black">
+      <section className="bg-[#f97316] text-black">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-14 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-black md:text-4xl">Se sua margem importa, sua plataforma nao deveria virar socio invisivel.</h2>
@@ -405,7 +405,7 @@ export function SalesPageClient() {
 
       <footer className="border-t border-white/10 bg-[#070908]">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-sm text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <img src="/logo2.png" alt="Flowyn" className="h-16 w-auto opacity-90" />
+          <img src="/brand/logo-dark.png" alt="Flowyn" className="h-16 w-auto opacity-90" />
           <p>Checkout para infoprodutores via Asaas.</p>
         </div>
       </footer>
@@ -418,7 +418,7 @@ function Header() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070908]/92 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
         <Link href="/" className="inline-flex items-center">
-          <img src="/logo2.png" alt="Flowyn" className="h-20 w-auto" />
+          <img src="/brand/logo-dark.png" alt="Flowyn" className="h-20 w-auto" />
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-semibold text-white/55 md:flex">
           <a href="#como-funciona" className="transition hover:text-white">Como funciona</a>
@@ -429,7 +429,7 @@ function Header() {
         </nav>
         <div className="flex items-center gap-3">
           <Link href="/login" className="hidden text-sm font-bold text-white/65 transition hover:text-white sm:inline">Entrar</Link>
-          <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black transition hover:bg-[#05f294]">
+          <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-[#f97316] px-4 py-3 text-sm font-black text-black transition hover:bg-[#fb923c]">
             Comecar gratis <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -443,7 +443,7 @@ function Section({ id, eyebrow, title, text, muted = false, children }: { id: st
     <section id={id} className={`border-b border-white/10 ${muted ? 'bg-[#0b0e0d]' : 'bg-[#070908]'}`}>
       <div className="mx-auto max-w-7xl px-5 py-16 md:py-20">
         <div className="mb-10 max-w-3xl">
-          <p className="text-sm font-black uppercase text-[#00e88a]">{eyebrow}</p>
+          <p className="text-sm font-black uppercase text-[#f97316]">{eyebrow}</p>
           <h2 className="mt-3 text-3xl font-black md:text-4xl">{title}</h2>
           {text && <p className="mt-4 text-base leading-7 text-white/60">{text}</p>}
         </div>
@@ -460,7 +460,7 @@ function ScreenshotFrame({ src, title, fallback, light = false, compact = false 
     <div className={`relative overflow-hidden rounded-3xl border ${light ? 'border-slate-200 bg-white' : 'border-white/10 bg-[#101412]'} shadow-2xl`}>
       <div className={`flex items-center justify-between border-b px-4 py-3 text-xs font-black uppercase ${light ? 'border-slate-200 text-slate-500' : 'border-white/10 text-white/35'}`}>
         <span>{title}</span>
-        <span className={light ? 'text-[#00a866]' : 'text-[#00e88a]'}>Flowyn</span>
+        <span className={light ? 'text-[#ea580c]' : 'text-[#f97316]'}>Flowyn</span>
       </div>
       {!failed ? (
         <img
@@ -483,7 +483,7 @@ function FloatingBadge({ className, label, value }: { className: string; label: 
   return (
     <div className={`absolute hidden rounded-2xl border border-white/15 bg-[#101412]/95 px-4 py-3 shadow-2xl backdrop-blur md:block ${className}`}>
       <p className="text-[10px] font-black uppercase text-white/35">{label}</p>
-      <p className="mt-1 text-sm font-black text-[#00e88a]">{value}</p>
+      <p className="mt-1 text-sm font-black text-[#f97316]">{value}</p>
     </div>
   )
 }
@@ -491,7 +491,7 @@ function FloatingBadge({ className, label, value }: { className: string; label: 
 function TrustItem({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
   return (
     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-      <Icon className="h-4 w-4 text-[#00e88a]" />
+      <Icon className="h-4 w-4 text-[#f97316]" />
       {text}
     </div>
   )
@@ -500,7 +500,7 @@ function TrustItem({ icon: Icon, text }: { icon: typeof ShieldCheck; text: strin
 function CheckLine({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center gap-2 text-sm font-bold text-white/65">
-      <CheckCircle2 className="h-4 w-4 shrink-0 text-[#00e88a]" />
+      <CheckCircle2 className="h-4 w-4 shrink-0 text-[#f97316]" />
       {children}
     </div>
   )
@@ -528,9 +528,9 @@ function NumberField({ label, value, onChange, prefix, suffix, step = '1' }: { l
 
 function CostRow({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${highlight ? 'border-[#00e88a]/30 bg-[#00e88a]/10' : 'border-white/10 bg-black/20'}`}>
+    <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${highlight ? 'border-[#f97316]/30 bg-[#f97316]/10' : 'border-white/10 bg-black/20'}`}>
       <span className="text-sm text-white/55">{label}</span>
-      <span className={`font-black ${highlight ? 'text-[#00e88a]' : 'text-white'}`}>{value}</span>
+      <span className={`font-black ${highlight ? 'text-[#f97316]' : 'text-white'}`}>{value}</span>
     </div>
   )
 }

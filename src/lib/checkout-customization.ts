@@ -34,7 +34,7 @@ export function defaultCheckoutConfig(product?: {
   order_bump_image_url?: string | null
 }): CheckoutCustomizationConfig {
   return {
-    primaryColor: '#00e88a',
+    primaryColor: '#f97316',
     backgroundColor: '#ffffff',
     buttonText: 'Finalizar compra',
     headline: product?.name ? `Garanta seu acesso ao ${product.name}` : 'Garanta seu acesso agora',

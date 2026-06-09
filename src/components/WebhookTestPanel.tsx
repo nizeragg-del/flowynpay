@@ -4,7 +4,19 @@ import { useState } from 'react'
 import { Play, Activity, Clock, CheckCircle2, XCircle, AlertTriangle, ShoppingCart } from 'lucide-react'
 import { testWebhookAction, simulatePurchaseAction } from '@/app/(app)/dashboard/products/[id]/integrations/actions'
 
-export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: string, currentUrl: string, plans: any[] }) {
+type PlanOption = {
+  id: string
+  name: string
+  plan_identifier?: string
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  return 'Erro desconhecido'
+}
+
+export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: string; currentUrl: string; plans: PlanOption[] }) {
   const [loading, setLoading] = useState(false)
   const [simulating, setSimulating] = useState(false)
   const [result, setResult] = useState<{ status: number | null, timeMs: number, success: boolean, error?: string, body?: string } | null>(null)
@@ -24,12 +36,12 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
         error: res.error,
         body: res.body
       })
-    } catch (e: any) {
+    } catch (e: unknown) {
       setResult({
         status: null,
         timeMs: 0,
         success: false,
-        error: e.message || 'Erro de rede'
+        error: getErrorMessage(e)
       })
     } finally {
       setLoading(false)
@@ -48,8 +60,8 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
       } else {
         alert('Falha na simulação: ' + res.error)
       }
-    } catch (e: any) {
-      alert('Erro na simulação: ' + e.message)
+    } catch (e: unknown) {
+      alert('Erro na simulação: ' + getErrorMessage(e))
     } finally {
       setSimulating(false)
     }
@@ -59,7 +71,7 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
     <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-xl mb-10 overflow-hidden">
       <div className="p-6 border-b border-white/5 bg-[#0a0a0a]">
         <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-[#00e88a]" />
+          <Activity className="w-5 h-5 text-[#f97316]" />
           Testes e Simulação
         </h3>
         <p className="text-sm text-white/50">
@@ -77,21 +89,21 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
           <button 
             onClick={handleTest}
             disabled={loading || !currentUrl}
-            className="w-full flex items-center justify-center gap-2 bg-[#00e88a]/10 hover:bg-[#00e88a]/20 text-[#00e88a] font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 border border-[#00e88a]/20"
+            className="w-full flex items-center justify-center gap-2 bg-[#f97316]/10 hover:bg-[#f97316]/20 text-[#f97316] font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 border border-[#f97316]/20"
           >
             {loading ? <Clock className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             {loading ? 'Disparando...' : 'Enviar Payload de Teste'}
           </button>
 
           {result && (
-            <div className={`mt-4 p-4 rounded-xl border ${result.success ? (result.timeMs > 3000 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[#00e88a]/10 border-[#00e88a]/30') : 'bg-red-500/10 border-red-500/30'}`}>
+            <div className={`mt-4 p-4 rounded-xl border ${result.success ? (result.timeMs > 3000 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[#f97316]/10 border-[#f97316]/30') : 'bg-red-500/10 border-red-500/30'}`}>
               <div className="flex items-center gap-2 mb-3">
                 {result.success ? (
-                  result.timeMs > 3000 ? <AlertTriangle className="w-5 h-5 text-amber-500" /> : <CheckCircle2 className="w-5 h-5 text-[#00e88a]" />
+                  result.timeMs > 3000 ? <AlertTriangle className="w-5 h-5 text-amber-500" /> : <CheckCircle2 className="w-5 h-5 text-[#f97316]" />
                 ) : (
                   <XCircle className="w-5 h-5 text-red-500" />
                 )}
-                <span className={`font-bold text-sm ${result.success ? (result.timeMs > 3000 ? 'text-amber-500' : 'text-[#00e88a]') : 'text-red-500'}`}>
+                <span className={`font-bold text-sm ${result.success ? (result.timeMs > 3000 ? 'text-amber-500' : 'text-[#f97316]') : 'text-red-500'}`}>
                   {result.success ? 'Conexão Bem-sucedida' : 'Falha na Conexão'}
                 </span>
               </div>
@@ -99,7 +111,7 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
               <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
                 <div className="bg-[#0a0a0a] rounded p-2 border border-white/10">
                   <span className="block text-white/50 font-medium mb-0.5">Status HTTP</span>
-                  <span className={`font-bold ${result.success ? 'text-[#00e88a]' : 'text-red-500'}`}>{result.status || 'N/A'}</span>
+                  <span className={`font-bold ${result.success ? 'text-[#f97316]' : 'text-red-500'}`}>{result.status || 'N/A'}</span>
                 </div>
                 <div className="bg-[#0a0a0a] rounded p-2 border border-white/10">
                   <span className="block text-white/50 font-medium mb-0.5">Tempo de Resposta</span>
@@ -138,7 +150,7 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
               <select 
                 value={selectedPlanId}
                 onChange={(e) => setSelectedPlanId(e.target.value)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg p-2.5 text-sm text-white outline-none focus:border-[#00e88a]"
+                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg p-2.5 text-sm text-white outline-none focus:border-[#f97316]"
               >
                 {plans.length === 0 && <option value="">Nenhum plano criado</option>}
                 {plans.map(p => (
@@ -150,7 +162,7 @@ export function WebhookTestPanel({ productId, currentUrl, plans }: { productId: 
             <button 
               onClick={handleSimulate}
               disabled={simulating || plans.length === 0 || !currentUrl}
-              className="w-full flex items-center justify-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)]"
+              className="w-full flex items-center justify-center gap-2 bg-[#f97316] hover:bg-[#f97316]/90 text-black font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:shadow-[0_0_25px_rgba(249,115,22,0.5)]"
             >
               {simulating ? <Clock className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
               {simulating ? 'Simulando...' : 'Simular Venda Completa'}

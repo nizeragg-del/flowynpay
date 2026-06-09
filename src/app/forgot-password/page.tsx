@@ -9,24 +9,19 @@ export default async function ForgotPasswordPage(props: {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background glows */}
-      <div
-        className="absolute inset-0 z-0 opacity-20 pointer-events-none"
-        style={{ backgroundImage: 'url("/noise.png")', backgroundRepeat: 'repeat' }}
-      />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#00e88a]/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#f97316]/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex justify-center mb-8">
-          <img src="/logo2.png" alt="Flowyn" className="h-20 w-auto" />
+          <img src="/brand/logo-dark.png" alt="Flowyn" className="h-20 w-auto" />
         </Link>
 
         {/* Card */}
         <div className="bg-[#111111] border border-white/10 rounded-3xl p-8 shadow-2xl">
           {/* Icon */}
-          <div className="w-14 h-14 rounded-2xl bg-[#00e88a]/10 border border-[#00e88a]/20 flex items-center justify-center mb-6">
-            <Mail className="w-7 h-7 text-[#00e88a]" />
+          <div className="w-14 h-14 rounded-2xl bg-[#f97316]/10 border border-[#f97316]/20 flex items-center justify-center mb-6">
+            <Mail className="w-7 h-7 text-[#f97316]" />
           </div>
 
           <h1 className="text-2xl font-extrabold text-white mb-2">Recuperar senha</h1>
@@ -36,11 +31,11 @@ export default async function ForgotPasswordPage(props: {
 
           {/* Banners */}
           {searchParams.success === 'email_sent' && (
-            <div className="bg-[#00e88a]/10 text-[#00e88a] p-4 rounded-xl text-sm flex items-start gap-3 border border-[#00e88a]/30 mb-6">
+            <div className="bg-[#f97316]/10 text-[#f97316] p-4 rounded-xl text-sm flex items-start gap-3 border border-[#f97316]/30 mb-6">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold">E-mail enviado! 📬</p>
-                <p className="text-[#00e88a]/70 text-xs mt-0.5">
+                <p className="text-[#f97316]/70 text-xs mt-0.5">
                   Verifique sua caixa de entrada e clique no link para redefinir sua senha. O link expira em 1 hora.
                 </p>
               </div>
@@ -66,14 +61,14 @@ export default async function ForgotPasswordPage(props: {
                   name="email"
                   type="email"
                   required
-                  className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#00e88a] focus:outline-none focus:ring-1 focus:ring-[#00e88a] transition-all font-medium"
+                  className="block w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white placeholder-white/30 focus:border-[#f97316] focus:outline-none focus:ring-1 focus:ring-[#f97316] transition-all font-medium"
                   placeholder="voce@email.com"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full flex justify-center items-center gap-2 rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-bold text-black shadow-[0_0_20px_rgba(0,232,138,0.3)] hover:shadow-[0_0_30px_rgba(0,232,138,0.5)] hover:-translate-y-0.5 transition-all"
+                className="w-full flex justify-center items-center gap-2 rounded-xl bg-[#f97316] px-4 py-3 text-sm font-bold text-black shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:-translate-y-0.5 transition-all"
               >
                 Enviar link de recuperação
                 <ArrowRight className="w-4 h-4" />

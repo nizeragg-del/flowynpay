@@ -4,6 +4,9 @@ export default async function RegisterPage(props: { searchParams: Promise<{ type
   const searchParams = await props.searchParams;
 
   return (
-    <ClientAuthPanel initialError={searchParams.error} initialType={searchParams.type || 'register'} />
+    <ClientAuthPanel
+      initialError={searchParams.error}
+      initialType={searchParams.type || 'register'}
+    />
   )
 }

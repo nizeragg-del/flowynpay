@@ -3,6 +3,7 @@ import { createHash } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { createSubaccount, listSubaccounts, onlyDigits, retrieveSubaccount } from '@/lib/asaas'
+import { isValidCpfCnpj, isValidEmail, isValidPhone } from '@/lib/validation'
 
 type Profile = {
   asaas_account_id: string | null
@@ -138,6 +139,10 @@ export async function POST(request: NextRequest) {
 
   if (!payload.name || !payload.email || !payload.cpfCnpj || !payload.mobilePhone || !payload.postalCode || !payload.addressNumber || !payload.incomeValue) {
     return NextResponse.json({ error: 'Preencha nome, e-mail, CPF/CNPJ, celular, CEP, número e faturamento mensal.' }, { status: 400 })
+  }
+
+  if (!isValidEmail(payload.email) || !isValidCpfCnpj(payload.cpfCnpj) || !isValidPhone(payload.mobilePhone)) {
+    return NextResponse.json({ error: 'Informe e-mail, CPF/CNPJ e celular válidos.' }, { status: 400 })
   }
 
   if (!documentType) {
@@ -284,8 +289,9 @@ export async function POST(request: NextRequest) {
       accountId: account.id,
       walletId: account.walletId,
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
     console.error('[Asaas Account] Error:', err)
-    return NextResponse.json({ error: err.message || 'Erro ao criar subconta Asaas' }, { status: 500 })
+    return NextResponse.json({ error: message || 'Erro ao criar subconta Asaas' }, { status: 500 })
   }
 }

@@ -17,7 +17,7 @@ export default async function PixelsPage() {
 
   return (
     <div className="w-full pb-12">
-      <main className="max-w-4xl mx-auto px-6 pt-8">
+      <main className="mx-auto max-w-7xl">
         <PixelManager initialPixels={pixels ?? []} />
       </main>
     </div>

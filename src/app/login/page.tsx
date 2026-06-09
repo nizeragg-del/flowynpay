@@ -4,6 +4,10 @@ export default async function LoginPage(props: { searchParams: Promise<{ error?:
   const searchParams = await props.searchParams;
 
   return (
-    <ClientAuthPanel initialError={searchParams.error} initialType="login" initialSuccess={searchParams.success} />
+    <ClientAuthPanel
+      initialError={searchParams.error}
+      initialType="login"
+      initialSuccess={searchParams.success}
+    />
   )
 }

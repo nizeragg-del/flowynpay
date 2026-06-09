@@ -8,6 +8,7 @@ import {
   createCustomer,
   onlyDigits,
 } from '@/lib/asaas'
+import { isValidCpfCnpj, isValidEmail, isValidPhone, isValidCardNumber, isValidCvv } from '@/lib/validation'
 
 const FLOWYN_PRO_PRICE = 49
 
@@ -95,15 +96,15 @@ export async function POST(req: NextRequest) {
   const cardCcv = onlyDigits(body.card?.ccv)
 
   if (!name || !email || !cpfCnpj || !phone || !postalCode || !addressNumber) {
-    return NextResponse.json({ error: 'Preencha todos os dados obrigatorios.' }, { status: 400 })
+    return NextResponse.json({ error: 'Preencha todos os dados obrigatórios.' }, { status: 400 })
   }
 
-  if (!email.includes('@') || ![11, 14].includes(cpfCnpj.length)) {
-    return NextResponse.json({ error: 'Informe e-mail e CPF/CNPJ validos.' }, { status: 400 })
+  if (!isValidEmail(email) || !isValidCpfCnpj(cpfCnpj) || !isValidPhone(phone)) {
+    return NextResponse.json({ error: 'Informe e-mail, CPF/CNPJ e telefone válidos.' }, { status: 400 })
   }
 
-  if (cardNumber.length < 13 || cardNumber.length > 19 || cardCcv.length < 3 || cardCcv.length > 4) {
-    return NextResponse.json({ error: 'Confira os dados do cartao.' }, { status: 400 })
+  if (!isValidCardNumber(cardNumber) || !isValidCvv(cardCcv)) {
+    return NextResponse.json({ error: 'Confira os dados do cartão.' }, { status: 400 })
   }
 
   let { data: localSubscription } = await admin

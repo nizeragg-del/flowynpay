@@ -4,7 +4,26 @@ import { deliveryEmail, studentPasswordEmail } from '@/lib/email-templates'
 import { dispatchWebhook } from '@/lib/webhook'
 import { getAppUrl } from '@/lib/app-url'
 
-type SupabaseAdmin = any
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+type SupabaseAdmin = SupabaseClient
+
+type Product = {
+  id: string
+  name: string
+  product_type?: string | null
+  delivery_type?: string | null
+  delivery_url?: string | null
+  deliverable_file_paths?: string[] | null
+  webhook_url?: string | null
+}
+
+type TemplateSession = {
+  title?: string | null
+  description?: string | null
+  meeting_url?: string | null
+  sort_order?: number | null
+}
 
 export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string, providerStatus?: string) {
   const { data: existingOrder } = await supabase
@@ -30,7 +49,7 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
     .select(`
       *,
       product:products(
-        id, name, product_type, delivery_type, delivery_url, deliverable_file_paths, order_bump_file_paths, webhook_url
+        id, name, product_type, delivery_type, delivery_url, deliverable_file_paths, webhook_url
       )
     `)
     .single()
@@ -39,7 +58,7 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
     return { skipped: true, error: orderError?.message }
   }
 
-  const product = orderData.product as any
+  const product = orderData.product as Product | null
   const { data: privateCustomer } = await supabase
     .from('order_customer_private')
     .select('customer_name, customer_email')
@@ -112,8 +131,8 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
 
           if (templateSessions?.length) {
             await supabase.from('mentorship_sessions').insert(
-              templateSessions.map((session: any) => ({
-                product_id: product.id,
+              templateSessions.map((session: TemplateSession) => ({
+                product_id: product!.id,
                 student_id: studentUserId,
                 title: session.title,
                 description: session.description,
@@ -175,14 +194,27 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
       }
     }
 
-    if (orderData.includes_order_bump && Array.isArray(product.order_bump_file_paths)) {
-      for (const path of product.order_bump_file_paths) {
-        const { data: signed } = await supabase.storage
-          .from('product-files')
-          .createSignedUrl(path, 60 * 60 * 48)
+    if (orderData.includes_order_bump) {
+      const { data: orderBumps } = await supabase
+        .from('product_order_bumps')
+        .select('file_paths')
+        .eq('product_id', product.id)
+        .order('sort_order', { ascending: true })
 
-        if (signed?.signedUrl) {
-          accessLinks.push({ label: path.split('/').pop() || 'Baixar Order Bump', url: signed.signedUrl, isFile: true })
+      if (orderBumps) {
+        for (const bump of orderBumps) {
+          const paths = bump.file_paths as string[] | null
+          if (Array.isArray(paths)) {
+            for (const path of paths) {
+              const { data: signed } = await supabase.storage
+                .from('product-files')
+                .createSignedUrl(path, 60 * 60 * 48)
+
+              if (signed?.signedUrl) {
+                accessLinks.push({ label: path.split('/').pop() || 'Baixar Order Bump', url: signed.signedUrl, isFile: true })
+              }
+            }
+          }
         }
       }
     }

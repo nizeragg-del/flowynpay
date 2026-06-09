@@ -15,94 +15,108 @@ import {
   ShoppingBag,
   PlaySquare,
   Wallet,
+  type LucideIcon,
 } from 'lucide-react'
 
-export function Sidebar({ profile }: { profile: any }) {
+type NavItem = {
+  href: string
+  label: string
+  icon: LucideIcon
+  exact?: boolean
+  exclude?: string
+}
+
+const sections: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Operacao',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+      { href: '/dashboard/wallet', label: 'Carteira', icon: Wallet },
+      { href: '/learn', label: 'Meus Acessos', icon: PlaySquare },
+    ],
+  },
+  {
+    label: 'Produtos',
+    items: [
+      { href: '/dashboard/products/new', label: 'Criar Produto', icon: PlusCircle },
+      { href: '/dashboard/products', label: 'Meus Produtos', icon: Box, exclude: '/dashboard/products/new' },
+      { href: '/dashboard/sales', label: 'Minhas Vendas', icon: ShoppingBag },
+    ],
+  },
+  {
+    label: 'Configuracoes',
+    items: [
+      { href: '/dashboard/pixels', label: 'Pixels', icon: ScanLine },
+      { href: '/dashboard/settings/payments', label: 'Pagamentos', icon: CreditCard },
+      { href: '/dashboard/settings/subscription', label: 'Assinatura', icon: BadgeCheck },
+      { href: '/dashboard/settings/profile', label: 'Minha Conta', icon: Settings },
+    ],
+  },
+]
+
+type SidebarProfile = {
+  full_name?: string | null
+} | null
+
+export function Sidebar({ profile }: { profile: SidebarProfile }) {
   const pathname = usePathname()
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const isActive = (href: string, exact?: boolean, exclude?: string) => {
+    if (exclude && pathname.startsWith(exclude)) return false
+    return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+  }
 
   return (
-    <aside className="w-full md:w-64 bg-[#111111] md:bg-transparent border-r border-white/10 text-white flex-shrink-0 flex flex-col z-20 h-full">
-      <div className="p-6 flex items-center cursor-pointer">
-        <img src="/logo2.png" alt="Flowyn" className="h-20 w-auto" />
-      </div>
+    <aside className="flex h-full w-full flex-col border-r border-slate-200 bg-white text-slate-950 md:w-[86px] lg:w-64">
+      <Link href="/dashboard" className="flex h-20 items-center justify-center border-b border-slate-200 px-4 lg:justify-start">
+        <img src="/brand/logo-light.png" alt="Flowyn" className="h-10 w-auto lg:h-11" />
+      </Link>
 
-      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-        <Link href="/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${pathname === '/dashboard' ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="font-medium text-sm">Dashboard</span>
-        </Link>
-
-        <Link href="/dashboard/wallet" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/wallet') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <Wallet className="w-5 h-5" />
-          <span className="font-medium text-sm">Carteira</span>
-        </Link>
-
-        <Link href="/learn" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/learn') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <PlaySquare className="w-5 h-5" />
-          <span className="font-medium text-sm">Meus Acessos</span>
-        </Link>
-
-        <div className="pt-4 pb-1">
-          <span className="px-3 text-[10px] font-bold text-white/25 uppercase tracking-widest">Criar & Vender</span>
-        </div>
-
-        <Link href="/dashboard/products/new" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/products/new') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <PlusCircle className="w-5 h-5" />
-          <span className="font-medium text-sm">Criar Produto</span>
-        </Link>
-
-        <Link href="/dashboard/products" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/products') && !isActive('/dashboard/products/new') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <Box className="w-5 h-5" />
-          <span className="font-medium text-sm">Meus Produtos</span>
-        </Link>
-
-        <Link href="/dashboard/sales" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/sales') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <ShoppingBag className="w-5 h-5" />
-          <span className="font-medium text-sm">Minhas Vendas</span>
-        </Link>
-
-        <div className="pt-4 pb-1">
-          <span className="px-3 text-[10px] font-bold text-white/25 uppercase tracking-widest">Configuracoes</span>
-        </div>
-
-        <Link href="/dashboard/pixels" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/pixels') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <ScanLine className="w-5 h-5" />
-          <span className="font-medium text-sm">Pixels</span>
-        </Link>
-
-        <Link href="/dashboard/settings/payments" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/payments') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <CreditCard className="w-5 h-5" />
-          <span className="font-medium text-sm">Pagamentos</span>
-        </Link>
-
-        <Link href="/dashboard/settings/subscription" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/subscription') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <BadgeCheck className="w-5 h-5" />
-          <span className="font-medium text-sm">Assinatura</span>
-        </Link>
-
-        <Link href="/dashboard/settings/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive('/dashboard/settings/profile') ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-          <Settings className="w-5 h-5" />
-          <span className="font-medium text-sm">Minha Conta</span>
-        </Link>
+      <nav className="flex-1 space-y-7 overflow-y-auto px-3 py-5">
+        {sections.map(section => (
+          <div key={section.label}>
+            <p className="mb-2 hidden px-3 text-[11px] font-black uppercase tracking-wide text-slate-400 lg:block">{section.label}</p>
+            <div className="space-y-1">
+              {section.items.map(item => {
+                const Icon = item.icon
+                const active = isActive(item.href, item.exact, item.exclude)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={item.label}
+                    className={`group relative flex h-11 items-center justify-center rounded-xl text-sm font-semibold transition lg:justify-start lg:gap-3 lg:px-3 ${
+                      active
+                        ? 'bg-orange-50 text-orange-600'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-950'
+                    }`}
+                  >
+                    {active && <span className="absolute left-0 hidden h-6 w-1 rounded-r-full bg-gradient-to-r from-orange-500 to-amber-500 lg:block" />}
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="hidden lg:inline">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      <div className="p-4 border-t border-white/10">
+      <div className="border-t border-slate-200 p-3">
         {profile && (
-          <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-[#00e88a]/20 flex items-center justify-center text-[#00e88a] font-bold text-sm flex-shrink-0">
+          <div className="mb-2 hidden items-center gap-3 rounded-xl px-3 py-2 lg:flex">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-sm font-black text-white">
               {profile.full_name?.charAt(0)?.toUpperCase() || '?'}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold text-white truncate">{profile.full_name || 'Usuario'}</p>
-              <p className="text-xs text-white/40 truncate">Membro Flowyn</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-slate-950">{profile.full_name || 'Usuario'}</p>
+              <p className="truncate text-xs text-slate-400">Conta Flowyn</p>
             </div>
           </div>
         )}
         <form action={signOutAction}>
-          <button type="submit" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:bg-red-500/10 hover:text-red-400 transition-colors">
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium text-sm">Sair da Conta</span>
+          <button type="submit" className="flex h-11 w-full items-center justify-center rounded-xl text-slate-500 transition hover:bg-red-50 hover:text-red-600 lg:justify-start lg:gap-3 lg:px-3">
+            <LogOut className="h-5 w-5" />
+            <span className="hidden text-sm font-semibold lg:inline">Sair da Conta</span>
           </button>
         </form>
       </div>

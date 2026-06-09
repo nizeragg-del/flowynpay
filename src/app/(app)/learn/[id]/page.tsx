@@ -5,7 +5,6 @@ import {
   CalendarClock,
   Check,
   CheckCircle2,
-  Clapperboard,
   Download,
   ExternalLink,
   FileText,
@@ -20,8 +19,19 @@ import { addLessonComment, bookMentorshipSlot, saveIntakeResponses, toggleLesson
 
 export const dynamic = 'force-dynamic'
 
-export default async function LearnProductPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params
+type Product = {
+  id: string
+  name: string
+  short_description?: string | null
+  description?: string | null
+  cover_url?: string | null
+  product_type?: string | null
+  category?: string | null
+  owner?: { full_name?: string | null }
+}
+
+export default async function LearnProductPage(props: { params: { id: string } }) {
+  const { id } = props.params
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) redirect('/login')
@@ -52,14 +62,41 @@ export default async function LearnProductPage(props: { params: Promise<{ id: st
 
   if (!product) redirect('/learn')
 
-  if ((product as any).product_type === 'mentoria') {
-    return <MentorshipExperience product={product as any} userId={user.id} />
+  type Product = {
+    id: string
+    name: string
+    short_description?: string | null
+    description?: string | null
+    cover_url?: string | null
+    product_type?: string | null
+    category?: string | null
+    owner?: { full_name?: string | null }
   }
 
-  return <CourseExperience product={product as any} userId={user.id} />
+  if ((product as Product).product_type === 'mentoria') {
+    return <MentorshipExperience product={product as Product} userId={user.id} />
+  }
+
+  return <CourseExperience product={product as Product} userId={user.id} />
 }
 
-async function CourseExperience({ product, userId }: { product: any; userId: string }) {
+async function CourseExperience({ product, userId }: { product: Product; userId: string }) {
+  type Module = { id: string; title?: string; lessons?: Lesson[] }
+  type Lesson = {
+    id: string
+    title?: string
+    description?: string | null
+    duration_minutes?: number | null
+    sort_order?: number | null
+    video_file_path?: string | null
+    video_url?: string | null
+    material_file_paths?: string[] | null
+    content_url?: string | null
+  }
+  type ProgressRow = { lesson_id: string; completed_at?: string | null }
+  type Comment = { id: string; body: string; created_at: string; user?: { full_name?: string } }
+  type Certificate = { certificate_code?: string }
+
   const admin = createAdminClient()
   const { data: modules } = await admin
     .from('course_modules')
@@ -73,13 +110,13 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
     .eq('user_id', userId)
     .eq('product_id', product.id)
 
-  const completedLessonIds = new Set((progressRows || []).filter((row: any) => row.completed_at).map((row: any) => row.lesson_id))
-  const moduleRows = (modules || []) as any[]
+  const completedLessonIds = new Set((progressRows || []).filter((row: ProgressRow) => row.completed_at).map((row: ProgressRow) => row.lesson_id))
+  const moduleRows = (modules || []) as Module[]
   const lessons = moduleRows.flatMap(module => [...(module.lessons || [])].sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)))
   const activeLesson = lessons.find(lesson => !completedLessonIds.has(lesson.id)) || lessons[0]
   const progressPercent = lessons.length > 0 ? Math.round((completedLessonIds.size / lessons.length) * 100) : 0
   let signedVideoUrl: string | null = null
-  let signedMaterials: Array<{ label: string; url: string }> = []
+  const signedMaterials: Array<{ label: string; url: string }> = []
 
   if (activeLesson?.video_file_path) {
     const { data: signed } = await admin.storage
@@ -105,7 +142,7 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
         .order('created_at', { ascending: true })
     : { data: [] }
 
-  let certificate: any = null
+  let certificate: Certificate | null = null
   if (lessons.length > 0 && completedLessonIds.size === lessons.length) {
     const { data } = await admin
       .from('course_certificates')
@@ -147,16 +184,16 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
               ) : product.cover_url ? (
                 <img src={product.cover_url} alt={product.name} className="h-full w-full object-cover opacity-70" />
               ) : (
-                <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_50%_30%,rgba(0,232,138,0.22),transparent_35%),linear-gradient(135deg,#181818,#050505)]">
-                  <Play className="h-16 w-16 text-[#00e88a]" />
+                <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_50%_30%,rgba(249,115,22,0.22),transparent_35%),linear-gradient(135deg,#181818,#050505)]">
+                  <Play className="h-16 w-16 text-[#f97316]" />
                 </div>
               )}
-              <div className="absolute left-5 top-5 rounded-full bg-black/55 px-3 py-1 text-xs font-bold text-[#00e88a]">
+              <div className="absolute left-5 top-5 rounded-full bg-black/55 px-3 py-1 text-xs font-bold text-[#f97316]">
                 Flowyn Play
               </div>
             </div>
             <div className="p-6">
-              <p className="text-xs font-bold uppercase text-[#00e88a]">{product.category || 'Curso'}</p>
+              <p className="text-xs font-bold uppercase text-[#f97316]">{product.category || 'Curso'}</p>
               <h1 className="mt-1 text-3xl font-black text-white">{activeLesson?.title || product.name}</h1>
               <p className="mt-2 text-sm leading-6 text-white/55">{activeLesson?.description || product.short_description || product.description}</p>
               <div className="mt-5 flex flex-wrap gap-3">
@@ -176,14 +213,14 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
             </div>
           </div>
 
-          {activeLesson && (
+              {activeLesson && (
             <div className="mt-6 rounded-3xl border border-white/10 bg-[#111] p-6">
               <h2 className="text-lg font-black text-white">Comentários da aula</h2>
               <div className="mt-4 space-y-3">
                 {(comments || []).length === 0 ? (
                   <p className="text-sm text-white/35">Nenhuma dúvida ou comentário ainda.</p>
                 ) : (
-                  (comments || []).map((comment: any) => (
+                  (comments || []).map((comment: Comment) => (
                     <div key={comment.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <p className="text-sm text-white/75">{comment.body}</p>
                       <p className="mt-2 text-xs text-white/35">{comment.user?.full_name || 'Aluno'} · {new Date(comment.created_at).toLocaleString('pt-BR')}</p>
@@ -192,8 +229,8 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
                 )}
               </div>
               <form action={addLessonComment.bind(null, product.id, activeLesson.id)} className="mt-4 flex gap-3">
-                <input name="body" required placeholder="Escreva uma dúvida ou comentário" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#00e88a]" />
-                <button className="rounded-xl bg-[#00e88a] px-5 py-3 text-sm font-black text-black">Enviar</button>
+                <input name="body" required placeholder="Escreva uma dúvida ou comentário" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#f97316]" />
+                <button className="rounded-xl bg-[#f97316] px-5 py-3 text-sm font-black text-black">Enviar</button>
               </form>
             </div>
           )}
@@ -203,21 +240,21 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
           <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-black text-white">{product.name}</h2>
-              <span className="text-sm font-black text-[#00e88a]">{progressPercent}%</span>
+              <span className="text-sm font-black text-[#f97316]">{progressPercent}%</span>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/5">
-              <div className="h-full rounded-full bg-[#00e88a]" style={{ width: `${progressPercent}%` }} />
+              <div className="h-full rounded-full bg-[#f97316]" style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
 
           {certificate && (
-            <div className="rounded-3xl border border-[#00e88a]/25 bg-[#00e88a]/10 p-6">
+            <div className="rounded-3xl border border-[#f97316]/25 bg-[#f97316]/10 p-6">
               <h2 className="flex items-center gap-2 text-lg font-black text-white">
-                <CheckCircle2 className="h-5 w-5 text-[#00e88a]" />
+                <CheckCircle2 className="h-5 w-5 text-[#f97316]" />
                 Certificado liberado
               </h2>
               <p className="mt-2 text-sm text-[#c7ffe3]">Código: {certificate.certificate_code}</p>
-              <Link href={`/learn/${product.id}/certificate`} className="mt-4 inline-flex rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black">
+              <Link href={`/learn/${product.id}/certificate`} className="mt-4 inline-flex rounded-xl bg-[#f97316] px-4 py-3 text-sm font-black text-black">
                 Ver certificado
               </Link>
             </div>
@@ -229,7 +266,7 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
               return (
                 <div key={module.id} className="rounded-3xl border border-white/10 bg-[#111] p-4">
                   <h3 className="mb-3 flex items-center gap-2 text-sm font-black text-white">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#00e88a]/10 text-xs text-[#00e88a]">{moduleIndex + 1}</span>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#f97316]/10 text-xs text-[#f97316]">{moduleIndex + 1}</span>
                     {module.title}
                   </h3>
                   <div className="space-y-2">
@@ -238,7 +275,7 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
                       const action = toggleLessonProgress.bind(null, product.id, lesson.id, !completed)
                       return (
                         <form key={lesson.id} action={action} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3">
-                          <button className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${completed ? 'border-[#00e88a] bg-[#00e88a] text-black' : 'border-white/15 text-white/30'}`}>
+                          <button className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${completed ? 'border-[#f97316] bg-[#f97316] text-black' : 'border-white/15 text-white/30'}`}>
                             {completed ? <Check className="h-4 w-4" /> : <Play className="h-3.5 w-3.5" />}
                           </button>
                           <div className="min-w-0">
@@ -259,7 +296,7 @@ async function CourseExperience({ product, userId }: { product: any; userId: str
   )
 }
 
-async function MentorshipExperience({ product, userId }: { product: any; userId: string }) {
+async function MentorshipExperience({ product, userId }: { product: Product; userId: string }) {
   const admin = createAdminClient()
   const { data: program } = await admin
     .from('mentorship_programs')
@@ -297,12 +334,16 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
     .order('starts_at', { ascending: true })
     .limit(8)
 
-  const sessionRows = (sessions || []) as any[]
-  const taskRows = (tasks || []) as any[]
+  type SessionRow = { id: string; title?: string; description?: string; status?: string; scheduled_at?: string }
+  type TaskRow = { id: string; title?: string; description?: string; completed_at?: string | null }
+  type SlotRow = { id: string; starts_at: string; ends_at: string }
+
+  const sessionRows = (sessions || []) as SessionRow[]
+  const taskRows = (tasks || []) as TaskRow[]
   const completedTasks = taskRows.filter(task => task.completed_at).length
   const questions = Array.isArray(program?.intake_questions) ? program.intake_questions : []
   const answers = (intake?.answers || {}) as Record<string, string>
-  const slotRows = (slots || []) as any[]
+  const slotRows = (slots || []) as SlotRow[]
 
   return (
     <div className="mx-auto max-w-7xl pb-12">
@@ -315,18 +356,18 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
         {product.cover_url ? (
           <img src={product.cover_url} alt={product.name} className="absolute inset-0 h-full w-full object-cover opacity-50" />
         ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,232,138,0.25),transparent_32%),linear-gradient(135deg,#171717,#050505)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(249,115,22,0.25),transparent_32%),linear-gradient(135deg,#171717,#050505)]" />
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-[#111] via-[#111]/75 to-transparent" />
         <div className="relative flex min-h-[360px] max-w-3xl flex-col justify-end p-8 md:p-10">
-          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-black/45 px-3 py-1 text-xs font-bold text-[#00e88a]">
+          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-black/45 px-3 py-1 text-xs font-bold text-[#f97316]">
             <Route className="h-3.5 w-3.5" />
             Flowyn Journey
           </div>
           <h1 className="text-4xl font-black text-white md:text-5xl">{program?.headline || product.name}</h1>
           <p className="mt-4 text-sm leading-6 text-white/65">{program?.promise || product.short_description || product.description}</p>
           {program?.meeting_url && (
-            <a href={program.meeting_url} target="_blank" className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-[#00e88a] px-5 py-3 text-sm font-black text-black transition hover:bg-[#04f294]">
+            <a href={program.meeting_url} target="_blank" className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-[#f97316] px-5 py-3 text-sm font-black text-black transition hover:bg-[#fb923c]">
               Entrar na sala <ExternalLink className="h-4 w-4" />
             </a>
           )}
@@ -336,7 +377,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
       <div className="grid gap-8 lg:grid-cols-3">
         <section className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#111] p-6">
           <h2 className="mb-6 flex items-center gap-2 text-xl font-black text-white">
-            <Target className="h-5 w-5 text-[#00e88a]" />
+            <Target className="h-5 w-5 text-[#f97316]" />
             Mapa da jornada
           </h2>
           <div className="space-y-4">
@@ -346,7 +387,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
               sessionRows.map((session, index) => (
                 <div key={session.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
                   <div className="flex gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#00e88a]/10 font-black text-[#00e88a]">{index + 1}</div>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f97316]/10 font-black text-[#f97316]">{index + 1}</div>
                     <div>
                       <h3 className="font-black text-white">{session.title}</h3>
                       {session.description && <p className="mt-1 text-sm text-white/45">{session.description}</p>}
@@ -366,7 +407,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
           {questions.length > 0 && (
             <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
               <h2 className="flex items-center gap-2 text-lg font-black text-white">
-                <FileText className="h-5 w-5 text-[#00e88a]" />
+                <FileText className="h-5 w-5 text-[#f97316]" />
                 Diagnóstico
               </h2>
               <form action={saveIntakeResponses.bind(null, product.id)} className="mt-4 space-y-3">
@@ -377,11 +418,11 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
                       name={`question_${index}`}
                       defaultValue={answers[String(index)] || ''}
                       required
-                      className="min-h-20 w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#00e88a]"
+                      className="min-h-20 w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#f97316]"
                     />
                   </label>
                 ))}
-                <button className="w-full rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black">
+                <button className="w-full rounded-xl bg-[#f97316] px-4 py-3 text-sm font-black text-black">
                   {intake?.submitted_at ? 'Atualizar diagnóstico' : 'Enviar diagnóstico'}
                 </button>
               </form>
@@ -390,7 +431,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
 
           <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
             <h2 className="flex items-center gap-2 text-lg font-black text-white">
-              <CalendarClock className="h-5 w-5 text-[#00e88a]" />
+              <CalendarClock className="h-5 w-5 text-[#f97316]" />
               Agendar sessão
             </h2>
             <div className="mt-4 space-y-2">
@@ -404,7 +445,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
                         <p className="text-sm font-bold text-white">{new Date(slot.starts_at).toLocaleString('pt-BR')}</p>
                         <p className="text-xs text-white/35">Duração até {new Date(slot.ends_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      <button className="rounded-xl bg-[#00e88a] px-3 py-2 text-xs font-black text-black">Reservar</button>
+                      <button className="rounded-xl bg-[#f97316] px-3 py-2 text-xs font-black text-black">Reservar</button>
                     </div>
                   </form>
                 ))
@@ -414,7 +455,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
 
           <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
             <h2 className="flex items-center gap-2 text-lg font-black text-white">
-              <CheckCircle2 className="h-5 w-5 text-[#00e88a]" />
+              <CheckCircle2 className="h-5 w-5 text-[#f97316]" />
               Execução
             </h2>
             <p className="mt-2 text-sm text-white/45">{completedTasks}/{taskRows.length} tarefas concluídas</p>
@@ -428,7 +469,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
                   return (
                     <form key={task.id} action={action} className="rounded-2xl border border-white/10 bg-black/20 p-3">
                       <button className="flex w-full items-start gap-3 text-left">
-                        <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${completed ? 'border-[#00e88a] bg-[#00e88a] text-black' : 'border-white/15 text-transparent'}`}>
+                        <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${completed ? 'border-[#f97316] bg-[#f97316] text-black' : 'border-white/15 text-transparent'}`}>
                           <Check className="h-3 w-3" />
                         </span>
                         <span>
@@ -445,7 +486,7 @@ async function MentorshipExperience({ product, userId }: { product: any; userId:
 
           <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
             <h2 className="flex items-center gap-2 text-lg font-black text-white">
-              <CalendarClock className="h-5 w-5 text-[#00e88a]" />
+              <CalendarClock className="h-5 w-5 text-[#f97316]" />
               Próxima sessão
             </h2>
             <p className="mt-2 text-sm text-white/45">Use esta área para acompanhar sua evolução e próximos encontros.</p>

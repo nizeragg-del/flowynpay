@@ -12,14 +12,22 @@ interface Props {
   pixels: PixelConfig[]
 }
 
+type FbqFunction = (event: string, ...args: unknown[]) => void
+type GtagFunction = (...args: unknown[]) => void
+interface TiktokTtq {
+  track: (event: string, payload?: Record<string, unknown>) => void
+  load: (id: string) => void
+  page: () => void
+}
+
 // Expose global purchase fire function for checkout-form to call
 declare global {
   interface Window {
     firePixelPurchase?: (amount: number) => void
-    fbq?: (...args: any[]) => void
-    gtag?: (...args: any[]) => void
-    ttq?: { track: (...args: any[]) => void; load: (id: string) => void; page: () => void }
-    dataLayer?: any[]
+    fbq?: FbqFunction
+    gtag?: GtagFunction
+    ttq?: TiktokTtq
+    dataLayer?: unknown[]
   }
 }
 
@@ -73,8 +81,7 @@ export function PixelScripts({ pixels }: Props) {
     }
 
     return () => { delete window.firePixelPurchase }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [metaPixels, googlePixels, tiktokPixels])
 
   return (
     <>

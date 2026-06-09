@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useActionState, useEffect, useRef, useState } from 'react'
-import { AlertCircle, CheckCircle2, PackageCheck, Save } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Save } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import type { CourseContentFormState } from './form-state'
 import { initialCourseContentFormState } from './form-state'
@@ -28,40 +28,29 @@ export function DigitalDeliveryForm({ userId, product, updateDigitalDelivery }: 
   }, [state.ok, state.message])
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <section className="rounded-3xl border border-white/10 bg-[#111] p-6">
-        <div className="mb-6 flex items-start gap-3">
-          <div className="rounded-2xl bg-[#00e88a]/10 p-3 text-[#00e88a]">
-            <PackageCheck className="h-6 w-6" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-white">Entrega digital</h2>
-            <p className="mt-1 text-sm leading-6 text-white/45">
-              Configure o que o comprador recebe automaticamente depois do pagamento aprovado.
-            </p>
+    <form ref={formRef} action={action} className="max-w-6xl">
+      <input type="hidden" name="delivery_type" value={deliveryType} />
+      <input type="hidden" name="deliverable_file_paths" value={JSON.stringify(filePaths)} />
+
+      <div className="grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+        <RowTitle title="Modo de entrega" description="O que o comprador recebe apos pagamento aprovado." />
+        <div className="py-6 md:pl-8">
+          <div className="flex max-w-xl rounded-xl bg-[#f4f4f6] p-1">
+            <button type="button" onClick={() => setDeliveryType('external')} className={`h-10 flex-1 rounded-lg text-sm font-semibold transition ${deliveryType === 'external' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
+              Link externo
+            </button>
+            <button type="button" onClick={() => setDeliveryType('platform')} className={`h-10 flex-1 rounded-lg text-sm font-semibold transition ${deliveryType === 'platform' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
+              Arquivos Flowyn
+            </button>
           </div>
         </div>
+      </div>
 
-        <form ref={formRef} action={action} className="space-y-5">
-          <input type="hidden" name="delivery_type" value={deliveryType} />
-          <input type="hidden" name="deliverable_file_paths" value={JSON.stringify(filePaths)} />
-
-          <div>
-            <span className="mb-2 block text-sm font-semibold text-white/75">Modo de entrega</span>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ModeButton active={deliveryType === 'external'} onClick={() => setDeliveryType('external')} title="Link externo" text="Use Drive, Notion, Hotmart Club externo ou outra URL." />
-              <ModeButton active={deliveryType === 'platform'} onClick={() => setDeliveryType('platform')} title="Arquivos Flowyn" text="Hospede PDFs, ZIPs e materiais dentro da Flowyn." />
-            </div>
-          </div>
-
+      <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+        <RowTitle title="Acesso" description="Link ou arquivos nativos." />
+        <div className="space-y-5 py-6 md:pl-8">
           <Field label="Link de acesso" required={deliveryType === 'external'} hint={deliveryType === 'external' ? 'Obrigatorio para entrega por link externo.' : 'Opcional se voce tambem quiser enviar um link junto dos arquivos.'}>
-            <input
-              name="delivery_url"
-              type="url"
-              defaultValue={product.delivery_url || ''}
-              className={inputClass}
-              placeholder="https://..."
-            />
+            <input name="delivery_url" type="url" defaultValue={product.delivery_url || ''} className={inputClass} placeholder="https://..." />
           </Field>
 
           <FileUpload
@@ -72,66 +61,53 @@ export function DigitalDeliveryForm({ userId, product, updateDigitalDelivery }: 
             folder="product-files"
             multiple
             currentUrls={filePaths}
-            onUpload={(paths) => setFilePaths(paths)}
+            onUpload={(paths) => setFilePaths(Array.isArray(paths) ? paths : [paths])}
             onRemove={(index) => {
               if (index === undefined) return
               setFilePaths(paths => paths.filter((_, idx) => idx !== index))
             }}
           />
-
-          <FormMessage state={state} />
-
-          <button
-            disabled={pending}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black transition hover:bg-[#04f294] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {pending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" /> : <Save className="h-4 w-4" />}
-            {pending ? 'Salvando entrega...' : 'Salvar entrega digital'}
-          </button>
-        </form>
-      </section>
-
-      <aside className="space-y-4">
-        <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
-          <h3 className="text-lg font-black text-white">Checklist</h3>
-          <div className="mt-5 space-y-3 text-sm text-white/55">
-            <CheckItem done={deliveryType === 'platform' || Boolean(product.delivery_url)}>Modo de entrega definido</CheckItem>
-            <CheckItem done={deliveryType === 'external' ? Boolean(product.delivery_url) : filePaths.length > 0}>Conteudo anexado ou link preenchido</CheckItem>
-            <CheckItem done>Envio automatico apos pagamento</CheckItem>
-          </div>
         </div>
-        <div className="rounded-3xl border border-[#00e88a]/20 bg-[#00e88a]/10 p-5 text-sm leading-6 text-[#c7ffe3]">
-          Para e-books e materiais digitais, o aluno recebe o acesso por e-mail e tambem encontra o produto em Meus Acessos quando criar a senha.
+      </div>
+
+      <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+        <RowTitle title="Checklist" description="Status da entrega digital." />
+        <div className="grid gap-3 py-6 md:grid-cols-3 md:pl-8">
+          <CheckItem done={deliveryType === 'platform' || Boolean(product.delivery_url)}>Modo definido</CheckItem>
+          <CheckItem done={deliveryType === 'external' ? Boolean(product.delivery_url) : filePaths.length > 0}>Conteudo preenchido</CheckItem>
+          <CheckItem done>Envio automatico</CheckItem>
         </div>
-      </aside>
-    </div>
+      </div>
+
+      <FormMessage state={state} />
+
+      <div className="mt-8 flex justify-end">
+        <button disabled={pending} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-60">
+          {pending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Save className="h-4 w-4" />}
+          {pending ? 'Salvando...' : 'Salvar entrega'}
+        </button>
+      </div>
+    </form>
   )
 }
 
-function ModeButton({ active, onClick, title, text }: { active: boolean; onClick: () => void; title: string; text: string }) {
+function RowTitle({ title, description }: { title: string; description: string }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-2xl border p-4 text-left transition ${active ? 'border-[#00e88a] bg-[#00e88a]/10' : 'border-white/10 bg-black/20 hover:border-white/20'}`}
-    >
-      <span className="block font-black text-white">{title}</span>
-      <span className="mt-1 block text-xs leading-5 text-white/40">{text}</span>
-    </button>
+    <div className="py-6 md:pr-8">
+      <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+    </div>
   )
 }
 
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 flex items-center justify-between gap-3 text-sm font-semibold text-white/75">
-        {label}
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${required ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'bg-white/5 text-white/35'}`}>
-          {required ? 'Obrigatorio' : 'Opcional'}
-        </span>
+      <span className="mb-2 block text-sm font-medium text-slate-700">
+        {label}{required && <span className="text-red-500">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1.5 block text-xs leading-5 text-white/35">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-xs leading-5 text-slate-400">{hint}</span>}
     </label>
   )
 }
@@ -139,8 +115,8 @@ function Field({ label, required, hint, children }: { label: string; required?: 
 function FormMessage({ state }: { state: CourseContentFormState }) {
   if (!state.message) return null
   return (
-    <div className={`flex items-start gap-2 rounded-2xl border px-3 py-2 text-sm ${state.ok ? 'border-[#00e88a]/25 bg-[#00e88a]/10 text-[#baffdd]' : 'border-red-500/25 bg-red-500/10 text-red-200'}`}>
-      {state.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#00e88a]" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />}
+    <div className={`mt-6 flex items-start gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${state.ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-red-50 text-red-700 ring-red-100'}`}>
+      {state.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
       {state.message}
     </div>
   )
@@ -148,11 +124,11 @@ function FormMessage({ state }: { state: CourseContentFormState }) {
 
 function CheckItem({ done, children }: { done: boolean; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
-      <CheckCircle2 className={`h-4 w-4 ${done ? 'text-[#00e88a]' : 'text-white/20'}`} />
+    <div className="flex items-center gap-2 text-sm text-slate-600">
+      <CheckCircle2 className={`h-4 w-4 ${done ? 'text-emerald-600' : 'text-slate-300'}`} />
       {children}
     </div>
   )
 }
 
-const inputClass = 'w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 transition focus:border-[#00e88a] focus:ring-2 focus:ring-[#00e88a]/20'
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'

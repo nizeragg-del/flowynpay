@@ -12,7 +12,7 @@
   --card-foreground: #09090b;
   --border: #e4e4e7;
   --sidebar: #09090b;
-  --green: #00e88a;
+  --green: #f97316;
   --dark: #0a0a0a;
 }
 
@@ -75,8 +75,8 @@ body::before {
   to   { opacity: 1; transform: translateY(0);    }
 }
 @keyframes glow-green {
-  0%, 100% { box-shadow: 0 0 24px 0 rgba(0,232,138,0.2); }
-  50%       { box-shadow: 0 0 42px 8px rgba(0,232,138,0.4); }
+  0%, 100% { box-shadow: 0 0 24px 0 rgba(249,115,22,0.2); }
+  50%       { box-shadow: 0 0 42px 8px rgba(249,115,22,0.4); }
 }
 
 .dot-pulse {
@@ -120,7 +120,7 @@ body::before {
 }
 .sales-feature:hover,
 .sales-price-card:hover {
-  border-color: rgba(0,232,138,0.42);
+  border-color: rgba(249,115,22,0.42);
   box-shadow: 0 16px 42px rgba(0,0,0,0.22);
   transform: translateY(-5px);
 }

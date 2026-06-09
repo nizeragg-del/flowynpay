@@ -2,6 +2,15 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { AppLayoutUI } from '@/components/AppLayoutUI'
 
+type ProductRow = {
+  id: string
+}
+
+type OrderRow = {
+  amount: string | number | null
+  status: string
+}
+
 export default async function AppLayout({
   children,
 }: {
@@ -33,14 +42,14 @@ export default async function AppLayout({
 
   let totalSales = 0
   if (products && products.length > 0) {
-    const productIds = products.map((p: any) => p.id)
+    const productIds = products.map((p: ProductRow) => p.id)
     const { data: orders } = await supabase
       .from('orders')
       .select('amount, status')
       .in('product_id', productIds)
 
-    const paid = (orders ?? []).filter((o: any) => o.status === 'paid')
-    totalSales = paid.reduce((sum: number, o: any) => sum + Number(o.amount), 0)
+    const paid = (orders ?? []).filter((o: OrderRow) => o.status === 'paid')
+    totalSales = paid.reduce((sum: number, o: OrderRow) => sum + Number(o.amount), 0)
   }
 
   return (

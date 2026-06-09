@@ -31,13 +31,13 @@ export default async function CertificatePage(props: { params: Promise<{ id: str
         </Link>
       </div>
 
-      <section className="relative overflow-hidden rounded-[2rem] border border-[#00e88a]/25 bg-[#101510] p-10 text-center shadow-2xl md:p-16">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(0,232,138,0.22),transparent_35%)]" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-[#f97316]/25 bg-[#101510] p-10 text-center shadow-2xl md:p-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(249,115,22,0.22),transparent_35%)]" />
         <div className="relative">
-          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-[#00e88a]/30 bg-[#00e88a]/10 text-[#00e88a]">
+          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-[#f97316]/30 bg-[#f97316]/10 text-[#f97316]">
             <Award className="h-10 w-10" />
           </div>
-          <p className="text-sm font-black uppercase tracking-[0.35em] text-[#00e88a]">Certificado Flowyn</p>
+          <p className="text-sm font-black uppercase tracking-[0.35em] text-[#f97316]">Certificado Flowyn</p>
           <h1 className="mt-6 text-4xl font-black text-white md:text-6xl">Conclusão de Curso</h1>
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-white/60">
             Certificamos que <strong className="text-white">{certificate.profile?.full_name || user.email}</strong> concluiu o curso

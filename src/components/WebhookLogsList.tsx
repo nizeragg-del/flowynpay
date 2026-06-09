@@ -1,6 +1,15 @@
 import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 
-export function WebhookLogsList({ logs }: { logs: any[] }) {
+type WebhookLog = {
+  id: string
+  success?: boolean
+  created_at?: string
+  request_payload?: { event?: string }
+  order_id?: string | null
+  response_status?: number | null
+}
+
+export function WebhookLogsList({ logs }: { logs: WebhookLog[] }) {
   if (!logs || logs.length === 0) {
     return (
       <div className="bg-[#111111] border border-white/10 rounded-2xl p-8 text-center text-white/50 text-sm shadow-xl">
@@ -34,11 +43,11 @@ export function WebhookLogsList({ logs }: { logs: any[] }) {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     {log.success ? (
-                      <CheckCircle2 className="w-4 h-4 text-[#00e88a]" />
+                      <CheckCircle2 className="w-4 h-4 text-[#f97316]" />
                     ) : (
                       <XCircle className="w-4 h-4 text-red-500" />
                     )}
-                    <span className={`font-medium ${log.success ? 'text-[#00e88a]' : 'text-red-500'}`}>
+                    <span className={`font-medium ${log.success ? 'text-[#f97316]' : 'text-red-500'}`}>
                       {log.success ? 'Entregue' : 'Falhou'}
                     </span>
                   </div>
@@ -58,12 +67,12 @@ export function WebhookLogsList({ logs }: { logs: any[] }) {
                   {log.order_id ? (
                     <span className="font-mono text-xs text-white/50">{log.order_id.split('-')[0]}...</span>
                   ) : (
-                    <span className="bg-[#00e88a]/10 border border-[#00e88a]/20 text-[#00e88a] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">Teste Ping</span>
+                    <span className="bg-[#f97316]/10 border border-[#f97316]/20 text-[#f97316] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">Teste Ping</span>
                   )}
                 </td>
                 <td className="px-6 py-4">
                   {log.response_status ? (
-                    <span className={`font-mono text-xs px-2 py-1 rounded ${log.response_status >= 200 && log.response_status < 300 ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'bg-red-500/10 text-red-500'}`}>
+                    <span className={`font-mono text-xs px-2 py-1 rounded ${log.response_status >= 200 && log.response_status < 300 ? 'bg-[#f97316]/10 text-[#f97316]' : 'bg-red-500/10 text-red-500'}`}>
                       HTTP {log.response_status}
                     </span>
                   ) : (

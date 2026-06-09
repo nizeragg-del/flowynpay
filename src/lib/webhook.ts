@@ -44,8 +44,11 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
     return { success: false, error: 'Order not found' }
   }
 
-  const product = order.product as any
-  const plan = order.plan as any
+  type Product = { id: string; webhook_url?: string | null; name?: string }
+  type Plan = { plan_identifier?: string }
+
+  const product = order.product as Product | null
+  const plan = order.plan as Plan | null
   const webhookUrl = product?.webhook_url
   const { data: privateCustomer } = await supabaseAdmin
     .from('order_customer_private')
@@ -150,9 +153,8 @@ export async function dispatchWebhook(orderId: string): Promise<{ success: boole
 
       console.warn(`[Webhook] Attempt ${attempt}/${MAX_RETRIES} failed for order ${orderId}: HTTP ${response.status}`)
 
-    } catch (err: any) {
-      const errorMessage = err.name === 'AbortError' ? 'Request timeout (10s)' : err.message
-
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err)
       // Log the failed attempt
       await supabaseAdmin.from('webhook_logs').insert({
         order_id: orderId,

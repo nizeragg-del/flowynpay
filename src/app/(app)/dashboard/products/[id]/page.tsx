@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, BookOpen, Building2, CreditCard, Link as LinkIcon, Package, Palette, Save, Truck, Users } from 'lucide-react'
+import { ArrowLeft, BookOpen, Building2, CreditCard, Palette, Save, ShoppingBag, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +33,22 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
 
   if (!product) redirect('/dashboard/products')
 
+  type ProductDetail = {
+    id: string
+    name: string
+    description: string | null
+    logo_url: string | null
+    cover_url: string | null
+    checkout_banner_url: string | null
+    checkout_video_url: string | null
+    category: string | null
+    product_type: string | null
+    delivery_type: string | null
+    delivery_url: string | null
+  }
+
+  const productDetails = product as ProductDetail
+
   async function updateProduct(formData: FormData) {
     'use server'
     const supabase = await createClient()
@@ -56,10 +72,6 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
         is_flowyn_saas: false,
         delivery_type: formData.get('delivery_type') as string || 'external',
         delivery_url: formData.get('delivery_url') as string || null,
-        order_bump_title: formData.get('order_bump_title') as string || null,
-        order_bump_description: formData.get('order_bump_description') as string || null,
-        order_bump_price: formData.get('order_bump_price') ? parseFloat(formData.get('order_bump_price') as string) : null,
-        order_bump_discount_percent: formData.get('order_bump_discount_percent') ? parseFloat(formData.get('order_bump_discount_percent') as string) : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -68,150 +80,109 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
     redirect(`/dashboard/products/${id}?saved=1`)
   }
 
-  const p = product as any
-  const inputClass = 'w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none'
-  const labelClass = 'block text-sm font-semibold text-white/70 mb-2'
+  const p = productDetails
 
   return (
-    <div className="w-full pb-12">
-      <main className="mx-auto max-w-4xl">
-        <div className="mb-8 flex items-center gap-4">
-          <Link href="/dashboard/products" className="rounded-xl border border-white/10 bg-[#111111] p-2.5 transition-colors hover:bg-white/5">
-            <ArrowLeft className="h-5 w-5 text-white/70" />
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <Link href="/dashboard/products" className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600">
+            <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-white">Gerenciar: {product.name}</h1>
-            <p className="mt-0.5 text-sm text-white/50">Edite informacoes, entrega e configuracoes do checkout.</p>
+            <h2 className="text-2xl font-semibold text-slate-950">Produto</h2>
+            <p className="mt-2 text-sm text-slate-400">Edite informacoes, entrega e configuracoes de {product.name}.</p>
           </div>
         </div>
+        <button form="product-details-form" type="submit" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+          <Save className="h-4 w-4" />
+          Salvar
+        </button>
+      </div>
 
-        <div className="mb-10 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-[#111111] p-2">
-          <Tab href={`/dashboard/products/${id}`} icon={<Building2 className="h-4 w-4" />} label="Detalhes" active />
-          <Tab href={`/dashboard/products/${id}/plans`} icon={<CreditCard className="h-4 w-4" />} label="Planos" />
-          <Tab href={`/dashboard/products/${id}/content`} icon={<BookOpen className="h-4 w-4" />} label="Conteudo" />
-          <Tab href={`/dashboard/products/${id}/journey`} icon={<Users className="h-4 w-4" />} label="Mentoria" />
-          <Tab href={`/dashboard/products/${id}/checkout-editor`} icon={<Palette className="h-4 w-4" />} label="Checkout" />
-        </div>
+      <ProductTabs productId={id} active="details" />
 
-        <form action={updateProduct} className="space-y-6">
-          <Panel title="Informacoes Basicas" icon={<Building2 className="h-4 w-4 text-[#00e88a]" />}>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div className="md:col-span-2">
-                <label className={labelClass}>Nome do Produto *</label>
-                <input className={inputClass} type="text" name="name" defaultValue={p.name} required />
-              </div>
-              <div>
-                <label className={labelClass}>Tipo de Produto</label>
+      <form id="product-details-form" action={updateProduct} className="mt-10 max-w-6xl">
+        <div className="grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+          <RowTitle title="Informacoes" description="Nome, tipo, categoria e descricao." />
+          <div className="space-y-5 py-6 md:pl-8">
+            <Field label="Nome do produto" required>
+              <input className={inputClass} type="text" name="name" defaultValue={p.name} required />
+            </Field>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <Field label="Tipo de produto">
                 <select className={inputClass} name="product_type" defaultValue={p.product_type || 'outros'}>
                   {PRODUCT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
-              </div>
-              <div>
-                <label className={labelClass}>Categoria</label>
+              </Field>
+              <Field label="Categoria">
                 <select className={inputClass} name="category" defaultValue={p.category || 'Outros'}>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className={labelClass}>Descricao</label>
-                <textarea className={`${inputClass} resize-none`} name="description" rows={3} defaultValue={p.description || ''} placeholder="Descreva seu produto..." />
-              </div>
+              </Field>
             </div>
-          </Panel>
-
-          <Panel title="Midia do Checkout" icon={<LinkIcon className="h-4 w-4 text-[#00e88a]" />}>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <label className={labelClass}>Logo / Thumbnail (URL)</label>
-                <input className={inputClass} type="url" name="logo_url" defaultValue={p.logo_url || ''} placeholder="https://..." />
-              </div>
-              <div>
-                <label className={labelClass}>Imagem de Capa (URL)</label>
-                <input className={inputClass} type="url" name="cover_url" defaultValue={p.cover_url || ''} placeholder="https://..." />
-              </div>
-              <div>
-                <label className={labelClass}>Banner do Checkout (URL)</label>
-                <input className={inputClass} type="url" name="checkout_banner_url" defaultValue={p.checkout_banner_url || ''} placeholder="https://..." />
-              </div>
-              <div>
-                <label className={labelClass}>Video de Vendas (YouTube / Vimeo)</label>
-                <input className={inputClass} type="url" name="checkout_video_url" defaultValue={p.checkout_video_url || ''} placeholder="https://youtube.com/..." />
-              </div>
-            </div>
-          </Panel>
-
-          <Panel title="Entrega do Produto" icon={<Truck className="h-4 w-4 text-[#00e88a]" />}>
-            <div className="space-y-5">
-              <div>
-                <label className={labelClass}>Tipo de Entrega</label>
-                <div className="flex gap-3">
-                  {[
-                    { value: 'platform', label: 'Area de Membros Flowyn' },
-                    { value: 'external', label: 'Link Externo' },
-                  ].map(dt => (
-                    <label key={dt.value} className="flex-1 cursor-pointer">
-                      <input type="radio" name="delivery_type" value={dt.value} defaultChecked={p.delivery_type === dt.value || (!p.delivery_type && dt.value === 'external')} className="sr-only peer" />
-                      <div className="rounded-xl border border-white/10 py-3 text-center text-sm font-semibold text-white/50 transition-all peer-checked:border-[#00e88a] peer-checked:bg-[#00e88a]/10 peer-checked:text-[#00e88a]">
-                        {dt.label}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>Link de Entrega Pos-Compra</label>
-                <input className={inputClass} type="url" name="delivery_url" defaultValue={p.delivery_url || ''} placeholder="https://... (enviado ao comprador apos o pagamento)" />
-                <p className="mt-1 text-xs text-white/40">Deixe vazio se usar a Area de Membros Flowyn</p>
-              </div>
-            </div>
-          </Panel>
-
-          <Panel title="Order Bump" icon={<Package className="h-4 w-4 text-[#00e88a]" />}>
-            <p className="mb-6 text-sm text-white/50">Oferta adicional exibida no checkout junto com o produto principal.</p>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <label className={labelClass}>Titulo do Order Bump</label>
-                <input className={inputClass} name="order_bump_title" defaultValue={p.order_bump_title || ''} placeholder="Ex: Planilha bonus por R$ 9,90" />
-              </div>
-              <div>
-                <label className={labelClass}>Descricao</label>
-                <input className={inputClass} name="order_bump_description" defaultValue={p.order_bump_description || ''} placeholder="O que esta sendo oferecido?" />
-              </div>
-              <div>
-                <label className={labelClass}>Preco (R$)</label>
-                <input className={inputClass} type="number" name="order_bump_price" min="0" step="0.01" defaultValue={p.order_bump_price || ''} placeholder="9.90" />
-              </div>
-              <div>
-                <label className={labelClass}>Desconto (%)</label>
-                <input className={inputClass} type="number" name="order_bump_discount_percent" min="0" max="100" defaultValue={p.order_bump_discount_percent || ''} placeholder="50" />
-              </div>
-            </div>
-          </Panel>
-
-          <div className="flex justify-end">
-            <button type="submit" className="inline-flex items-center gap-2 rounded-xl bg-[#00e88a] px-8 py-3 font-bold text-black shadow-[0_0_15px_rgba(0,232,138,0.3)] transition-all hover:bg-[#00e88a]/90">
-              <Save className="h-5 w-5" /> Salvar Alteracoes
-            </button>
+            <Field label="Descricao">
+              <textarea className={textareaClass} name="description" rows={4} defaultValue={p.description || ''} placeholder="Descreva seu produto..." />
+            </Field>
           </div>
-        </form>
-      </main>
+        </div>
+
+        <div className="mt-8 flex justify-end">
+          <button type="submit" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+            <Save className="h-4 w-4" />
+            Salvar alteracoes
+          </button>
+        </div>
+      </form>
+    </section>
+  )
+}
+
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'
+const textareaClass = 'w-full resize-none rounded-xl border-0 bg-[#f4f4f6] px-4 py-3 text-sm font-medium leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'
+
+function ProductTabs({ productId, active }: { productId: string; active: string }) {
+  const tabs = [
+    { href: `/dashboard/products/${productId}`, label: 'Detalhes', icon: Building2, key: 'details' },
+    { href: `/dashboard/products/${productId}/plans`, label: 'Planos', icon: CreditCard, key: 'plans' },
+    { href: `/dashboard/products/${productId}/content`, label: 'Conteudo', icon: BookOpen, key: 'content' },
+    { href: `/dashboard/products/${productId}/journey`, label: 'Mentoria', icon: Users, key: 'journey' },
+    { href: `/dashboard/products/${productId}/checkout-editor`, label: 'Checkout', icon: Palette, key: 'checkout' },
+    { href: `/dashboard/products/${productId}/order-bumps`, label: 'Order Bumps', icon: ShoppingBag, key: 'order-bumps' },
+  ]
+  return (
+    <div className="mt-8 flex gap-2 overflow-x-auto border-b border-slate-200">
+      {tabs.map(tab => {
+        const Icon = tab.icon
+        const isActive = tab.key === active
+        return (
+          <Link key={tab.key} href={tab.href} className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${isActive ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+            <Icon className="h-4 w-4" />
+            {tab.label}
+          </Link>
+        )
+      })}
     </div>
   )
 }
 
-function Tab({ href, icon, label, active = false }: { href: string; icon: React.ReactNode; label: string; active?: boolean }) {
+function RowTitle({ title, description }: { title: string; description: string }) {
   return (
-    <Link href={href} className={`flex-shrink-0 flex items-center gap-2 rounded-xl px-5 py-2.5 transition-colors ${active ? 'border border-white/5 bg-white/10 font-bold text-white' : 'font-medium text-white/60 hover:bg-white/5 hover:text-white'}`}>
-      {icon} {label}
-    </Link>
+    <div className="py-6 md:pr-8">
+      <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+    </div>
   )
 }
 
-function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Field({ label, required = false, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-[#111111] p-8">
-      <h2 className="mb-6 flex items-center gap-2 text-base font-bold text-white">{icon} {title}</h2>
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-700">
+        {label}{required && <span className="text-red-500">*</span>}
+      </span>
       {children}
-    </div>
+      {hint && <span className="mt-2 block text-xs leading-5 text-slate-400">{hint}</span>}
+    </label>
   )
 }

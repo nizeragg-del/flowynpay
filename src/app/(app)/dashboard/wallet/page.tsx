@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, Clock, ExternalLink, Wallet } from 'lucide-react'
 
+function currency(value: number) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0)
+}
+
 export default function WalletPage() {
   const [balance, setBalance] = useState<{ available: number; pending: number } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -23,15 +27,15 @@ export default function WalletPage() {
       } else {
         setError(data.error || 'Erro ao carregar saldo.')
       }
-    } catch (err: any) {
-      setError(err.message || 'Erro de conexão.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) || 'Erro de conexao.')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchBalance()
+    void Promise.resolve().then(() => fetchBalance())
   }, [])
 
   function handleOpenDashboard() {
@@ -41,105 +45,73 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-2">Carteira</h1>
-        <p className="text-zinc-400">Gerencie seu saldo e acompanhe seus recebíveis através da Asaas.</p>
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-950">Carteira</h2>
+          <p className="mt-2 text-sm text-slate-400">Gerencie saldo e recebiveis atraves da Asaas.</p>
+        </div>
+        <button
+          onClick={handleOpenDashboard}
+          disabled={dashboardLoading || loading || balance === null}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Abrir Asaas
+        </button>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+        <div className="mt-8 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-100">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
           <p>{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Wallet className="w-24 h-24 text-emerald-500" />
-          </div>
-
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center gap-3 text-zinc-400 mb-4">
-                <div className="p-2 bg-emerald-500/10 rounded-lg">
-                  <Wallet className="w-5 h-5 text-emerald-500" />
-                </div>
-                <span className="font-medium">Saldo disponível</span>
-              </div>
-
-              {loading ? (
-                <div className="animate-pulse h-10 bg-zinc-800 rounded w-1/2 mt-2" />
-              ) : (
-                <div className="text-4xl font-bold text-white">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balance?.available || 0)}
-                </div>
-              )}
-              <p className="text-sm text-zinc-500 mt-2">Saldo informado pela conta Asaas conectada.</p>
-            </div>
-
-            <button
-              onClick={handleOpenDashboard}
-              disabled={dashboardLoading || loading || balance === null}
-              className="mt-8 w-full flex items-center justify-center gap-2 bg-white hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-semibold py-3 rounded-lg transition-all active:scale-[0.98]"
-            >
-              {dashboardLoading ? (
-                <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
-              ) : (
-                <>
-                  <ExternalLink className="w-5 h-5" />
-                  Abrir painel Asaas
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Clock className="w-24 h-24 text-amber-500" />
-          </div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 text-zinc-400 mb-4">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <Clock className="w-5 h-5 text-amber-500" />
-              </div>
-              <span className="font-medium">Saldo pendente</span>
-            </div>
-
-            {loading ? (
-              <div className="animate-pulse h-10 bg-zinc-800 rounded w-1/2 mt-2" />
-            ) : (
-              <div className="text-4xl font-bold text-zinc-300">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balance?.pending || 0)}
-              </div>
-            )}
-            <p className="text-sm text-zinc-500 mt-2">Reservado para recebíveis ainda não disponíveis.</p>
-          </div>
-
-          <div className="mt-8 p-4 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              O prazo de compensação depende do método de pagamento e das regras da sua conta Asaas.
-            </p>
-          </div>
+      <div className="mt-10 border-y border-slate-200">
+        <RowTitle title="Saldos" description="Valores informados pela conta conectada." />
+        <div className="grid gap-8 py-6 md:grid-cols-2">
+          <Balance label="Saldo disponivel" icon={<Wallet className="h-5 w-5" />} value={loading ? null : balance?.available || 0} />
+          <Balance label="Saldo pendente" icon={<Clock className="h-5 w-5" />} value={loading ? null : balance?.pending || 0} muted />
         </div>
       </div>
 
-      <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-6">
-        <div className="flex gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg h-fit">
-            <AlertCircle className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <h3 className="text-white font-medium mb-1">Sobre os saques</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              A Flowyn utiliza subcontas Asaas para receber suas vendas no checkout. No painel Asaas voce acompanha saldo, conta bancaria e transferencias.
-            </p>
-          </div>
+      <div className="border-b border-slate-200">
+        <RowTitle title="Saques" description="Operacao feita no painel Asaas." />
+        <div className="py-6">
+          <p className="max-w-2xl text-sm leading-6 text-slate-500">
+            A Flowyn utiliza subcontas Asaas para receber vendas no checkout. O saldo, a conta bancaria, a chave Pix e as transferencias sao administrados diretamente no painel Asaas do usuario.
+          </p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+            O prazo de compensacao depende do metodo de pagamento e das regras da conta Asaas conectada.
+          </p>
         </div>
       </div>
+    </section>
+  )
+}
+
+function Balance({ label, icon, value, muted = false }: { label: string; icon: React.ReactNode; value: number | null; muted?: boolean }) {
+  return (
+    <div>
+      <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl ${muted ? 'bg-amber-50 text-amber-700' : 'bg-orange-50 text-orange-600'}`}>
+        {icon}
+      </div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      {value === null ? (
+        <div className="mt-3 h-8 w-40 animate-pulse rounded-lg bg-slate-100" />
+      ) : (
+        <p className="mt-2 text-3xl font-semibold text-slate-950">{currency(value)}</p>
+      )}
+    </div>
+  )
+}
+
+function RowTitle({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="pt-6">
+      <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm text-slate-400">{description}</p>
     </div>
   )
 }

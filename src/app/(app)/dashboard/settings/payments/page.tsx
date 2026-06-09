@@ -1,12 +1,13 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ShieldCheck, Wallet } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, RefreshCw, ShieldCheck } from 'lucide-react'
 
 type AccountType = 'cpf' | 'cnpj'
 
 type AsaasStatus = {
   connected: boolean
+  email?: string
   profile?: {
     full_name?: string | null
     document_number?: string | null
@@ -41,6 +42,7 @@ const initialForm = {
 }
 
 const asaasCpfSignupUrl = process.env.NEXT_PUBLIC_ASAAS_CPF_SIGNUP_URL || 'https://www.asaas.com/cadastro'
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'
 
 function PaymentsContent() {
   const [status, setStatus] = useState<AsaasStatus | null>(null)
@@ -84,8 +86,8 @@ function PaymentsContent() {
         province: profile.asaas_province || '',
         postalCode: profile.asaas_postal_code || '',
       }))
-    } catch (err: any) {
-      setError(err.message || 'Erro de conexão')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) || 'Erro de conexao')
     } finally {
       setLoading(false)
     }
@@ -121,8 +123,8 @@ function PaymentsContent() {
 
       setSuccess(data.created ? 'Carteira Asaas criada e salva.' : 'Cadastro Asaas atualizado.')
       await loadStatus()
-    } catch (err: any) {
-      setError(err.message || 'Erro de conexão')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) || 'Erro de conexao')
     } finally {
       setSaving(false)
     }
@@ -131,178 +133,185 @@ function PaymentsContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00e88a]" />
+        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
       </div>
     )
   }
 
   const connected = Boolean(status?.connected)
   const walletId = status?.profile?.asaas_wallet_id
+  const accountId = status?.profile?.asaas_account_id
   const isCpf = accountType === 'cpf'
 
-  const inputClass = 'w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/25 focus:border-[#00e88a] focus:ring-2 focus:ring-[#00e88a]/10 outline-none transition-all'
-
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Wallet className="w-7 h-7 text-[#00e88a]" />
-            Pagamentos Asaas
-          </h1>
-          <p className="text-white/50 mt-1">
-            Cadastre sua subconta Asaas para receber vendas e splits. A Flowyn não cobra taxa por venda.
-          </p>
+          <h2 className="text-2xl font-semibold text-slate-950">Pagamentos</h2>
+          <p className="mt-2 text-sm text-slate-400">Conecte sua carteira Asaas para receber vendas dos checkouts.</p>
         </div>
-        <button onClick={loadStatus} className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg">
-          <RefreshCw className="w-4 h-4" />
+        <button onClick={loadStatus} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+          <RefreshCw className="h-4 w-4" />
+          Atualizar
         </button>
       </div>
 
-      <div className={`border rounded-2xl p-5 ${connected ? 'bg-[#00e88a]/5 border-[#00e88a]/20' : 'bg-[#111111] border-white/10'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${connected ? 'bg-[#00e88a]/10' : 'bg-white/5'}`}>
-            {connected ? <CheckCircle2 className="w-5 h-5 text-[#00e88a]" /> : <AlertCircle className="w-5 h-5 text-white/40" />}
+      <form onSubmit={handleSubmit} className="mt-10 max-w-6xl">
+        <div className="border-y border-slate-200">
+          <RowTitle title="Status" description="Carteira conectada a sua conta." />
+          <div className="py-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <StatusItem
+                label="Conexao"
+                value={connected ? 'Asaas conectado' : 'Asaas nao conectado'}
+                tone={connected ? 'success' : 'muted'}
+              />
+              <StatusItem label="Wallet ID" value={walletId || '-'} mono />
+              <StatusItem label="Conta Asaas" value={accountId || '-'} mono />
+            </div>
+            <div className="mt-5 flex items-start gap-3 rounded-xl bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-900 ring-1 ring-orange-100">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+              <p>A Flowyn nao cobra taxa propria por venda. Cartao, Pix, boleto, antecipacao e regras financeiras seguem as tarifas da Asaas.</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-white">{connected ? 'Asaas conectado' : 'Asaas não conectado'}</h2>
-            <p className="text-sm text-white/50">
-              {connected ? `Wallet ID: ${walletId}` : 'Preencha o cadastro obrigatório para gerar seu Wallet ID.'}
+        </div>
+
+        <div className="border-b border-slate-200">
+          <RowTitle title="Tipo" description="Pessoa fisica ou juridica." />
+          <div className="py-6">
+            <div className="flex max-w-xl rounded-xl bg-[#f4f4f6] p-1">
+              <button
+                type="button"
+                onClick={() => selectAccountType('cpf')}
+                className={`h-10 flex-1 rounded-lg text-sm font-semibold transition ${isCpf ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+              >
+                CPF
+              </button>
+              <button
+                type="button"
+                onClick={() => selectAccountType('cnpj')}
+                className={`h-10 flex-1 rounded-lg text-sm font-semibold transition ${!isCpf ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+              >
+                CNPJ
+              </button>
+            </div>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+              {isCpf
+                ? 'Para CPF, a Flowyn vincula uma subconta Pessoa Fisica ja existente no Asaas pelo documento informado.'
+                : 'Para CNPJ, a Flowyn cria ou atualiza uma subconta Pessoa Juridica via API.'}
             </p>
           </div>
         </div>
-      </div>
 
-      <div className="bg-[#111111] border border-white/10 rounded-2xl p-6">
-        <span className="block text-xs font-semibold text-white/50 mb-3 uppercase tracking-wide">Tipo de cadastro</span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => selectAccountType('cpf')}
-            className={`text-left rounded-xl border px-4 py-4 transition-all ${isCpf ? 'border-[#00e88a] bg-[#00e88a]/10 text-white' : 'border-white/10 bg-[#0a0a0a] text-white/60 hover:text-white hover:border-white/20'}`}
-          >
-            <span className="block font-bold">Pessoa Fisica (CPF)</span>
-            <span className="block text-sm text-white/45 mt-1">Busca e vincula uma subconta PF ja existente no Asaas pelo CPF.</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => selectAccountType('cnpj')}
-            className={`text-left rounded-xl border px-4 py-4 transition-all ${!isCpf ? 'border-[#00e88a] bg-[#00e88a]/10 text-white' : 'border-white/10 bg-[#0a0a0a] text-white/60 hover:text-white hover:border-white/20'}`}
-          >
-            <span className="block font-bold">Pessoa Juridica (CNPJ)</span>
-            <span className="block text-sm text-white/45 mt-1">Cria uma nova subconta PJ via API ou atualiza o vinculo existente.</span>
-          </button>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="bg-[#111111] border border-white/10 rounded-2xl p-6 space-y-6">
         {isCpf && !connected && (
-          <div className="bg-[#00e88a]/5 border border-[#00e88a]/20 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-white font-semibold">Ainda nao tem conta CPF no Asaas?</h3>
-              <p className="text-sm text-white/50 mt-1">
-                Crie sua conta Pessoa Fisica no Asaas, depois volte aqui e vincule pelo CPF.
+          <div className="border-b border-slate-200">
+            <RowTitle title="Conta CPF" description="Criacao feita no Asaas." />
+            <div className="flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between">
+              <p className="max-w-2xl text-sm leading-6 text-slate-500">
+                Ainda nao tem conta Pessoa Fisica no Asaas? Crie a conta no Asaas, depois volte aqui para vincular pelo CPF.
               </p>
+              <a href={asaasCpfSignupUrl} target="_blank" rel="noreferrer" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+                Criar conta CPF <ExternalLink className="h-4 w-4" />
+              </a>
             </div>
-            <a
-              href={asaasCpfSignupUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold px-5 py-3 rounded-xl transition-all whitespace-nowrap"
-            >
-              Criar conta CPF no Asaas
-            </a>
           </div>
         )}
 
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-4">
-          <h3 className="text-white font-medium mb-2 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#00e88a]" />
-            {isCpf ? 'Vincular subconta Asaas existente' : 'Criar subconta Asaas'}
-          </h3>
-          <p className="text-sm text-white/50">
-            {isCpf
-              ? 'Informe os dados da Pessoa Fisica. A Flowyn buscara uma subconta CPF existente no Asaas e salvara o Wallet ID.'
-              : 'Informe os dados da empresa. A Flowyn criara ou atualizara a subconta PJ no Asaas e salvara o Wallet ID.'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={isCpf ? 'Nome completo' : 'Razao social'}>
-            <input required value={form.name} onChange={e => updateField('name', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="E-mail da conta Asaas">
-            <input required type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label={isCpf ? 'CPF' : 'CNPJ'}>
-            <input required value={form.cpfCnpj} maxLength={isCpf ? 11 : 14} onChange={e => updateField('cpfCnpj', e.target.value.replace(/\D/g, '').slice(0, isCpf ? 11 : 14))} className={inputClass} />
-          </Field>
-          <Field label={isCpf ? 'Data de nascimento' : 'Data de abertura'}>
-            <input required={isCpf} type="date" value={form.birthDate} onChange={e => updateField('birthDate', e.target.value)} className={inputClass} />
-          </Field>
-          {!isCpf && (
-            <Field label="Tipo de empresa">
-              <select value={form.companyType} onChange={e => updateField('companyType', e.target.value)} className={inputClass}>
-                <option value="MEI">MEI</option>
-                <option value="LIMITED">Limitada</option>
-                <option value="INDIVIDUAL">Individual</option>
-                <option value="ASSOCIATION">Associação</option>
-              </select>
-            </Field>
+        <div className="border-b border-slate-200">
+          <RowTitle title="Dados Asaas" description={isCpf ? 'Dados para vinculo da subconta.' : 'Dados para criacao ou atualizacao.'} />
+          <div className="space-y-5 py-6">
+          {isCpf && !connected && (
+            <input type="hidden" aria-hidden />
           )}
-          <Field label="Faturamento mensal estimado">
-            <input required type="number" min="1" step="0.01" value={form.incomeValue} onChange={e => updateField('incomeValue', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Telefone fixo">
-            <input value={form.phone} onChange={e => updateField('phone', e.target.value.replace(/\D/g, ''))} className={inputClass} />
-          </Field>
-          <Field label="Celular">
-            <input required value={form.mobilePhone} onChange={e => updateField('mobilePhone', e.target.value.replace(/\D/g, ''))} className={inputClass} />
-          </Field>
-          <Field label="Endereço">
-            <input value={form.address} onChange={e => updateField('address', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Número">
-            <input required value={form.addressNumber} onChange={e => updateField('addressNumber', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Complemento">
-            <input value={form.complement} onChange={e => updateField('complement', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Bairro">
-            <input value={form.province} onChange={e => updateField('province', e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="CEP">
-            <input required value={form.postalCode} onChange={e => updateField('postalCode', e.target.value.replace(/\D/g, ''))} className={inputClass} />
-          </Field>
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label={isCpf ? 'Nome completo' : 'Razao social'} required><input required value={form.name} onChange={e => updateField('name', e.target.value)} className={inputClass} /></Field>
+              <Field label="E-mail da conta Asaas" required><input required type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className={inputClass} /></Field>
+              <Field label={isCpf ? 'CPF' : 'CNPJ'} required><input required value={form.cpfCnpj} maxLength={isCpf ? 11 : 14} onChange={e => updateField('cpfCnpj', e.target.value.replace(/\D/g, '').slice(0, isCpf ? 11 : 14))} className={inputClass} /></Field>
+              <Field label={isCpf ? 'Data de nascimento' : 'Data de abertura'} required={isCpf}><input required={isCpf} type="date" value={form.birthDate} onChange={e => updateField('birthDate', e.target.value)} className={inputClass} /></Field>
+              {!isCpf && (
+                <Field label="Tipo de empresa">
+                  <select value={form.companyType} onChange={e => updateField('companyType', e.target.value)} className={inputClass}>
+                    <option value="MEI">MEI</option>
+                    <option value="LIMITED">Limitada</option>
+                    <option value="INDIVIDUAL">Individual</option>
+                    <option value="ASSOCIATION">Associacao</option>
+                  </select>
+                </Field>
+              )}
+              <Field label="Faturamento mensal estimado" required><input required type="number" min="1" step="0.01" value={form.incomeValue} onChange={e => updateField('incomeValue', e.target.value)} className={inputClass} /></Field>
+              <Field label="Telefone fixo"><input value={form.phone} onChange={e => updateField('phone', e.target.value.replace(/\D/g, ''))} className={inputClass} /></Field>
+              <Field label="Celular" required><input required value={form.mobilePhone} onChange={e => updateField('mobilePhone', e.target.value.replace(/\D/g, ''))} className={inputClass} /></Field>
+            </div>
+          </div>
         </div>
 
-        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>}
-        {success && <div className="bg-[#00e88a]/10 border border-[#00e88a]/20 text-[#00e88a] px-4 py-3 rounded-xl text-sm">{success}</div>}
+        <div className="border-b border-slate-200">
+          <RowTitle title="Endereco" description="Dados cadastrais da conta." />
+          <div className="grid gap-5 py-6 md:grid-cols-2">
+            <Field label="Endereco"><input value={form.address} onChange={e => updateField('address', e.target.value)} className={inputClass} /></Field>
+            <Field label="Numero" required><input required value={form.addressNumber} onChange={e => updateField('addressNumber', e.target.value)} className={inputClass} /></Field>
+            <Field label="Complemento"><input value={form.complement} onChange={e => updateField('complement', e.target.value)} className={inputClass} /></Field>
+            <Field label="Bairro"><input value={form.province} onChange={e => updateField('province', e.target.value)} className={inputClass} /></Field>
+            <Field label="CEP" required><input required value={form.postalCode} onChange={e => updateField('postalCode', e.target.value.replace(/\D/g, ''))} className={inputClass} /></Field>
+          </div>
+        </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : connected ? 'Atualizar cadastro Asaas' : isCpf ? 'Vincular carteira Asaas existente' : 'Criar carteira Asaas'}
-        </button>
+        {(error || success) && (
+          <div className="mt-6">
+            {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-100">{error}</div>}
+            {success && <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 ring-1 ring-emerald-100">{success}</div>}
+          </div>
+        )}
+
+        <div className="mt-8 flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex h-11 min-w-64 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-6 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : connected ? 'Atualizar cadastro Asaas' : isCpf ? 'Vincular carteira Asaas' : 'Criar carteira Asaas'}
+          </button>
+        </div>
       </form>
+    </section>
+  )
+}
+
+function StatusItem({ label, value, tone = 'muted', mono = false }: { label: string; value: string; tone?: 'success' | 'muted'; mono?: boolean }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <div className="mt-2 flex items-start gap-2">
+        {tone === 'success' ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-300" />}
+        <p className={`break-all text-sm font-semibold text-slate-950 ${mono ? 'font-mono' : ''}`}>{value}</p>
+      </div>
     </div>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, required = false, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-xs font-semibold text-white/50 mb-2 uppercase tracking-wide">{label}</span>
+      <span className="mb-2 block text-sm font-medium text-slate-700">
+        {label}{required && <span className="text-red-500">*</span>}
+      </span>
       {children}
     </label>
   )
 }
 
+function RowTitle({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="pt-6">
+      <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm text-slate-400">{description}</p>
+    </div>
+  )
+}
+
 export default function PaymentsSettingsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#00e88a]" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-orange-600" /></div>}>
       <PaymentsContent />
     </Suspense>
   )

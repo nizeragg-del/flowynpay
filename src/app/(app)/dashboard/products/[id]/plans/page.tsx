@@ -1,20 +1,39 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Plus, ArrowRight, DollarSign, Package, Copy, ExternalLink, Building2, BookOpen, Users, CreditCard, Palette } from 'lucide-react'
+import { ArrowLeft, BookOpen, Building2, CreditCard, Palette, Save, ShoppingBag, Users } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { getPlatformAccess } from '@/lib/platform-access'
-
 import { EditablePlanCard } from './EditablePlanCard'
 import { PlanPixelSection } from './PlanPixelSection'
 
+type PlanRow = {
+  id: string
+  name: string
+  price: number
+  billing_type: string
+  plan_identifier: string | null
+}
+
+type PixelRow = {
+  id: string
+  name: string
+  platform: string
+  pixel_id: string
+}
+
+type PlanPixelRow = {
+  id: string
+  plan_id: string
+  pixel: PixelRow | null
+}
+
 export default async function PlansPage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+  const params = await props.params
   const productId = params.id
-  
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect('/login')
 
   const { data: product } = await supabase
@@ -23,9 +42,7 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
     .eq('id', productId)
     .single()
 
-  if (!product || product.owner_id !== user.id) {
-    redirect('/dashboard')
-  }
+  if (!product || product.owner_id !== user.id) redirect('/dashboard')
 
   const access = await getPlatformAccess(user.id)
 
@@ -35,16 +52,15 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
     .eq('product_id', productId)
     .order('created_at', { ascending: true })
 
-  // Fetch the producer's global pixels
-  const { data: userPixels } = await supabase
+  const { data: userPixelsData } = await supabase
     .from('pixels')
     .select('id, name, platform, pixel_id')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('name')
 
-  // Fetch plan_pixels for all plans of this product
-  const planIds = (plans ?? []).map(p => p.id)
+  const userPixels = (userPixelsData ?? []) as PixelRow[]
+  const planIds = ((plans ?? []) as PlanRow[]).map(p => p.id)
   const { data: allPlanPixels } = planIds.length > 0
     ? await supabase
         .from('plan_pixels')
@@ -56,6 +72,7 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
     'use server'
     const name = formData.get('name') as string
     const price = formData.get('price') as string
+    const billingType = formData.get('billing_type') as string
 
     if (!name || !price) return
 
@@ -71,135 +88,72 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
         product_id: productId,
         name,
         price: parseFloat(price),
-        billing_type: 'one_time',
+        billing_type: billingType === 'recurring' ? 'recurring' : 'one_time',
       })
 
     revalidatePath(`/dashboard/products/${productId}/plans`)
   }
 
   return (
-    <div className="w-full pb-12">
-      <main className="max-w-5xl mx-auto px-6">
-
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-          <div className="flex items-center gap-4">
-            <Link href={`/dashboard/products/${productId}`} className="p-2.5 bg-[#111111] border border-white/10 rounded-xl hover:bg-white/5 transition-colors shadow-xl">
-              <ArrowLeft className="w-5 h-5 text-white/70" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-extrabold text-white tracking-tight">Gerenciar Planos</h1>
-              <p className="text-white/50 text-sm mt-0.5">
-                Produto: <span className="font-bold text-white">{product.name}</span>
-              </p>
-            </div>
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <Link href={`/dashboard/products/${productId}`} className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-950">Planos</h2>
+            <p className="mt-2 text-sm text-slate-400">Configure precos e checkouts de {product.name}.</p>
           </div>
         </div>
+      </div>
 
-        <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#111] p-2">
-          <Link href={`/dashboard/products/${productId}`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            <Building2 className="mr-2 inline h-4 w-4" /> Detalhes
-          </Link>
-          <Link href={`/dashboard/products/${productId}/plans`} className="rounded-xl border border-white/5 bg-white/10 px-5 py-2.5 text-sm font-bold text-white">
-            <CreditCard className="mr-2 inline h-4 w-4" /> Planos
-          </Link>
-          <Link href={`/dashboard/products/${productId}/content`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            <BookOpen className="mr-2 inline h-4 w-4" /> Conteúdo
-          </Link>
-          <Link href={`/dashboard/products/${productId}/journey`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            <Users className="mr-2 inline h-4 w-4" /> Mentoria
-          </Link>
-          <Link href={`/dashboard/products/${productId}/checkout-editor`} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-            <Palette className="mr-2 inline h-4 w-4" /> Checkout
-          </Link>
+      <ProductTabs productId={productId} active="plans" />
+
+      <div className="mt-10 max-w-6xl">
+        <div className="grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+          <RowTitle title="Novo plano" description="Adicione uma oferta de pagamento." />
+          <form action={createPlan} className="grid gap-5 py-6 md:pl-8 lg:grid-cols-[1fr_180px_220px_auto] lg:items-end">
+            <Field label="Nome do plano">
+              <input name="name" required className={inputClass} placeholder="Acesso Completo" />
+            </Field>
+            <Field label="Preco">
+              <input name="price" type="number" min="0" step="0.01" required className={inputClass} placeholder="97.00" />
+            </Field>
+            <Field label="Tipo">
+              <select name="billing_type" className={inputClass} defaultValue="one_time">
+                <option value="one_time">Preco unico</option>
+                <option value="recurring">Recorrente mensal</option>
+              </select>
+            </Field>
+            <button type="submit" disabled={!access.allowed} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-50">
+              <Save className="h-4 w-4" />
+              Adicionar
+            </button>
+          </form>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Form Column */}
-          <div className="lg:col-span-1">
-            <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-xl p-6 sticky top-24">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-[#00e88a]" />
-                </div>
-                <h2 className="text-lg font-bold text-white">Novo Plano</h2>
-              </div>
-
-              <form action={createPlan} className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-white/70 mb-2">Nome do Plano</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    required 
-                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none text-sm" 
-                    placeholder="Ex: Profissional Mensal" 
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="price" className="block text-sm font-semibold text-white/70 mb-2">Preço (R$)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">R$</span>
-                    <input 
-                      type="number" 
-                      id="price" 
-                      name="price" 
-                      min="0" 
-                      step="0.01" 
-                      required 
-                      className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] transition-all outline-none text-sm" 
-                      placeholder="97.00" 
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm font-semibold text-white/60">
-                  Pagamento unico
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={!access.allowed}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black font-bold py-3 px-4 rounded-xl transition-all shadow-[0_0_15px_rgba(0,232,138,0.3)] hover:shadow-[0_0_25px_rgba(0,232,138,0.5)] text-sm mt-2"
-                >
-                  <Save className="w-4 h-4" />
-                  Adicionar Plano
-                </button>
-              </form>
-              {!access.allowed && (
-                <Link href="/dashboard/settings/subscription" className="mt-4 block rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/15">
-                  Regularize sua assinatura para adicionar novos planos.
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* Plans List */}
-          <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-lg font-bold text-white mb-2">Planos Cadastrados</h2>
-            
+        <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+          <RowTitle title="Planos cadastrados" description="Edite valores e pixels por plano." />
+          <div className="py-6 md:pl-8">
             {!plans || plans.length === 0 ? (
-              <div className="text-center py-16 border-2 border-dashed border-white/10 rounded-2xl">
-                <DollarSign className="w-12 h-12 text-white/20 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-white mb-1">Nenhum plano cadastrado</h3>
-                <p className="text-sm text-white/50">Crie seu primeiro plano ao lado para começar a cobrar assinantes.</p>
+              <div className="rounded-lg border border-dashed border-slate-200 px-6 py-12 text-center">
+                <h3 className="font-semibold text-slate-950">Nenhum plano cadastrado</h3>
+                <p className="mt-1 text-sm text-slate-400">Crie seu primeiro plano para publicar um checkout.</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {plans.map((plan) => {
-                  const planPixels = (allPlanPixels ?? [])
-                    .filter(pp => pp.plan_id === plan.id)
-                    .map(pp => ({ id: pp.id, pixel: pp.pixel as any }))
+              <div className="overflow-hidden rounded-lg border border-slate-200">
+                {plans.map(plan => {
+                  const planPixels = (allPlanPixels ?? [] as PlanPixelRow[])
+                    .filter((pp) => pp.plan_id === plan.id)
+                    .map((pp) => ({ id: pp.id, pixel: pp.pixel }))
                   return (
-                    <div key={plan.id} className="bg-[#111111] border border-white/10 rounded-2xl shadow-xl overflow-hidden">
+                    <div key={plan.id} className="border-b border-slate-100 last:border-b-0">
                       <EditablePlanCard plan={plan} productId={productId} />
                       <PlanPixelSection
                         planId={plan.id}
                         planPixels={planPixels}
-                        availablePixels={(userPixels ?? []) as any}
+                        availablePixels={userPixels}
                       />
                     </div>
                   )
@@ -208,7 +162,52 @@ export default async function PlansPage(props: { params: Promise<{ id: string }>
             )}
           </div>
         </div>
-      </main>
+      </div>
+    </section>
+  )
+}
+
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'
+
+function ProductTabs({ productId, active }: { productId: string; active: string }) {
+  const tabs = [
+    { href: `/dashboard/products/${productId}`, label: 'Detalhes', icon: Building2, key: 'details' },
+    { href: `/dashboard/products/${productId}/plans`, label: 'Planos', icon: CreditCard, key: 'plans' },
+    { href: `/dashboard/products/${productId}/content`, label: 'Conteudo', icon: BookOpen, key: 'content' },
+    { href: `/dashboard/products/${productId}/journey`, label: 'Mentoria', icon: Users, key: 'journey' },
+    { href: `/dashboard/products/${productId}/checkout-editor`, label: 'Checkout', icon: Palette, key: 'checkout' },
+    { href: `/dashboard/products/${productId}/order-bumps`, label: 'Order Bumps', icon: ShoppingBag, key: 'order-bumps' },
+  ]
+  return (
+    <div className="mt-8 flex gap-2 overflow-x-auto border-b border-slate-200">
+      {tabs.map(tab => {
+        const Icon = tab.icon
+        const isActive = tab.key === active
+        return (
+          <Link key={tab.key} href={tab.href} className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${isActive ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+            <Icon className="h-4 w-4" />
+            {tab.label}
+          </Link>
+        )
+      })}
     </div>
+  )
+}
+
+function RowTitle({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="py-6 md:pr-8">
+      <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
+      {children}
+    </label>
   )
 }

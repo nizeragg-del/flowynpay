@@ -5,6 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, Eye, EyeOff, Loader2, Lock } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
+type InviteOrderRow = {
+  id: string
+  product: {
+    name: string
+  } | null
+}
+
 function AcceptInviteForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -42,7 +49,7 @@ function AcceptInviteForm() {
       .eq('id', orderId)
       .single()
       .then(({ data }) => {
-        const product = data?.product as any
+        const product = data?.product as InviteOrderRow['product']
         if (product?.name) setProductName(product.name)
       })
   }, [sessionReady, orderId])

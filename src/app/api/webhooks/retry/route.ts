@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Apenas produtores podem reenviar webhooks' }, { status: 403 })
     }
 
-    const body = await request.json()
-    const { order_id } = body
+    const body = (await request.json()) as { order_id?: string }
+    const order_id = body.order_id?.trim() || ''
 
     if (!order_id) {
       return NextResponse.json({ error: 'order_id é obrigatório' }, { status: 400 })
@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
       .from('orders')
       .select('product_id, product:products(owner_id)')
       .eq('id', order_id)
-      .single()
+      .single<{
+        product: { owner_id: string } | null
+      }>()
 
-    if (!order || (order.product as any)?.owner_id !== user.id) {
+    if (!order || !order.product || order.product.owner_id !== user.id) {
       return NextResponse.json({ error: 'Pedido não encontrado' }, { status: 404 })
     }
 
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Webhook Retry] Error:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }

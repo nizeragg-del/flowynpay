@@ -3,7 +3,14 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
 export async function signOutAction() {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('[signOutAction] Erro:', error)
+    }
+  } catch (err) {
+    console.error('[signOutAction] Erro inesperado:', err)
+  }
   redirect('/')
 }

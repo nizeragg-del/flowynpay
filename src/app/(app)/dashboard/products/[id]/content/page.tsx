@@ -1,8 +1,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
-import { ArrowLeft, BookOpen, CalendarDays, CheckCircle2, Clapperboard, GripVertical, Palette, Trash2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, Building2, CheckCircle2, Clapperboard, CreditCard, GripVertical, Palette, ShoppingBag, Trash2, Users } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { getResendClient } from '@/lib/resend'
@@ -12,6 +11,21 @@ import { CourseLessonForm } from './CourseLessonForm'
 import { CourseModuleForm } from './CourseModuleForm'
 import { DigitalDeliveryForm } from './DigitalDeliveryForm'
 import type { CourseContentFormState } from './form-state'
+
+type CourseLessonRow = {
+  id: string
+  title: string
+  duration_minutes: number | null
+  is_free_preview: boolean | null
+  sort_order: number | null
+}
+
+type CourseModuleRow = {
+  id: string
+  title: string
+  description: string | null
+  lessons?: CourseLessonRow[]
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +53,8 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
 
   if (!product) redirect('/dashboard/products')
 
-  const { data: modules } = await supabase
+  const admin = createAdminClient()
+  const { data: modules } = await admin
     .from('course_modules')
     .select('*, lessons:course_lessons(*)')
     .eq('product_id', id)
@@ -47,7 +62,6 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
 
   async function createModule(_state: CourseContentFormState, formData: FormData): Promise<CourseContentFormState> {
     'use server'
-
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, message: 'Sua sessao expirou. Entre novamente para continuar.' }
@@ -69,14 +83,12 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
     })
 
     if (error) return { ok: false, message: 'Nao foi possivel criar o modulo. Tente novamente.' }
-
     revalidatePath(`/dashboard/products/${id}/content`)
     return { ok: true, message: `Modulo "${title}" criado com sucesso.` }
   }
 
   async function createLesson(_state: CourseContentFormState, formData: FormData): Promise<CourseContentFormState> {
     'use server'
-
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, message: 'Sua sessao expirou. Entre novamente para continuar.' }
@@ -111,20 +123,12 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
     const resendClient = getResendClient()
     if (resendClient) {
       const admin = createAdminClient()
-      const { data: product } = await admin
-        .from('products')
-        .select('name')
-        .eq('id', id)
-        .single()
-      const { data: accessRows } = await admin
-        .from('student_access')
-        .select('user_id, access_email')
-        .eq('product_id', id)
-
+      const { data: product } = await admin.from('products').select('name').eq('id', id).single()
+      const { data: accessRows } = await admin.from('student_access').select('user_id, access_email').eq('product_id', id)
       const appUrl = getAppUrl()
+
       for (const access of accessRows || []) {
         if (!access.access_email) continue
-
         await resendClient.emails.send({
           from: 'Flowyn <noreply@flowyn.com.br>',
           to: access.access_email,
@@ -136,7 +140,6 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
             actionUrl: `${appUrl}/learn/${id}`,
           }),
         })
-
         await admin.from('notification_events').insert({
           user_id: access.user_id,
           product_id: id,
@@ -155,7 +158,6 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
 
   async function updateDigitalDelivery(_state: CourseContentFormState, formData: FormData): Promise<CourseContentFormState> {
     'use server'
-
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, message: 'Sua sessao expirou. Entre novamente para continuar.' }
@@ -164,13 +166,8 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
     const deliveryUrl = String(formData.get('delivery_url') || '').trim()
     const filePaths = parseJsonStringArray(String(formData.get('deliverable_file_paths') || '[]'))
 
-    if (deliveryType === 'external' && !deliveryUrl) {
-      return { ok: false, message: 'Informe o link de acesso para usar entrega externa.' }
-    }
-
-    if (deliveryType === 'platform' && filePaths.length === 0 && !deliveryUrl) {
-      return { ok: false, message: 'Anexe pelo menos um arquivo ou informe um link de acesso.' }
-    }
+    if (deliveryType === 'external' && !deliveryUrl) return { ok: false, message: 'Informe o link de acesso para usar entrega externa.' }
+    if (deliveryType === 'platform' && filePaths.length === 0 && !deliveryUrl) return { ok: false, message: 'Anexe pelo menos um arquivo ou informe um link de acesso.' }
 
     const { error } = await supabase
       .from('products')
@@ -184,7 +181,6 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
       .eq('owner_id', user.id)
 
     if (error) return { ok: false, message: 'Nao foi possivel salvar a entrega. Tente novamente.' }
-
     revalidatePath(`/dashboard/products/${id}/content`)
     revalidatePath(`/dashboard/products/${id}`)
     return { ok: true, message: 'Entrega digital salva com sucesso.' }
@@ -210,128 +206,111 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
 
   const isCourse = product.product_type === 'course'
   const isMentorship = product.product_type === 'mentoria'
-  const moduleRows = (modules || []) as any[]
+  const moduleRows = (modules ?? []) as CourseModuleRow[]
   const lessonCount = moduleRows.reduce((sum, module) => sum + (module.lessons?.length || 0), 0)
 
   return (
-    <div className="w-full pb-12">
-      <main className="mx-auto max-w-6xl">
-        <div className="mb-8 flex items-center gap-4">
-          <Link href={`/dashboard/products/${id}`} className="rounded-xl border border-white/10 bg-[#111] p-2.5 transition hover:bg-white/5">
-            <ArrowLeft className="h-5 w-5 text-white/70" />
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <Link href={`/dashboard/products/${id}`} className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600">
+            <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-black text-white">Conteudo: {product.name}</h1>
-            <p className="mt-1 text-sm text-white/50">Monte uma experiencia Flowyn Play com modulos, aulas e materiais.</p>
+            <h2 className="text-2xl font-semibold text-slate-950">Conteudo</h2>
+            <p className="mt-2 text-sm text-slate-400">Configure a entrega de {product.name}.</p>
           </div>
         </div>
+      </div>
 
-        <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#111] p-2">
-          <NavLink href={`/dashboard/products/${id}`}>Detalhes</NavLink>
-          <NavLink href={`/dashboard/products/${id}/plans`}>Planos</NavLink>
-          <Link href={`/dashboard/products/${id}/content`} className="rounded-xl border border-white/5 bg-white/10 px-5 py-2.5 text-sm font-bold text-white">
-            Conteudo
-          </Link>
-          <NavLink href={`/dashboard/products/${id}/journey`}>Mentoria</NavLink>
-          <NavLink href={`/dashboard/products/${id}/checkout-editor`}>
-            <Palette className="mr-2 inline h-4 w-4" /> Checkout
-          </NavLink>
+      <ProductTabs productId={id} active="content" />
+
+      {isMentorship ? (
+        <div className="mt-10 grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+          <RowTitle title="Mentoria" description="Conteudo fica na jornada." />
+          <div className="flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between md:pl-8">
+            <p className="max-w-2xl text-sm leading-6 text-slate-500">
+              Para mentorias, use a aba Mentoria para configurar diagnostico, sessoes, tarefas e acompanhamento dos alunos.
+            </p>
+            <Link href={`/dashboard/products/${id}/journey`} className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+              Abrir mentoria
+            </Link>
+          </div>
         </div>
-
-        {isMentorship ? (
-          <div className="rounded-3xl border border-white/10 bg-[#111] p-8">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div className="max-w-2xl">
-                <div className="mb-4 inline-flex rounded-2xl bg-[#00e88a]/10 p-3 text-[#00e88a]">
-                  <CalendarDays className="h-6 w-6" />
-                </div>
-                <h2 className="text-2xl font-black text-white">Conteudo de mentoria fica na aba Mentoria</h2>
-                <p className="mt-2 text-sm leading-6 text-white/50">
-                  Para mentorias, use a aba Mentoria para configurar diagnostico, sessoes, tarefas e acompanhamento dos alunos.
-                </p>
-              </div>
-              <Link href={`/dashboard/products/${id}/journey`} className="inline-flex items-center justify-center rounded-xl bg-[#00e88a] px-5 py-3 text-sm font-black text-black transition hover:bg-[#04f294]">
-                Abrir mentoria
-              </Link>
+      ) : !isCourse ? (
+        <div className="mt-10">
+          <DigitalDeliveryForm userId={user.id} product={product} updateDigitalDelivery={updateDigitalDelivery} />
+        </div>
+      ) : (
+        <div className="mt-10 max-w-6xl">
+          <div className="grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Resumo" description="Estrutura do curso." />
+            <div className="grid gap-6 py-6 md:grid-cols-3 md:pl-8">
+              <Metric label="Modulos" value={moduleRows.length} />
+              <Metric label="Aulas" value={lessonCount} />
+              <Metric label="Entrega" value="Flowyn Play" />
             </div>
           </div>
-        ) : !isCourse ? (
-          <DigitalDeliveryForm
-            userId={user.id}
-            product={product}
-            updateDigitalDelivery={updateDigitalDelivery}
-          />
-        ) : (
-          <div className="grid gap-8 lg:grid-cols-3">
-            <section className="space-y-4 lg:col-span-2">
-              <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#111]">
-                <div className="relative min-h-[240px] bg-black">
-                  {product.cover_url ? (
-                    <img src={product.cover_url} alt={product.name} className="absolute inset-0 h-full w-full object-cover opacity-60" />
-                  ) : (
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,232,138,0.22),transparent_32%),linear-gradient(135deg,#111,#050505)]" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/35 to-transparent" />
-                  <div className="relative flex min-h-[240px] flex-col justify-end p-8">
-                    <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full bg-black/50 px-3 py-1 text-xs font-bold text-[#00e88a]">
-                      <Clapperboard className="h-3.5 w-3.5" />
-                      Flowyn Play
-                    </div>
-                    <h2 className="max-w-2xl text-3xl font-black text-white">{product.name}</h2>
-                    <p className="mt-2 max-w-xl text-sm text-white/65">
-                      {product.short_description || product.description || 'Curso pronto para receber uma experiencia premium.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
 
+          <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Novo modulo" description="Organize a trilha em etapas." />
+            <div className="py-6 md:pl-8">
+              <CourseModuleForm createModule={createModule} />
+            </div>
+          </div>
+
+          <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+            <RowTitle title="Modulos" description="Aulas e materiais do curso." />
+            <div className="space-y-4 py-6 md:pl-8">
               {moduleRows.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-white/15 bg-[#111] p-10 text-center">
-                  <BookOpen className="mx-auto h-12 w-12 text-white/20" />
-                  <h3 className="mt-4 text-lg font-black text-white">Nenhum modulo ainda</h3>
-                  <p className="mt-1 text-sm text-white/45">Crie o primeiro modulo para comecar a montar a trilha do aluno.</p>
+                <div className="rounded-lg border border-dashed border-slate-200 px-6 py-12 text-center">
+                  <BookOpen className="mx-auto h-10 w-10 text-slate-300" />
+                  <h3 className="mt-4 font-semibold text-slate-950">Nenhum modulo ainda</h3>
+                  <p className="mt-1 text-sm text-slate-400">Crie o primeiro modulo para comecar a montar a trilha do aluno.</p>
                 </div>
               ) : (
                 moduleRows.map((module, moduleIndex) => {
                   const lessons = [...(module.lessons || [])].sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
                   return (
-                    <div key={module.id} className="rounded-3xl border border-white/10 bg-[#111] p-5">
-                      <div className="flex items-start justify-between gap-4">
+                    <div key={module.id} className="rounded-lg border border-slate-200">
+                      <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
                         <div className="flex gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#00e88a]/10 text-[#00e88a]">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 font-semibold text-orange-600">
                             {moduleIndex + 1}
                           </div>
                           <div>
-                            <h3 className="text-lg font-black text-white">{module.title}</h3>
-                            {module.description && <p className="mt-1 text-sm text-white/45">{module.description}</p>}
+                            <h3 className="font-semibold text-slate-950">{module.title}</h3>
+                            {module.description && <p className="mt-1 text-sm text-slate-400">{module.description}</p>}
                           </div>
                         </div>
                         <form action={deleteModule}>
                           <input type="hidden" name="module_id" value={module.id} />
-                          <button className="rounded-xl p-2 text-white/30 transition hover:bg-red-500/10 hover:text-red-300" aria-label="Excluir modulo">
+                          <button className="rounded-xl p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Excluir modulo">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </form>
                       </div>
 
-                      <div className="mt-5 space-y-2">
-                        {lessons.map((lesson) => (
-                          <div key={lesson.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div className="space-y-2 p-5">
+                        {lessons.length === 0 ? (
+                          <p className="text-sm text-slate-400">Nenhuma aula neste modulo ainda.</p>
+                        ) : lessons.map((lesson) => (
+                          <div key={lesson.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
                             <div className="flex min-w-0 items-center gap-3">
-                              <GripVertical className="h-4 w-4 shrink-0 text-white/20" />
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-white/45">
+                              <GripVertical className="h-4 w-4 shrink-0 text-slate-300" />
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-400 ring-1 ring-slate-200">
                                 <Clapperboard className="h-4 w-4" />
                               </div>
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-white">{lesson.title}</p>
-                                <p className="truncate text-xs text-white/35">
+                                <p className="truncate text-sm font-semibold text-slate-950">{lesson.title}</p>
+                                <p className="truncate text-xs text-slate-400">
                                   {lesson.duration_minutes ? `${lesson.duration_minutes} min` : 'Sem duracao'} {lesson.is_free_preview ? '- preview gratis' : ''}
                                 </p>
                               </div>
                             </div>
                             <form action={deleteLesson}>
                               <input type="hidden" name="lesson_id" value={lesson.id} />
-                              <button className="rounded-xl p-2 text-white/30 transition hover:bg-red-500/10 hover:text-red-300" aria-label="Excluir aula">
+                              <button className="rounded-xl p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Excluir aula">
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </form>
@@ -339,49 +318,65 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
                         ))}
                       </div>
 
-                      <CourseLessonForm moduleId={module.id} userId={user.id} createLesson={createLesson} />
+                      <div className="p-5 pt-0">
+                        <CourseLessonForm moduleId={module.id} userId={user.id} createLesson={createLesson} />
+                      </div>
                     </div>
                   )
                 })
               )}
-            </section>
-
-            <aside className="space-y-5">
-              <CourseModuleForm createModule={createModule} />
-
-              <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
-                <h2 className="text-lg font-black text-white">Resumo</h2>
-                <div className="mt-5 space-y-3">
-                  <Metric label="Modulos" value={moduleRows.length} />
-                  <Metric label="Aulas" value={lessonCount} />
-                  <Metric label="Entrega" value="Flowyn Play" />
-                </div>
-                <div className="mt-5 rounded-2xl border border-[#00e88a]/20 bg-[#00e88a]/10 p-4 text-sm text-[#c7ffe3]">
-                  <CheckCircle2 className="mb-2 h-5 w-5 text-[#00e88a]" />
-                  Compradores com acesso liberado verao este conteudo em uma experiencia de aluno estilo streaming.
-                </div>
-              </div>
-            </aside>
+            </div>
           </div>
-        )}
-      </main>
+
+          <div className="mt-6 flex items-start gap-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-700 ring-1 ring-emerald-100">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            Compradores com acesso liberado verao este conteudo em Meus Acessos.
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function ProductTabs({ productId, active }: { productId: string; active: string }) {
+  const tabs = [
+    { href: `/dashboard/products/${productId}`, label: 'Detalhes', icon: Building2, key: 'details' },
+    { href: `/dashboard/products/${productId}/plans`, label: 'Planos', icon: CreditCard, key: 'plans' },
+    { href: `/dashboard/products/${productId}/content`, label: 'Conteudo', icon: BookOpen, key: 'content' },
+    { href: `/dashboard/products/${productId}/journey`, label: 'Mentoria', icon: Users, key: 'journey' },
+    { href: `/dashboard/products/${productId}/checkout-editor`, label: 'Checkout', icon: Palette, key: 'checkout' },
+    { href: `/dashboard/products/${productId}/order-bumps`, label: 'Order Bumps', icon: ShoppingBag, key: 'order-bumps' },
+  ]
+  return (
+    <div className="mt-8 flex gap-2 overflow-x-auto border-b border-slate-200">
+      {tabs.map(tab => {
+        const Icon = tab.icon
+        const isActive = tab.key === active
+        return (
+          <Link key={tab.key} href={tab.href} className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${isActive ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+            <Icon className="h-4 w-4" />
+            {tab.label}
+          </Link>
+        )
+      })}
     </div>
   )
 }
 
-function NavLink({ href, children }: { href: string; children: ReactNode }) {
+function RowTitle({ title, description }: { title: string; description: string }) {
   return (
-    <Link href={href} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white/60 transition hover:bg-white/5 hover:text-white">
-      {children}
-    </Link>
+    <div className="py-6 md:pr-8">
+      <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+    </div>
   )
 }
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-      <span className="text-sm text-white/45">{label}</span>
-      <span className="font-black text-white">{value}</span>
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-2 text-xl font-semibold text-slate-950">{value}</p>
     </div>
   )
 }

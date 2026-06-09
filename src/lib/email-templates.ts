@@ -4,7 +4,7 @@ export function deliveryEmail(opts: {
   accessLinks: { label: string; url: string; isFile: boolean }[]
 }) {
   const { customerName, productName, accessLinks } = opts
-  const G = '#00e88a'
+  const G = '#f97316'
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -31,7 +31,7 @@ export function deliveryEmail(opts: {
           <!-- Success Icon -->
           <tr>
             <td align="center" style="padding:40px 40px 0;">
-              <div style="width:72px;height:72px;border-radius:50%;background:rgba(0,232,138,0.12);border:2px solid rgba(0,232,138,0.3);display:inline-flex;align-items:center;justify-content:center;font-size:32px;line-height:72px;text-align:center;">
+              <div style="width:72px;height:72px;border-radius:50%;background:rgba(249,115,22,0.12);border:2px solid rgba(249,115,22,0.3);display:inline-flex;align-items:center;justify-content:center;font-size:32px;line-height:72px;text-align:center;">
                 ✅
               </div>
             </td>
@@ -109,7 +109,7 @@ export function studentPasswordEmail(opts: {
   setupUrl: string
   learnUrl: string
 }) {
-  const G = '#00e88a'
+  const G = '#f97316'
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
@@ -144,7 +144,7 @@ export function learningNotificationEmail(opts: {
   actionLabel: string
   actionUrl: string
 }) {
-  const G = '#00e88a'
+  const G = '#f97316'
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">

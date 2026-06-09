@@ -13,9 +13,11 @@ function money(value: number) {
   return Number(value || 0).toFixed(2).replace('.', ',')
 }
 
-export default async function CheckoutPage({ params, searchParams }: CheckoutPageProps) {
-  const { id } = await params
-  const { preview, draft } = await searchParams
+export default async function CheckoutPage(props: CheckoutPageProps) {
+  const params = await props.params
+  const searchParams = await props.searchParams
+  const { id } = params
+  const { preview, draft } = searchParams
   const supabase = await createClient()
   const isPreviewMode = preview === '1'
   const wantsDraftPreview = isPreviewMode && draft === '1'
@@ -25,6 +27,14 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     .select('*, product:products(*, owner:profiles(full_name))')
     .eq('id', id)
     .single()
+
+  const { data: orderBumps } = await supabase
+    .from('product_order_bumps')
+    .select('title, description, price, original_price, image_url')
+    .eq('product_id', plan?.product_id ?? '')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(1)
 
   if (planError || !plan) {
     return (
@@ -38,7 +48,19 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     )
   }
 
-  const product = plan.product as any
+  type Product = {
+    id: string
+    name: string
+    logo_url?: string | null
+    owner_id?: string | null
+    mockupImageUrl?: string | null
+    delivery_type?: string | null
+    owner?: { full_name?: string | null }
+  }
+
+  const firstBump = orderBumps && orderBumps.length > 0 ? orderBumps[0] : null
+
+  const product = plan.product as Product
   const { data: customization } = await supabase
     .from('checkout_customizations')
     .select('draft_config, published_config')
@@ -74,10 +96,12 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     .select('pixel:pixels(platform, pixel_id, is_active)')
     .eq('plan_id', plan.id)
 
+  type PixelRow = { pixel?: { platform?: string; pixel_id?: string; is_active?: boolean } }
+
   const producerPixels = (planPixelRows ?? [])
-    .map((r: any) => r.pixel)
-    .filter((p: any) => p?.is_active)
-    .map((p: any) => ({ platform: p.platform, pixel_id: p.pixel_id }))
+    .map((r: PixelRow) => r.pixel)
+    .filter((p): p is { platform: string; pixel_id: string } => Boolean(p && p.is_active))
+    .map(p => ({ platform: p.platform, pixel_id: p.pixel_id }))
 
   const seenPixelIds = new Set<string>()
   const allPixels = producerPixels.filter(p => {
@@ -152,15 +176,10 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
             </div>
 
             <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-              <div className="mb-6 flex items-center justify-between gap-4 border-b border-slate-100 pb-5">
-                <div>
+                <div className="mb-6 border-b border-slate-100 pb-5">
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Pagamento</p>
                   <h2 className="mt-1 text-2xl font-black text-slate-950">Dados do comprador</h2>
                 </div>
-                <div className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-500">
-                  Cartao
-                </div>
-              </div>
               <CheckoutForm
                 planId={plan.id}
                 productId={plan.product_id}
@@ -169,14 +188,13 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
                 primaryColor={checkoutConfig.primaryColor}
                 buttonText={checkoutConfig.buttonText}
                 previewMode={isPreviewMode}
-                orderBump={{
-                  active: !!product.order_bump_price,
-                  title: product.order_bump_title,
-                  description: product.order_bump_description,
-                  price: product.order_bump_price,
-                  discountPercent: product.order_bump_discount_percent,
-                  imageUrl: checkoutConfig.orderBumpImageUrl || product.order_bump_image_url
-                }}
+                orderBump={firstBump ? {
+                  active: true,
+                  title: firstBump.title,
+                  description: firstBump.description,
+                  price: Number(firstBump.price),
+                  imageUrl: firstBump.image_url || checkoutConfig.orderBumpImageUrl || '',
+                } : { active: false, title: null, description: null, price: null, imageUrl: null }}
               />
             </div>
           </section>
@@ -226,7 +244,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
                 </div>
                 <div className="flex items-end justify-between border-t border-slate-100 pt-5">
                   <span className="text-base font-black text-slate-950">Total</span>
-                  <span id="checkout-total-amount" data-base-price={plan.price} data-bump-price={product.order_bump_price || 0} className="text-3xl font-black text-slate-950">
+                  <span id="checkout-total-amount" data-base-price={plan.price} data-bump-price={firstBump?.price || 0} className="text-3xl font-black text-slate-950">
                     R$ {money(plan.price)}
                   </span>
                 </div>

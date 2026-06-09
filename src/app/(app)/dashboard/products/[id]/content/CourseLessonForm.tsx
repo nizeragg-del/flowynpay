@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useActionState, useEffect, useRef, useState } from 'react'
-import { AlertCircle, CheckCircle2, Plus, Video } from 'lucide-react'
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
+import { AlertCircle, CheckCircle2, Plus } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 import type { CourseContentFormState } from './form-state'
 import { initialCourseContentFormState } from './form-state'
@@ -18,29 +18,22 @@ export function CourseLessonForm({ moduleId, userId, createLesson }: CourseLesso
   const [videoFilePath, setVideoFilePath] = useState('')
   const [materialFilePaths, setMaterialFilePaths] = useState<string[]>([])
   const [state, action, pending] = useActionState(createLesson, initialCourseContentFormState)
+  const [, startTransition] = useTransition()
 
   useEffect(() => {
     if (!state.ok) return
-    formRef.current?.reset()
-    setVideoFilePath('')
-    setMaterialFilePaths([])
-  }, [state.ok, state.message])
+    startTransition(() => {
+      formRef.current?.reset()
+      setVideoFilePath('')
+      setMaterialFilePaths([])
+    })
+  }, [state.ok, startTransition])
 
   return (
-    <form ref={formRef} action={action} className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+    <form ref={formRef} action={action} className="mt-5 border-t border-slate-100 pt-5">
       <input type="hidden" name="module_id" value={moduleId} />
       <input type="hidden" name="video_file_path" value={videoFilePath} />
       <input type="hidden" name="material_file_paths" value={JSON.stringify(materialFilePaths)} />
-
-      <div className="mb-4 flex items-start gap-3">
-        <div className="rounded-2xl bg-white/5 p-2.5 text-[#00e88a]">
-          <Video className="h-4 w-4" />
-        </div>
-        <div>
-          <h4 className="text-sm font-black text-white">Adicionar aula</h4>
-          <p className="mt-1 text-xs leading-5 text-white/40">Preencha o titulo e adicione video, materiais ou links conforme a entrega.</p>
-        </div>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Titulo da aula" required hint="Nome que aparece para o aluno.">
@@ -60,7 +53,7 @@ export function CourseLessonForm({ moduleId, userId, createLesson }: CourseLesso
         </Field>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
         <FileUpload
           mode="video"
           label="Video nativo Flowyn"
@@ -68,7 +61,7 @@ export function CourseLessonForm({ moduleId, userId, createLesson }: CourseLesso
           userId={userId}
           folder="lesson-videos"
           currentUrl={videoFilePath}
-          onUpload={(path) => setVideoFilePath(path)}
+          onUpload={(path) => setVideoFilePath(Array.isArray(path) ? path[0] : path)}
           onRemove={() => setVideoFilePath('')}
         />
         <FileUpload
@@ -79,7 +72,7 @@ export function CourseLessonForm({ moduleId, userId, createLesson }: CourseLesso
           folder="lesson-materials"
           multiple
           currentUrls={materialFilePaths}
-          onUpload={(paths) => setMaterialFilePaths(paths)}
+          onUpload={(paths) => setMaterialFilePaths(Array.isArray(paths) ? paths : [paths])}
           onRemove={(index) => {
             if (index === undefined) return
             setMaterialFilePaths(paths => paths.filter((_, idx) => idx !== index))
@@ -89,22 +82,19 @@ export function CourseLessonForm({ moduleId, userId, createLesson }: CourseLesso
 
       <div className="mt-4">
         <Field label="Descricao da aula" hint="Opcional. Explique objetivo, contexto ou instrucoes.">
-          <textarea name="description" className={`${inputClass} min-h-24 resize-y`} placeholder="Resumo da aula para o aluno" />
+          <textarea name="description" className={`${inputClass} min-h-24 resize-y py-3`} placeholder="Resumo da aula para o aluno" />
         </Field>
       </div>
 
       <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <label className="flex items-center gap-2 text-sm font-semibold text-white/50">
-          <input type="checkbox" name="is_free_preview" className="accent-[#00e88a]" />
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-500">
+          <input type="checkbox" name="is_free_preview" className="accent-orange-500" />
           Aula preview gratis
         </label>
 
-        <button
-          disabled={pending}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-4 py-3 text-sm font-black text-black transition hover:bg-[#04f294] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {pending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" /> : <Plus className="h-4 w-4" />}
-          {pending ? 'Adicionando aula...' : 'Adicionar aula'}
+        <button disabled={pending} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-60">
+          {pending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Plus className="h-4 w-4" />}
+          {pending ? 'Adicionando...' : 'Adicionar aula'}
         </button>
       </div>
 
@@ -116,27 +106,23 @@ export function CourseLessonForm({ moduleId, userId, createLesson }: CourseLesso
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 flex items-center justify-between gap-3 text-sm font-semibold text-white/75">
-        {label}
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${required ? 'bg-[#00e88a]/10 text-[#00e88a]' : 'bg-white/5 text-white/35'}`}>
-          {required ? 'Obrigatorio' : 'Opcional'}
-        </span>
+      <span className="mb-2 block text-sm font-medium text-slate-700">
+        {label}{required && <span className="text-red-500">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1.5 block text-xs leading-5 text-white/35">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-xs leading-5 text-slate-400">{hint}</span>}
     </label>
   )
 }
 
 function FormMessage({ state }: { state: CourseContentFormState }) {
   if (!state.message) return null
-
   return (
-    <div className={`mt-4 flex items-start gap-2 rounded-2xl border px-3 py-2 text-sm ${state.ok ? 'border-[#00e88a]/25 bg-[#00e88a]/10 text-[#baffdd]' : 'border-red-500/25 bg-red-500/10 text-red-200'}`}>
-      {state.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#00e88a]" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />}
+    <div className={`mt-4 flex items-start gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${state.ok ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : 'bg-red-50 text-red-700 ring-red-100'}`}>
+      {state.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
       {state.message}
     </div>
   )
 }
 
-const inputClass = 'w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 transition focus:border-[#00e88a] focus:ring-2 focus:ring-[#00e88a]/20'
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'

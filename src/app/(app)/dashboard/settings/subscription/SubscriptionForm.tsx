@@ -57,14 +57,12 @@ export function SubscriptionForm({ defaultName, defaultEmail, hasActiveSubscript
 
   if (hasActiveSubscription) {
     return (
-      <div className="rounded-2xl border border-[#00e88a]/25 bg-[#00e88a]/10 p-5">
+      <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-100">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 text-[#00e88a]" />
+          <CheckCircle2 className="mt-0.5 h-5 w-5" />
           <div>
-            <h3 className="font-bold text-white">Assinatura configurada</h3>
-            <p className="mt-1 text-sm text-white/55">
-              Sua conta esta liberada para criar produtos e receber vendas sem taxa da Flowyn.
-            </p>
+            <h3 className="font-bold">Assinatura configurada</h3>
+            <p className="mt-1 text-emerald-700/75">Sua conta esta liberada para criar produtos e receber vendas sem taxa da Flowyn.</p>
           </div>
         </div>
       </div>
@@ -72,14 +70,14 @@ export function SubscriptionForm({ defaultName, defaultEmail, hasActiveSubscript
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-white">
-          <ShieldCheck className="h-4 w-4 text-[#00e88a]" />
-          Cobrança segura via Asaas
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-800 ring-1 ring-orange-100">
+        <div className="flex items-center gap-2 font-semibold">
+          <ShieldCheck className="h-4 w-4" />
+          Cobranca segura via Asaas
         </div>
-        <p className="mt-2 text-sm text-white/50">
-          Os dados do cartao sao enviados diretamente para criar sua assinatura mensal. A Flowyn nao salva numero, CVV ou validade.
+        <p className="mt-2 leading-6 text-orange-800/75">
+          A Flowyn nao salva numero, CVV ou validade do cartao. Os dados sao usados apenas para configurar sua assinatura.
         </p>
       </div>
 
@@ -104,23 +102,19 @@ export function SubscriptionForm({ defaultName, defaultEmail, hasActiveSubscript
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
           <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
       {message && (
-        <div className="flex items-start gap-2 rounded-xl border border-[#00e88a]/30 bg-[#00e88a]/10 px-4 py-3 text-sm text-[#a7ffd7]">
+        <div className="flex items-start gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-100">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           {message}
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#00e88a] px-5 py-4 text-sm font-black text-black transition hover:bg-[#04f294] disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <button type="submit" disabled={loading} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-60">
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
         Ativar Flowyn Pro por R$49/mes
       </button>
@@ -147,7 +141,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-bold uppercase text-white/45">{label}</span>
+      <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
       <input
         name={name}
         type={type}
@@ -155,7 +149,7 @@ function Field({
         placeholder={placeholder}
         required={required}
         maxLength={maxLength}
-        className="w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-[#00e88a] focus:ring-2 focus:ring-[#00e88a]/20"
+        className="h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20"
       />
     </label>
   )

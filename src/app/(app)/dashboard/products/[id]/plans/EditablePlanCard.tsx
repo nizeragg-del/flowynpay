@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Package, ExternalLink, Pencil, Save, X, Trash2 } from 'lucide-react'
-import { updatePlanAction } from './actions'
+import { ExternalLink, Package, Pencil, Save, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { updatePlanAction } from './actions'
 
 interface Plan {
   id: string
@@ -13,24 +13,28 @@ interface Plan {
   billing_type?: string | null
 }
 
-export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: string }) {
+const inputClass = 'w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-orange-500/20'
+
+export function EditablePlanCard({ plan, productId }: { plan: Plan; productId: string }) {
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: plan.name,
     price: plan.price.toString(),
-    plan_identifier: plan.plan_identifier || ''
+    plan_identifier: plan.plan_identifier || '',
+    billing_type: plan.billing_type === 'recurring' ? 'recurring' : 'one_time',
   })
   const router = useRouter()
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    
+
     const form = new FormData()
     form.append('name', formData.name)
     form.append('price', formData.price)
     form.append('plan_identifier', formData.plan_identifier)
+    form.append('billing_type', formData.billing_type)
 
     try {
       const res = await updatePlanAction(productId, plan.id, form)
@@ -40,8 +44,9 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
       } else {
         alert('Erro ao atualizar plano: ' + res.error)
       }
-    } catch (err: any) {
-      alert('Erro de rede: ' + err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro inesperado de rede.'
+      alert('Erro de rede: ' + message)
     } finally {
       setLoading(false)
     }
@@ -49,57 +54,34 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
 
   if (isEditing) {
     return (
-      <div className="bg-[#111111] border-0 rounded-none p-5 border-b border-[#00e88a]/30 transition-all animate-in fade-in zoom-in duration-200">
+      <div className="border-b border-orange-100 bg-orange-50/40 p-5">
         <form onSubmit={handleUpdate} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
-              <label className="block text-[10px] uppercase font-bold text-white/40 mb-1">Nome do Plano</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase font-bold text-white/40 mb-1">Preço (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                required
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase font-bold text-white/40 mb-1">Identificador externo</label>
-              <input
-                type="text"
-                value={formData.plan_identifier}
-                onChange={(e) => setFormData({ ...formData, plan_identifier: e.target.value })}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-sm text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00e88a]/30 focus:border-[#00e88a] outline-none"
-                placeholder="Opcional"
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <EditField label="Nome do plano">
+              <input className={inputClass} type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+            </EditField>
+            <EditField label="Preco">
+              <input className={inputClass} type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+            </EditField>
+            <EditField label="Tipo">
+              <select className={inputClass} value={formData.billing_type} onChange={e => setFormData({ ...formData, billing_type: e.target.value })}>
+                <option value="one_time">Preco unico</option>
+                <option value="recurring">Recorrente mensal</option>
+              </select>
+            </EditField>
+            <EditField label="Identificador externo">
+              <input className={inputClass} type="text" value={formData.plan_identifier} onChange={e => setFormData({ ...formData, plan_identifier: e.target.value })} placeholder="Opcional" />
+            </EditField>
           </div>
+
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-white/50 hover:text-white font-bold text-xs transition-colors"
-            >
-              <X className="w-3.5 h-3.5" />
+            <button type="button" onClick={() => setIsEditing(false)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 transition hover:text-slate-900">
+              <X className="h-3.5 w-3.5" />
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-1.5 bg-[#00e88a] hover:bg-[#00e88a]/90 text-black px-4 py-1.5 rounded-lg font-bold text-xs shadow-[0_0_15px_rgba(0,232,138,0.3)] transition-colors disabled:opacity-50"
-            >
-              {loading ? <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              Salvar Alterações
+            <button type="submit" disabled={loading} className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-1.5 text-xs font-bold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:opacity-50">
+              <Save className="h-3.5 w-3.5" />
+              {loading ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
         </form>
@@ -108,17 +90,17 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
   }
 
   return (
-    <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-white/[0.02] transition-colors">
+    <div className="group flex flex-col justify-between gap-4 p-5 transition hover:bg-slate-50 md:flex-row md:items-center">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-[#00e88a]/10 group-hover:border-[#00e88a]/20 transition-colors">
-          <Package className="w-5 h-5 text-white/60 group-hover:text-[#00e88a] transition-colors" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-slate-200 transition group-hover:bg-orange-50 group-hover:ring-orange-100">
+          <Package className="h-5 w-5 text-slate-400 transition group-hover:text-orange-600" />
         </div>
         <div>
-          <h3 className="font-bold text-white">{plan.name}</h3>
-          <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-xs text-white/40 font-mono">ID: {plan.id.slice(0, 12)}...</p>
+          <h3 className="font-bold text-slate-950">{plan.name}</h3>
+          <div className="mt-0.5 flex items-center gap-2">
+            <p className="font-mono text-xs text-slate-400">ID: {plan.id.slice(0, 12)}...</p>
             {plan.plan_identifier && (
-              <span className="bg-white/5 text-white/50 text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border border-white/10">
+              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">
                 {plan.plan_identifier}
               </span>
             )}
@@ -126,33 +108,32 @@ export function EditablePlanCard({ plan, productId }: { plan: Plan, productId: s
         </div>
       </div>
 
-      <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 md:gap-6">
+      <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-end md:gap-6">
         <div className="text-left md:text-right">
-          <span className="text-xl font-extrabold text-white">
+          <span className="text-xl font-extrabold text-slate-950">
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
           </span>
-          {plan.billing_type === 'recurring' && <span className="text-xs text-white/40 font-medium ml-1">/mes</span>}
+          <span className="ml-1 text-xs font-medium text-slate-400">{plan.billing_type === 'recurring' ? '/mes' : 'unico'}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-2.5 text-white/40 hover:text-[#00e88a] hover:bg-[#00e88a]/10 rounded-lg transition-all"
-            title="Editar plano"
-          >
-            <Pencil className="w-4 h-4" />
+          <button onClick={() => setIsEditing(true)} className="rounded-lg p-2.5 text-slate-400 transition hover:bg-orange-50 hover:text-orange-600" title="Editar plano">
+            <Pencil className="h-4 w-4" />
           </button>
-          
-          <a
-            href={`/checkout/${plan.id}`}
-            target="_blank"
-            className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-            title="Ver checkout"
-          >
-            <ExternalLink className="w-4 h-4" />
+          <a href={`/checkout/${plan.id}`} target="_blank" className="rounded-lg p-2.5 text-slate-400 transition hover:bg-orange-50 hover:text-orange-600" title="Ver checkout">
+            <ExternalLink className="h-4 w-4" />
           </a>
         </div>
       </div>
     </div>
+  )
+}
+
+function EditField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</span>
+      {children}
+    </label>
   )
 }

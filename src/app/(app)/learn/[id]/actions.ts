@@ -86,16 +86,27 @@ export async function bookMentorshipSlot(productId: string, slotId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
-  const { data: slot } = await supabase
+  const admin = createAdminClient()
+  const { data: access } = await admin
+    .from('student_access')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('product_id', productId)
+    .maybeSingle()
+
+  if (!access) return
+
+  const { data: slot } = await admin
     .from('mentorship_availability_slots')
     .select('id, starts_at, ends_at, meeting_url, booked_by')
     .eq('id', slotId)
     .eq('product_id', productId)
+    .is('booked_by', null)
     .maybeSingle()
 
-  if (!slot || slot.booked_by) return
+  if (!slot) return
 
-  const { data: session } = await supabase
+  const { data: session } = await admin
     .from('mentorship_sessions')
     .insert({
       product_id: productId,
@@ -110,7 +121,7 @@ export async function bookMentorshipSlot(productId: string, slotId: string) {
     .single()
 
   if (session) {
-    await supabase
+    const { data: reservedSlot } = await admin
       .from('mentorship_availability_slots')
       .update({
         booked_by: user.id,
@@ -119,10 +130,17 @@ export async function bookMentorshipSlot(productId: string, slotId: string) {
       })
       .eq('id', slotId)
       .is('booked_by', null)
+      .select('id')
+      .maybeSingle()
+
+    if (!reservedSlot) {
+      await admin.from('mentorship_sessions').delete().eq('id', session.id)
+      revalidatePath(`/learn/${productId}`)
+      return
+    }
 
     const resendClient = getResendClient()
     if (resendClient && user.email) {
-      const admin = createAdminClient()
       const { data: product } = await admin.from('products').select('name').eq('id', productId).single()
       const appUrl = getAppUrl()
       await resendClient.emails.send({

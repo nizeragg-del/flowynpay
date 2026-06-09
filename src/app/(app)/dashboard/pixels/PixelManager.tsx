@@ -1,34 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Trash2, ToggleLeft, ToggleRight, X, Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react'
 import { createPixel, deletePixel, togglePixel } from './actions'
 
 const PLATFORMS = [
-  {
-    id: 'meta',
-    label: 'Meta Ads',
-    sublabel: 'Facebook & Instagram',
-    icon: '/meta.png',
-    color: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    hint: 'Ex: 1234567890123456',
-  },
-  {
-    id: 'google',
-    label: 'Google Ads',
-    sublabel: 'Search & Display',
-    icon: '/google.png',
-    color: 'bg-red-500/10 border-red-500/20 text-red-400',
-    hint: 'Ex: AW-123456789',
-  },
-  {
-    id: 'tiktok',
-    label: 'TikTok Ads',
-    sublabel: 'TikTok & Reels',
-    icon: '/tiktok.png',
-    color: 'bg-white/5 border-white/10 text-white/70',
-    hint: 'Ex: C1AB2DEF3GH',
-  },
+  { id: 'meta', label: 'Meta Ads', sublabel: 'Facebook & Instagram', icon: '/meta.png', color: 'bg-orange-50 border-orange-100 text-orange-600', hint: 'Ex: 1234567890123456' },
+  { id: 'google', label: 'Google Ads', sublabel: 'Search & Display', icon: '/google.png', color: 'bg-red-50 border-red-100 text-red-700', hint: 'Ex: AW-123456789' },
+  { id: 'tiktok', label: 'TikTok Ads', sublabel: 'TikTok & Reels', icon: '/tiktok.png', color: 'bg-slate-50 border-slate-200 text-slate-600', hint: 'Ex: C1AB2DEF3GH' },
 ]
 
 function getPlatform(id: string) {
@@ -73,188 +52,138 @@ export function PixelManager({ initialPixels }: { initialPixels: Pixel[] }) {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Pixels de Rastreamento</h1>
-          <p className="text-sm text-white/40 mt-1">
-            Cadastre seus pixels e vincule-os aos planos para rastrear conversoes.
-          </p>
+          <h2 className="text-2xl font-semibold text-slate-950">Pixels</h2>
+          <p className="mt-2 text-sm text-slate-400">Cadastre pixels e vincule-os aos planos para rastrear conversoes.</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-[#00e88a] hover:bg-[#00d47e] text-black font-bold text-sm px-4 py-2.5 rounded-xl transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Cadastrar Pixel
+        <button onClick={() => setShowModal(true)} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600">
+          <Plus className="h-4 w-4" />
+          Cadastrar
         </button>
       </div>
 
-      {/* Platform cards info */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {PLATFORMS.map(p => (
-          <div key={p.id} className={`border rounded-2xl p-4 flex items-center gap-3 ${p.color}`}>
-            <img src={p.icon} alt={p.label} className="w-8 h-8 object-contain flex-shrink-0" />
-            <div>
-              <p className="font-bold text-sm">{p.label}</p>
-              <p className="text-xs opacity-60">{p.sublabel}</p>
+      <div className="mt-10 grid border-y border-slate-200 md:grid-cols-[240px_1fr]">
+        <RowTitle title="Plataformas" description="Canais suportados." />
+        <div className="grid gap-4 py-6 md:grid-cols-3 md:pl-8">
+          {PLATFORMS.map(p => (
+            <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${p.color}`}>
+              <img src={p.icon} alt={p.label} className="h-8 w-8 shrink-0 object-contain" />
+              <div>
+                <p className="text-sm font-bold">{p.label}</p>
+                <p className="text-xs opacity-70">{p.sublabel}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Pixel List */}
-      {initialPixels.length === 0 ? (
-        <div className="bg-[#111111] border border-white/5 rounded-2xl flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-2xl mb-4">📡</div>
-          <p className="font-bold text-white/50 text-base">Nenhum pixel cadastrado</p>
-          <p className="text-sm text-white/25 mt-1 max-w-xs">
-            Cadastre seu primeiro pixel para começar a rastrear conversões no checkout.
-          </p>
-        </div>
-      ) : (
-        <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-white/5 text-white/30 text-xs uppercase tracking-wider">
-                <th className="text-left px-6 py-4">Nome</th>
-                <th className="text-left px-6 py-4">Plataforma</th>
-                <th className="text-left px-6 py-4">ID do Pixel</th>
-                <th className="text-center px-6 py-4">Status</th>
-                <th className="text-right px-6 py-4">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {initialPixels.map(pixel => {
-                const plat = getPlatform(pixel.platform)
-                return (
-                  <tr key={pixel.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-6 py-4 font-semibold text-white">{pixel.name}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium ${plat.color}`}>
-                        <img src={plat.icon} alt={plat.label} className="w-4 h-4 object-contain" /> {plat.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-white/50 text-xs">{pixel.pixel_id}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleToggle(pixel.id, pixel.is_active)}
-                        className="inline-flex items-center gap-1.5 transition-colors"
-                      >
-                        {pixel.is_active ? (
-                          <>
-                            <ToggleRight className="w-5 h-5 text-[#00e88a]" />
-                            <span className="text-xs text-[#00e88a] font-medium">Ativo</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-5 h-5 text-white/30" />
-                            <span className="text-xs text-white/30 font-medium">Inativo</span>
-                          </>
-                        )}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDelete(pixel.id)}
-                        className="p-2 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+      <div className="grid border-b border-slate-200 md:grid-cols-[240px_1fr]">
+        <RowTitle title="Pixels cadastrados" description="Lista da sua conta." />
+        <div className="py-6 md:pl-8">
+          {initialPixels.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-200 px-6 py-12 text-center">
+              <h3 className="font-semibold text-slate-950">Nenhum pixel cadastrado</h3>
+              <p className="mt-1 text-sm text-slate-400">Cadastre seu primeiro pixel para rastrear conversoes no checkout.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="border-b border-slate-200 text-sm font-medium text-slate-700">
+                  <tr>
+                    <th className="px-5 py-4">Nome</th>
+                    <th className="px-5 py-4">Plataforma</th>
+                    <th className="px-5 py-4">ID do pixel</th>
+                    <th className="px-5 py-4 text-center">Status</th>
+                    <th className="px-5 py-4 text-right">Acoes</th>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {initialPixels.map(pixel => {
+                    const plat = getPlatform(pixel.platform)
+                    return (
+                      <tr key={pixel.id} className="transition hover:bg-slate-50">
+                        <td className="px-5 py-4 font-semibold text-slate-950">{pixel.name}</td>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium ${plat.color}`}>
+                            <img src={plat.icon} alt={plat.label} className="h-4 w-4 object-contain" />
+                            {plat.label}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 font-mono text-xs text-slate-400">{pixel.pixel_id}</td>
+                        <td className="px-5 py-4 text-center">
+                          <button onClick={() => handleToggle(pixel.id, pixel.is_active)} className="inline-flex items-center gap-1.5 transition-colors">
+                            {pixel.is_active ? (
+                              <>
+                                <ToggleRight className="h-5 w-5 text-emerald-600" />
+                                <span className="text-xs font-medium text-emerald-700">Ativo</span>
+                              </>
+                            ) : (
+                              <>
+                                <ToggleLeft className="h-5 w-5 text-slate-300" />
+                                <span className="text-xs font-medium text-slate-400">Inativo</span>
+                              </>
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <button onClick={() => handleDelete(pixel.id)} className="rounded-lg p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Create Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
-              <h2 className="font-bold text-white text-lg">Cadastrar novo pixel</h2>
-              <button onClick={() => { setShowModal(false); setSelectedPlatform(null) }}
-                className="text-white/30 hover:text-white transition-colors">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[14px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22)] ring-1 ring-slate-200">
+            <div className="mb-7 flex items-start justify-between gap-6">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Cadastrar novo pixel</h2>
+                <p className="mt-1 text-sm text-slate-500">Informe plataforma, nome e ID de rastreamento.</p>
+              </div>
+              <button onClick={() => { setShowModal(false); setSelectedPlatform(null) }} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form action={handleCreate} className="p-6 space-y-5">
-              {/* Platform selector */}
+            <form action={handleCreate} className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
-                  Plataforma *
-                </label>
+                <label className="mb-3 block text-sm font-medium text-slate-700">Plataforma *</label>
                 <div className="grid grid-cols-3 gap-3">
                   {PLATFORMS.map(p => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedPlatform(p.id)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all text-center ${
-                        selectedPlatform === p.id
-                          ? 'border-[#00e88a] bg-[#00e88a]/10 shadow-[0_0_12px_rgba(0,232,138,0.15)]'
-                          : 'border-white/10 hover:border-white/20 bg-white/5'
-                      }`}
-                    >
-                      <img src={p.icon} alt={p.label} className="w-8 h-8 object-contain" />
-                      <span className="text-xs font-semibold text-white leading-tight">{p.label}</span>
+                    <button key={p.id} type="button" onClick={() => setSelectedPlatform(p.id)} className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition ${selectedPlatform === p.id ? 'border-orange-300 bg-orange-50 ring-2 ring-orange-500/10' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
+                      <img src={p.icon} alt={p.label} className="h-8 w-8 object-contain" />
+                      <span className="text-xs font-semibold leading-tight text-slate-700">{p.label}</span>
                     </button>
                   ))}
                 </div>
                 <input type="hidden" name="platform" value={selectedPlatform ?? ''} />
               </div>
 
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                  Nome do pixel *
-                </label>
-                <input
-                  name="name"
-                  required
-                  placeholder="Ex: Meta Principal, Google Conversões"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#00e88a]/50 transition-colors"
-                />
-              </div>
+              <Field label="Nome do pixel">
+                <input name="name" required placeholder="Ex: Meta Principal" className={inputClass} />
+              </Field>
+              <Field label="ID do pixel">
+                <input name="pixel_id" required placeholder={selectedPlatform ? getPlatform(selectedPlatform).hint : 'Selecione a plataforma primeiro'} className={`${inputClass} font-mono`} />
+              </Field>
 
-              {/* Pixel ID */}
-              <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                  ID do Pixel *
-                </label>
-                <input
-                  name="pixel_id"
-                  required
-                  placeholder={selectedPlatform ? getPlatform(selectedPlatform).hint : 'Selecione a plataforma primeiro'}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-[#00e88a]/50 transition-colors"
-                />
-              </div>
-
-              {error && (
-                <p className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-xl px-4 py-3">
-                  {error}
-                </p>
-              )}
+              {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-xs text-red-700 ring-1 ring-red-100">{error}</p>}
 
               <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setSelectedPlatform(null) }}
-                  className="flex-1 py-3 rounded-xl border border-white/10 text-sm text-white/60 hover:text-white hover:border-white/20 transition-all font-semibold"
-                >
+                <button type="button" onClick={() => { setShowModal(false); setSelectedPlatform(null) }} className="flex-1 rounded-xl px-4 py-3 text-sm font-medium text-red-500 transition hover:bg-red-50">
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  disabled={isPending || !selectedPlatform}
-                  className="flex-1 py-3 rounded-xl bg-[#00e88a] hover:bg-[#00d47e] disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-sm transition-colors flex items-center justify-center gap-2"
-                >
-                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                <button type="submit" disabled={isPending || !selectedPlatform} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-sm font-semibold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-40">
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Cadastrar
                 </button>
               </div>
@@ -262,6 +191,26 @@ export function PixelManager({ initialPixels }: { initialPixels: Pixel[] }) {
           </div>
         </div>
       )}
+    </section>
+  )
+}
+
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-[#f4f4f6] px-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-orange-500/20'
+
+function RowTitle({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="py-6 md:pr-8">
+      <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
     </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
+      {children}
+    </label>
   )
 }

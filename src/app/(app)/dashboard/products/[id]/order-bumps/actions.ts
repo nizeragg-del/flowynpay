@@ -1,0 +1,73 @@
+'use server'
+
+import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+type OrderBumpInput = {
+  title: string
+  description?: string
+  image_url?: string
+  price: number
+  original_price?: number
+}
+
+export async function createOrderBump(productId: string, data: OrderBumpInput) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Não autenticado')
+
+  const { data: product } = await supabase
+    .from('products')
+    .select('owner_id')
+    .eq('id', productId)
+    .single()
+
+  if (!product || product.owner_id !== user.id) throw new Error('Produto não encontrado')
+
+  const { error } = await supabase.from('product_order_bumps').insert({
+    product_id: productId,
+    title: data.title,
+    description: data.description || '',
+    image_url: data.image_url || '',
+    price: data.price,
+    original_price: data.original_price || 0,
+  })
+
+  if (error) throw new Error(error.message)
+  revalidatePath(`/dashboard/products/${productId}/order-bumps`)
+}
+
+export async function updateOrderBump(id: string, productId: string, data: OrderBumpInput) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Não autenticado')
+
+  const { error } = await supabase
+    .from('product_order_bumps')
+    .update({
+      title: data.title,
+      description: data.description || '',
+      image_url: data.image_url || '',
+      price: data.price,
+      original_price: data.original_price || 0,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) throw new Error(error.message)
+  revalidatePath(`/dashboard/products/${productId}/order-bumps`)
+}
+
+export async function deleteOrderBump(id: string, productId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Não autenticado')
+
+  const { error } = await supabase
+    .from('product_order_bumps')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw new Error(error.message)
+  revalidatePath(`/dashboard/products/${productId}/order-bumps`)
+}

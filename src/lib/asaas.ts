@@ -226,6 +226,40 @@ export async function retrievePayment(paymentId: string, apiKey: string) {
   )
 }
 
+export async function createPixPayment(
+  payload: {
+    customer: string
+    billingType: 'PIX'
+    value: number
+    dueDate: string
+    description?: string
+    externalReference: string
+    split?: Array<{ walletId: string; percentualValue?: number; fixedValue?: number }>
+  },
+  apiKey: string
+) {
+  return asaasRequest<{
+    id: string
+    status: string
+    value: number
+    pixQrCode?: string
+    pixKey?: string
+    invoiceUrl?: string
+  }>('/payments', {
+    apiKey,
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function getPixQrCode(paymentId: string, apiKey: string) {
+  return asaasRequest<{
+    encodedImage: string
+    payload: string
+    expirationDate: string
+  }>(`/payments/${paymentId}/pixQrCode`, { apiKey })
+}
+
 export async function retrieveBalance(apiKey: string) {
   return asaasRequest<{ balance: number }>('/finance/balance', { apiKey })
 }

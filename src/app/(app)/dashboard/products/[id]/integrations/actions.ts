@@ -82,8 +82,12 @@ export async function testWebhookAction(productId: string, webhookUrl: string) {
     if (!success) {
       errorMessage = `HTTP ${res.status}: ${res.statusText}`
     }
-  } catch (err: any) {
-    errorMessage = err.name === 'AbortError' ? 'Request timeout (5s)' : err.message
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      errorMessage = err.name === 'AbortError' ? 'Request timeout (5s)' : err.message
+    } else {
+      errorMessage = 'Unexpected error while sending webhook test.'
+    }
   }
 
   const endTime = performance.now()

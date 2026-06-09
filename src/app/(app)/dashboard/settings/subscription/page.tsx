@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { CalendarClock, Check, ReceiptText, ShieldCheck, Sparkles } from 'lucide-react'
+import { Check, ReceiptText } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { SubscriptionForm } from './SubscriptionForm'
@@ -57,102 +57,99 @@ export default async function SubscriptionPage() {
     || (subscription?.status === 'scheduled' && isFuture(subscription.trial_ends_at))
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-12">
-      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+    <section className="overflow-hidden rounded-[10px] bg-white px-8 py-8 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#00e88a]/25 bg-[#00e88a]/10 px-3 py-1 text-xs font-bold text-[#00e88a]">
-            <Sparkles className="h-3.5 w-3.5" />
-            7 dias gratis + R$49/mes
-          </div>
-          <h1 className="text-3xl font-black text-white">Assinatura Flowyn Pro</h1>
-          <p className="mt-2 max-w-2xl text-sm text-white/55">
-            Use a plataforma sem taxa por venda. Voce paga apenas a mensalidade da Flowyn e as tarifas normais da transacao na Asaas.
+          <h2 className="text-2xl font-semibold text-slate-950">Assinatura</h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+            Use a Flowyn sem taxa por venda. Voce paga a mensalidade da plataforma e as tarifas normais da transacao na Asaas.
           </p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#111] px-5 py-4">
-          <p className="text-xs font-bold uppercase text-white/35">Status</p>
-          <p className="mt-1 text-lg font-black text-white">{statusLabel(subscription?.status)}</p>
+        <div className="text-left sm:text-right">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</p>
+          <p className="mt-1 text-lg font-semibold text-slate-950">{statusLabel(subscription?.status)}</p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {[
-          ['Taxa Flowyn por venda', 'R$0', 'Nada de percentual escondido nas vendas.'],
-          ['Mensalidade', 'R$49', 'Cobrada mensalmente depois do periodo gratis.'],
-          ['Teste gratis', '7 dias', `Termina em ${formatDate(subscription?.trial_ends_at)}.`],
-        ].map(([title, value, description]) => (
-          <div key={title} className="rounded-2xl border border-white/10 bg-[#111] p-5">
-            <p className="text-xs font-bold uppercase text-white/35">{title}</p>
-            <p className="mt-2 text-3xl font-black text-white">{value}</p>
-            <p className="mt-2 text-sm text-white/45">{description}</p>
-          </div>
-        ))}
+      <div className="mt-10 border-y border-slate-200">
+        <RowTitle title="Plano" description="Condicoes da conta." />
+        <div className="grid gap-6 py-6 md:grid-cols-3">
+          <Metric label="Taxa Flowyn por venda" value="R$0" description="Sem percentual da plataforma." />
+          <Metric label="Mensalidade" value="R$49" description="Cobrada mensalmente." />
+          <Metric label="Teste gratis" value="7 dias" description={`Termina em ${formatDate(subscription?.trial_ends_at)}.`} />
+        </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-5">
-        <section className="lg:col-span-3 rounded-3xl border border-white/10 bg-[#111] p-6 md:p-8">
-          <div className="mb-6 flex items-start gap-3">
-            <div className="rounded-2xl bg-[#00e88a]/10 p-3 text-[#00e88a]">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-white">Ativar mensalidade</h2>
-              <p className="mt-1 text-sm text-white/50">
-                Configure o cartao uma vez. O trial continua gratis ate a data final e depois a Asaas faz a recorrencia.
-              </p>
-            </div>
-          </div>
+      <div className="border-b border-slate-200">
+        <RowTitle title="Pagamento" description="Cartao da mensalidade Flowyn." />
+        <div className="py-6">
           <SubscriptionForm
             defaultName={profile?.full_name || user.email || ''}
             defaultEmail={user.email || ''}
             hasActiveSubscription={hasActiveSubscription}
           />
-        </section>
+        </div>
+      </div>
 
-        <aside className="lg:col-span-2 space-y-4">
-          <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <CalendarClock className="h-4 w-4 text-[#00e88a]" />
-              Acesso da conta
+      <div className="border-b border-slate-200">
+        <RowTitle title="Acesso" description="Recursos liberados." />
+        <div className="grid gap-3 py-6 md:grid-cols-2">
+          {[
+            'Criar produtos e planos',
+            'Checkout transparente no ar',
+            'Checkout e area do aluno inclusos',
+            'Carteira CPF/CNPJ sem taxa Flowyn por venda',
+          ].map(item => (
+            <div key={item} className="flex items-center gap-2 text-sm text-slate-600">
+              <Check className="h-4 w-4 text-emerald-600" />
+              {item}
             </div>
-            <div className="mt-5 space-y-3">
-              {[
-                'Criar produtos e planos',
-                'Checkout transparente no ar',
-                'Checkout e area do aluno inclusos',
-                'Carteira CPF/CNPJ sem taxa Flowyn por venda',
-              ].map(item => (
-                <div key={item} className="flex items-center gap-2 text-sm text-white/60">
-                  <Check className="h-4 w-4 text-[#00e88a]" />
-                  {item}
+          ))}
+        </div>
+      </div>
+
+      <div className="border-b border-slate-200">
+        <RowTitle title="Faturas" description="Ultimas cobrancas." />
+        <div className="py-6">
+          {!invoices || invoices.length === 0 ? (
+            <p className="text-sm text-slate-400">Nenhuma fatura registrada ainda.</p>
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-slate-200">
+              {invoices.map(invoice => (
+                <div key={invoice.asaas_payment_id} className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0">
+                  <div className="flex items-center gap-3">
+                    <ReceiptText className="h-4 w-4 text-slate-400" />
+                    <div>
+                      <p className="text-base font-semibold text-slate-950">{invoice.status}</p>
+                      <p className="text-xs text-slate-400">Vencimento: {formatDate(invoice.due_date)}</p>
+                    </div>
+                  </div>
+                  <span className="text-base font-semibold text-slate-950">R$ {Number(invoice.value || 0).toFixed(2)}</span>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-[#111] p-6">
-            <div className="mb-4 flex items-center gap-2 text-sm font-bold text-white">
-              <ReceiptText className="h-4 w-4 text-[#00e88a]" />
-              Ultimas faturas
-            </div>
-            {!invoices || invoices.length === 0 ? (
-              <p className="text-sm text-white/40">Nenhuma fatura registrada ainda.</p>
-            ) : (
-              <div className="space-y-3">
-                {invoices.map(invoice => (
-                  <div key={invoice.asaas_payment_id} className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-bold text-white">{invoice.status}</span>
-                      <span className="text-sm text-white/50">R$ {Number(invoice.value || 0).toFixed(2)}</span>
-                    </div>
-                    <p className="mt-1 text-xs text-white/35">Vencimento: {formatDate(invoice.due_date)}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </aside>
+          )}
+        </div>
       </div>
+    </section>
+  )
+}
+
+function Metric({ label, value, description }: { label: string; value: string; description: string }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-slate-950">{value}</p>
+      <p className="mt-1 text-sm text-slate-400">{description}</p>
+    </div>
+  )
+}
+
+function RowTitle({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="pt-6">
+      <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm text-slate-400">{description}</p>
     </div>
   )
 }
