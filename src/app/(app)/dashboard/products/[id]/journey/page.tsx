@@ -179,7 +179,7 @@ export default async function MentorshipJourneyPage(props: { params: Promise<{ i
 
   const isMentorship = product.product_type === 'mentoria'
   const sessionRows = (sessions ?? []) as SessionRow[]
-  const studentRows = ((students ?? []) as StudentRow[]).filter(row => Boolean(row.user_id))
+  const studentRows = ((students ?? []) as unknown as StudentRow[]).filter(row => Boolean(row.user_id))
   const slotRows = (slots ?? []) as SlotRow[]
   const intakeRows = (intakeResponses ?? []) as IntakeRow[]
   const intakeQuestions = Array.isArray(program?.intake_questions) ? program.intake_questions.join('\n') : ''
