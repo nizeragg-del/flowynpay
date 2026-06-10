@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import crypto from 'crypto'
 import { BadgeCheck, Lock } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/utils/supabase/admin'
 import { getPlatformAccess } from '@/lib/platform-access'
 import { ProductWizard } from './ProductWizard'
 
@@ -67,7 +65,6 @@ async function createProductAction(data: CreateProductActionInput): Promise<{ pr
         category: data.category,
         product_type: data.product_type,
         is_public: false,
-        is_flowyn_saas: false,
         commission_rate: 0,
         checkout_banner_url: data.checkout_banner_url || null,
         checkout_video_url: data.checkout_video_url || null,
@@ -88,15 +85,6 @@ async function createProductAction(data: CreateProductActionInput): Promise<{ pr
       console.error('[createProductAction] DB Error:', error)
       return { error: `Erro ao criar produto: ${error?.message || 'resposta vazia do banco'}` }
     }
-
-    const supabaseAdmin = createAdminClient()
-    await supabaseAdmin
-      .from('product_private_settings')
-      .upsert({
-        product_id: product.id,
-        webhook_secret: `whsec_${crypto.randomBytes(32).toString('hex')}`,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'product_id' })
 
     if (productPlans.length > 0) {
       const plans = productPlans.map((p: CreateProductPlan) => ({

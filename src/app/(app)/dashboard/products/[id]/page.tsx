@@ -69,7 +69,6 @@ export default async function EditProductPage(props: { params: Promise<{ id: str
         product_type: formData.get('product_type') as string || 'outros',
         commission_rate: 0,
         is_public: false,
-        is_flowyn_saas: false,
         delivery_type: formData.get('delivery_type') as string || 'external',
         delivery_url: formData.get('delivery_url') as string || null,
         updated_at: new Date().toISOString(),

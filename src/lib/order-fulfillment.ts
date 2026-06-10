@@ -1,7 +1,6 @@
 import 'server-only'
 import { getResendClient } from '@/lib/resend'
 import { deliveryEmail, studentPasswordEmail } from '@/lib/email-templates'
-import { dispatchWebhook } from '@/lib/webhook'
 import { getAppUrl } from '@/lib/app-url'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -15,7 +14,6 @@ type Product = {
   delivery_type?: string | null
   delivery_url?: string | null
   deliverable_file_paths?: string[] | null
-  webhook_url?: string | null
 }
 
 type TemplateSession = {
@@ -49,7 +47,7 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
     .select(`
       *,
       product:products(
-        id, name, product_type, delivery_type, delivery_url, deliverable_file_paths, webhook_url
+        id, name, product_type, delivery_type, delivery_url, deliverable_file_paths
       )
     `)
     .single()
@@ -233,8 +231,6 @@ export async function fulfillPaidOrder(supabase: SupabaseAdmin, orderId: string,
       })
     }
   }
-
-  dispatchWebhook(orderId).catch(err => console.error('[Order Fulfillment Webhook Error]:', err))
 
   return { skipped: false }
 }
