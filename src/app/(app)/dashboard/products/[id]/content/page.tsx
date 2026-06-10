@@ -121,7 +121,7 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
       sort_order: count || 0,
     }).select('id, title').single()
 
-    if (error || !lesson) return { ok: false, message: 'Nao foi possivel criar a aula. Tente novamente.' }
+    if (error || !lesson) return { ok: false, message: `Erro ao criar aula: ${error?.message || 'resposta vazia'}` }
 
     const resendClient = getResendClient()
     if (resendClient) {
@@ -388,7 +388,7 @@ function PaginationButton({ href, disabled, icon, label }: { href: string; disab
     )
   }
   return (
-    <Link href={href} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-orange-200 hover:text-orange-600" aria-label={label}>
+    <Link href={href} scroll={false} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-orange-200 hover:text-orange-600" aria-label={label}>
       {icon}
     </Link>
   )
