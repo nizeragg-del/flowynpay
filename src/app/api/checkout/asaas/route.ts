@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createCreditCardPayment, createCustomer, createPixPayment, onlyDigits } from '@/lib/asaas'
+import { createCreditCardPayment, createCustomer, createPixPayment, getPixQrCode, onlyDigits } from '@/lib/asaas'
 import { fulfillPaidOrder } from '@/lib/order-fulfillment'
 import { getPlatformAccess } from '@/lib/platform-access'
 import { createAdminClient } from '@/utils/supabase/admin'
@@ -239,6 +239,20 @@ export async function POST(req: NextRequest) {
         ...(split.length > 0 ? { split } : {}),
       }, process.env.ASAAS_API_KEY!)
 
+      let pixQrCode = payment.pixQrCode ?? null
+      let pixKey = payment.pixKey ?? null
+
+      if (!pixQrCode || !pixKey) {
+        step = 'pix_qrcode_fallback'
+        try {
+          const pixData = await getPixQrCode(payment.id, process.env.ASAAS_API_KEY!)
+          pixQrCode = pixData.encodedImage
+          pixKey = pixData.payload
+        } catch (pixErr) {
+          console.error('[Asaas Checkout] PIX QR fallback also failed:', pixErr)
+        }
+      }
+
       await supabase
         .from('orders')
         .update({
@@ -253,8 +267,8 @@ export async function POST(req: NextRequest) {
         order_id: order.id,
         payment_id: payment.id,
         status: payment.status,
-        pixQrCode: payment.pixQrCode ?? null,
-        pixKey: payment.pixKey ?? null,
+        pixQrCode: pixQrCode,
+        pixKey: pixKey,
         invoice_url: payment.invoiceUrl ?? null,
       })
     }
