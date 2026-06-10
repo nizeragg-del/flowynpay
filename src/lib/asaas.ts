@@ -78,7 +78,8 @@ export function normalizeAsaasError(error: unknown) {
 
 export async function asaasRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const method = options.method || 'GET'
-  const response = await fetch(`${getBaseUrl()}${path}`, {
+  const url = `${getBaseUrl()}${path}`
+  const response = await fetch(url, {
     method,
     headers: {
       accept: 'application/json',
@@ -94,6 +95,13 @@ export async function asaasRequest<T>(path: string, options: RequestOptions = {}
   const data = text ? JSON.parse(text) : null
 
   if (!response.ok) {
+    console.error('[Asaas API Error]', {
+      url,
+      method,
+      status: response.status,
+      requestBody: options.body,
+      responseBody: data,
+    })
     throw new Error(normalizeAsaasError(data))
   }
 
