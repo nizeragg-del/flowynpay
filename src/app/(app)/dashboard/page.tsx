@@ -29,34 +29,30 @@ export default function DashboardPage() {
         return
       }
 
-      const { data: myProducts } = await supabase
-        .from('products')
-        .select('id')
-        .eq('owner_id', user.id)
-
-      const productIds = (myProducts || []).map((p: { id: string }) => p.id)
-      let orders: Order[] = []
-
-      if (productIds.length > 0) {
-        const { data } = await supabase
+      const [{ data: orders }, { count: productCount }] = await Promise.all([
+        supabase
           .from('orders')
-          .select('*, product:products(name)')
-          .in('product_id', productIds)
-          .order('created_at', { ascending: false })
-        orders = (data || []) as Order[]
-      }
+          .select('*, product:products!inner(name, owner_id)')
+          .eq('product.owner_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('owner_id', user.id),
+      ])
 
-      const paid = orders.filter(o => o.status === 'paid')
+      const ordersList = (orders || []) as Order[]
+      const paid = ordersList.filter(o => o.status === 'paid')
       const totalRevenue = paid.reduce((acc, o) => acc + Number(o.amount), 0)
 
       setStats({
         totalRevenue,
         paidCount: paid.length,
-        pendingCount: orders.filter(o => o.status === 'pending').length,
-        productCount: productIds.length,
+        pendingCount: ordersList.filter(o => o.status === 'pending').length,
+        productCount: productCount || 0,
       })
 
-      setRecentOrders(orders.slice(0, 5))
+      setRecentOrders(ordersList.slice(0, 5))
 
       const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
       const chart: ChartPoint[] = []
