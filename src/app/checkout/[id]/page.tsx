@@ -77,7 +77,7 @@ export default async function CheckoutPage(props: CheckoutPageProps) {
     canPreviewDraft ? customization?.draft_config : customization?.published_config,
     product
   )
-  const producerAccess = await getPlatformAccess(product.owner_id)
+  const producerAccess = await getPlatformAccess(product.owner_id ?? '')
 
   if (!producerAccess.allowed) {
     return (
@@ -96,11 +96,9 @@ export default async function CheckoutPage(props: CheckoutPageProps) {
     .select('pixel:pixels(platform, pixel_id, is_active)')
     .eq('plan_id', plan.id)
 
-  type PixelRow = { pixel?: { platform?: string; pixel_id?: string; is_active?: boolean } }
-
   const producerPixels = (planPixelRows ?? [])
-    .map((r: PixelRow) => r.pixel)
-    .filter((p): p is { platform: string; pixel_id: string } => Boolean(p && p.is_active))
+    .map((r: { pixel: { platform: any; pixel_id: any; is_active: any }[] }) => r.pixel?.[0])
+    .filter((p): p is { platform: string; pixel_id: string; is_active: boolean } => Boolean(p?.is_active))
     .map(p => ({ platform: p.platform, pixel_id: p.pixel_id }))
 
   const seenPixelIds = new Set<string>()
@@ -145,7 +143,7 @@ export default async function CheckoutPage(props: CheckoutPageProps) {
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                 {(checkoutConfig.mockupImageUrl || product.logo_url) && (
                   <img
-                    src={checkoutConfig.mockupImageUrl || product.logo_url}
+                    src={checkoutConfig.mockupImageUrl || product.logo_url || ''}
                     alt={product.name}
                     className="h-24 w-24 rounded-2xl border border-slate-200 object-cover shadow-sm"
                   />
@@ -206,7 +204,7 @@ export default async function CheckoutPage(props: CheckoutPageProps) {
                 <div className="mt-5 flex gap-4">
                   {(checkoutConfig.mockupImageUrl || product.logo_url) ? (
                     <img
-                      src={checkoutConfig.mockupImageUrl || product.logo_url}
+                    src={checkoutConfig.mockupImageUrl || product.logo_url || ''}
                       alt={product.name}
                       className="h-20 w-20 rounded-2xl border border-slate-200 object-cover"
                     />

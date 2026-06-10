@@ -55,7 +55,7 @@ export function WebhookLogsList({ logs }: { logs: WebhookLog[] }) {
                 <td className="px-6 py-4 text-white/60">
                   <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-white/40" />
-                    {new Date(log.created_at).toLocaleString('pt-BR')}
+                    {new Date(log.created_at ?? '').toLocaleString('pt-BR')}
                   </div>
                 </td>
                 <td className="px-6 py-4">

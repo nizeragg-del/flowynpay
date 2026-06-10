@@ -49,7 +49,7 @@ function AcceptInviteForm() {
       .eq('id', orderId)
       .single()
       .then(({ data }) => {
-        const product = data?.product as InviteOrderRow['product']
+        const product = data?.product as unknown as InviteOrderRow['product']
         if (product?.name) setProductName(product.name)
       })
   }, [sessionReady, orderId])

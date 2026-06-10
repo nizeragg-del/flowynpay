@@ -33,7 +33,10 @@ export default async function LearnLibraryPage() {
     .eq('user_id', user.id)
     .order('granted_at', { ascending: false })
 
-  const products = (accessRows ?? []).map((row) => row.product).filter(Boolean) as LearnProductRow[]
+  const products = (accessRows ?? []).flatMap((row) => {
+    const p = row.product as unknown as LearnProductRow | LearnProductRow[] | null
+    return Array.isArray(p) ? p : p ? [p] : []
+  })
   const featured = products[0]
   const courses = products.filter((product) => product.product_type === 'course')
   const mentorships = products.filter((product) => product.product_type === 'mentoria')
