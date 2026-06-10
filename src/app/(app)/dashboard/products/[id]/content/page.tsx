@@ -332,27 +332,19 @@ export default async function CourseContentPage(props: { params: Promise<{ id: s
                         </form>
                       </div>
 
-                      <div className="space-y-2 p-5">
+                      <div className="flex flex-wrap gap-2 p-5">
                         {lessons.length === 0 ? (
-                          <p className="text-sm text-slate-400">Nenhuma aula neste modulo ainda.</p>
+                          <p className="w-full text-sm text-slate-400">Nenhuma aula neste modulo ainda.</p>
                         ) : lessons.map((lesson) => (
-                          <div key={lesson.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
-                            <div className="flex min-w-0 items-center gap-3">
-                              <GripVertical className="h-4 w-4 shrink-0 text-slate-300" />
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-400 ring-1 ring-slate-200">
-                                <Clapperboard className="h-4 w-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-slate-950">{lesson.title}</p>
-                                <p className="truncate text-xs text-slate-400">
-                                  {lesson.duration_minutes ? `${lesson.duration_minutes} min` : 'Sem duracao'} {lesson.is_free_preview ? '- preview gratis' : ''}
-                                </p>
-                              </div>
-                            </div>
+                          <div key={lesson.id} className="flex items-center gap-2 rounded-xl bg-slate-50 pl-3 pr-1.5 py-1.5 ring-1 ring-slate-200/50">
+                            <Clapperboard className="h-4 w-4 shrink-0 text-slate-400" />
+                            <span className="max-w-36 truncate text-sm font-semibold text-slate-950">{lesson.title}</span>
+                            {lesson.duration_minutes && <span className="text-xs text-slate-400">{lesson.duration_minutes}min</span>}
+                            {lesson.is_free_preview && <span className="text-[10px] font-bold uppercase text-emerald-600">Preview</span>}
                             <form action={deleteLesson}>
                               <input type="hidden" name="lesson_id" value={lesson.id} />
-                              <button className="rounded-xl p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Excluir aula">
-                                <Trash2 className="h-4 w-4" />
+                              <button className="rounded-lg p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Excluir aula">
+                                <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </form>
                           </div>
