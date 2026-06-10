@@ -35,18 +35,26 @@ type WhatsAppEntry = {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const mode = searchParams.get('hub.mode')
-  const token = searchParams.get('hub.verify_token')
+  const rawToken = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  if (mode === 'subscribe' && token === WHATSAPP_TOKEN) {
-    return new NextResponse(challenge, { status: 200 })
+  const token = rawToken ? decodeURIComponent(rawToken) : null
+
+  if (mode === 'subscribe' && token === WHATSAPP_TOKEN && challenge) {
+    return new NextResponse(challenge, {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+    })
   }
 
-  if (token !== WHATSAPP_TOKEN) {
-    return new NextResponse('Forbidden', { status: 403 })
+  if (!mode && !token) {
+    return new NextResponse(
+      'WhatsApp Webhook endpoint. Use with Meta Cloud API configuration.',
+      { status: 200 },
+    )
   }
 
-  return new NextResponse('Bad Request', { status: 400 })
+  return new NextResponse('Forbidden: verify_token invalido', { status: 403 })
 }
 
 export async function POST(req: NextRequest) {
