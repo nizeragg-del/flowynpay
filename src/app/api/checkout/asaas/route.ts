@@ -349,7 +349,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       error: 'Erro ao processar pagamento. Entre em contato com o suporte informando o horário exato.',
-      _step: process.env.NODE_ENV === 'development' ? step : undefined,
+      _step: step,
     }, { status: 500 })
   }
 }
