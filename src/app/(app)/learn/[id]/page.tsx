@@ -220,7 +220,7 @@ async function CourseExperience({ product, userId }: { product: Product; userId:
                 {(comments || []).length === 0 ? (
                   <p className="text-sm text-white/35">Nenhuma dúvida ou comentário ainda.</p>
                 ) : (
-                  (comments || []).map((comment: Comment) => (
+                  ((comments ?? []) as unknown as Comment[]).map((comment) => (
                     <div key={comment.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <p className="text-sm text-white/75">{comment.body}</p>
                       <p className="mt-2 text-xs text-white/35">{comment.user?.full_name || 'Aluno'} · {new Date(comment.created_at).toLocaleString('pt-BR')}</p>
