@@ -41,20 +41,17 @@ export async function GET(req: NextRequest) {
   const token = rawToken ? decodeURIComponent(rawToken) : null
 
   if (mode === 'subscribe' && token === WHATSAPP_TOKEN && challenge) {
-    return new NextResponse(challenge, {
-      status: 200,
-      headers: { 'Content-Type': 'text/plain' },
-    })
+    return new Response(challenge, { status: 200 })
   }
 
   if (!mode && !token) {
-    return new NextResponse(
+    return new Response(
       'WhatsApp Webhook endpoint. Use with Meta Cloud API configuration.',
       { status: 200 },
     )
   }
 
-  return new NextResponse('Forbidden: verify_token invalido', { status: 403 })
+  return new Response('Forbidden: verify_token invalido', { status: 403 })
 }
 
 export async function POST(req: NextRequest) {
