@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import {
@@ -9,6 +8,7 @@ import {
   onlyDigits,
 } from '@/lib/asaas'
 import { isValidCpfCnpj, isValidEmail, isValidPhone, isValidCardNumber, isValidCvv } from '@/lib/validation'
+import { hashIdentifier } from '@/lib/hash'
 
 const FLOWYN_PRO_PRICE = 49
 
@@ -16,10 +16,6 @@ function getClientIp(req: NextRequest) {
   const forwardedFor = req.headers.get('x-forwarded-for')
   if (forwardedFor) return forwardedFor.split(',')[0].trim()
   return req.headers.get('x-real-ip') || '127.0.0.1'
-}
-
-function hashIdentifier(value: string) {
-  return createHash('sha256').update(value).digest('hex')
 }
 
 function isoDate(value: string | null | undefined) {
@@ -39,20 +35,20 @@ async function getCurrentUserId() {
 }
 
 export async function GET() {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return NextResponse.json({ error: 'Nao autenticado.' }, { status: 401 })
   }
 
-  const admin = createAdminClient()
-  const { data: subscription } = await admin
+  const { data: subscription } = await supabase
     .from('platform_subscriptions')
     .select('*')
-    .eq('user_id', userId)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   const { data: invoices } = subscription
-    ? await admin
+    ? await supabase
         .from('platform_subscription_invoices')
         .select('asaas_payment_id, status, value, due_date, paid_at, created_at')
         .eq('platform_subscription_id', subscription.id)
@@ -70,9 +66,10 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createAdminClient()
+  const clientIp = getClientIp(req)
   const { data: withinRateLimit, error: rateLimitError } = await admin.rpc('consume_rate_limit', {
     requested_bucket: 'platform-subscription',
-    requested_identifier_hash: hashIdentifier(userId),
+    requested_identifier_hash: hashIdentifier(clientIp),
     max_requests: 5,
     window_seconds: 15 * 60,
   })

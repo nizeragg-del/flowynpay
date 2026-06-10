@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { createSubaccount, listSubaccounts, onlyDigits, retrieveSubaccount } from '@/lib/asaas'
 import { isValidCpfCnpj, isValidEmail, isValidPhone } from '@/lib/validation'
+import { hashIdentifier } from '@/lib/hash'
 
 type Profile = {
   asaas_account_id: string | null
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   const admin = getAdminClient()
   const { data: withinRateLimit, error: rateLimitError } = await admin.rpc('consume_rate_limit', {
     requested_bucket: 'asaas-account',
-    requested_identifier_hash: createHash('sha256').update(user.id).digest('hex'),
+    requested_identifier_hash: await hashIdentifier(user.id),
     max_requests: 10,
     window_seconds: 900,
   })
@@ -291,7 +291,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    console.error('[Asaas Account] Error:', err)
+    console.error('[Asaas Account] Error:', message)
     return NextResponse.json({ error: message || 'Erro ao criar subconta Asaas' }, { status: 500 })
   }
 }

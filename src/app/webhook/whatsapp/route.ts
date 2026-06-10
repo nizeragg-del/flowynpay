@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 
-const WHATSAPP_TOKEN = process.env.WHATSAPP_WEBHOOK_TOKEN || 'flowyn123'
-
 type WhatsAppEntry = {
   id: string
   changes: {
@@ -33,6 +31,12 @@ type WhatsAppEntry = {
 }
 
 export async function GET(req: NextRequest) {
+  const whatsappToken = process.env.WHATSAPP_WEBHOOK_TOKEN
+
+  if (!whatsappToken) {
+    return new Response('Webhook not configured', { status: 503 })
+  }
+
   const { searchParams } = new URL(req.url)
   const mode = searchParams.get('hub.mode')
   const rawToken = searchParams.get('hub.verify_token')
@@ -40,7 +44,7 @@ export async function GET(req: NextRequest) {
 
   const token = rawToken ? decodeURIComponent(rawToken) : null
 
-  if (mode === 'subscribe' && token === WHATSAPP_TOKEN && challenge) {
+  if (mode === 'subscribe' && token === whatsappToken && challenge) {
     return new Response(challenge, { status: 200 })
   }
 
@@ -55,9 +59,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const whatsappToken = process.env.WHATSAPP_WEBHOOK_TOKEN
   const authToken = req.headers.get('x-webhook-token')
 
-  if (authToken && authToken !== WHATSAPP_TOKEN) {
+  if (authToken && authToken !== whatsappToken) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
   }
 

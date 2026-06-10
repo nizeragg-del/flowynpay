@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'crypto'
 import { createCreditCardPayment, createCustomer, createPixPayment, getPixQrCode, onlyDigits } from '@/lib/asaas'
 import { fulfillPaidOrder } from '@/lib/order-fulfillment'
 import { getPlatformAccess } from '@/lib/platform-access'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { isValidCardNumber, isValidCpfCnpj, isValidEmail, isValidPhone, isValidCvv } from '@/lib/validation'
+import { hashIdentifier } from '@/lib/hash'
 
 type PlanProduct = {
   id: string
@@ -35,10 +35,6 @@ function getClientIp(req: NextRequest) {
   return req.headers.get('x-real-ip') || '127.0.0.1'
 }
 
-function hashIdentifier(value: string) {
-  return createHash('sha256').update(value).digest('hex')
-}
-
 function maskEmail(email: string) {
   const [localPart, domain] = email.split('@')
   return localPart && domain ? `${localPart.charAt(0)}***@${domain}` : '***'
@@ -59,7 +55,7 @@ export async function POST(req: NextRequest) {
     const clientIp = getClientIp(req)
     const { data: withinRateLimit, error: rateLimitError } = await supabase.rpc('consume_rate_limit', {
       requested_bucket: 'checkout',
-      requested_identifier_hash: hashIdentifier(clientIp),
+      requested_identifier_hash: await hashIdentifier(clientIp),
       max_requests: 12,
       window_seconds: 60,
     })
@@ -306,7 +302,7 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    console.error('[Asaas Checkout] Error:', err)
+    console.error('[Asaas Checkout] Error:', message)
     return NextResponse.json({ error: message || 'Erro ao processar pagamento.' }, { status: 500 })
   }
 }

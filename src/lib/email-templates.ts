@@ -1,9 +1,16 @@
+function escapeHtml(str: string) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+}
+
 export function deliveryEmail(opts: {
   customerName: string
   productName: string
   accessLinks: { label: string; url: string; isFile: boolean }[]
 }) {
   const { customerName, productName, accessLinks } = opts
+  const safeName = escapeHtml(customerName)
+  const safeProduct = escapeHtml(productName)
   const G = '#f97316'
 
   return `<!DOCTYPE html>
@@ -44,10 +51,10 @@ export function deliveryEmail(opts: {
                 Compra confirmada!
               </h1>
               <p style="color:rgba(255,255,255,0.55);font-size:15px;line-height:1.65;margin:0 0 8px;">
-                Olá, <strong style="color:#fff;">${customerName}</strong>!
+                Olá, <strong style="color:#fff;">${safeName}</strong>!
               </p>
               <p style="color:rgba(255,255,255,0.55);font-size:15px;line-height:1.65;margin:0 0 32px;">
-                Seu acesso a <strong style="color:#fff;">${productName}</strong> está pronto.
+                Seu acesso a <strong style="color:#fff;">${safeProduct}</strong> está pronto.
                 ${accessLinks.length > 0 ? 'Use os botões abaixo para acessar seu conteúdo.' : ''}
               </p>
 
@@ -110,6 +117,8 @@ export function studentPasswordEmail(opts: {
   learnUrl: string
 }) {
   const G = '#f97316'
+  const safeCustomer = escapeHtml(opts.customerName)
+  const safeProduct = escapeHtml(opts.productName)
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
@@ -122,7 +131,7 @@ export function studentPasswordEmail(opts: {
         <tr><td style="padding:36px 40px;text-align:center;">
           <h1 style="color:#fff;font-size:26px;margin:0 0 12px;">Seu acesso está pronto</h1>
           <p style="color:rgba(255,255,255,0.58);font-size:15px;line-height:1.65;margin:0 0 24px;">
-            Olá, <strong style="color:#fff;">${opts.customerName}</strong>. Criamos sua área do aluno para acessar <strong style="color:#fff;">${opts.productName}</strong>.
+            Olá, <strong style="color:#fff;">${safeCustomer}</strong>. Criamos sua área do aluno para acessar <strong style="color:#fff;">${safeProduct}</strong>.
           </p>
           <a href="${opts.setupUrl}" style="display:inline-block;background:${G};color:#0a0a0a;font-weight:800;font-size:16px;padding:16px 34px;border-radius:14px;text-decoration:none;">
             Definir senha e entrar
@@ -145,6 +154,9 @@ export function learningNotificationEmail(opts: {
   actionUrl: string
 }) {
   const G = '#f97316'
+  const safeTitle = escapeHtml(opts.title)
+  const safeMessage = escapeHtml(opts.message)
+  const safeLabel = escapeHtml(opts.actionLabel)
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
@@ -155,10 +167,10 @@ export function learningNotificationEmail(opts: {
           <span style="font-size:22px;font-weight:800;color:#fff;">Flo<span style="color:${G}">wyn</span></span>
         </td></tr>
         <tr><td style="padding:36px 40px;text-align:center;">
-          <h1 style="color:#fff;font-size:24px;margin:0 0 12px;">${opts.title}</h1>
-          <p style="color:rgba(255,255,255,0.58);font-size:15px;line-height:1.65;margin:0 0 24px;">${opts.message}</p>
+          <h1 style="color:#fff;font-size:24px;margin:0 0 12px;">${safeTitle}</h1>
+          <p style="color:rgba(255,255,255,0.58);font-size:15px;line-height:1.65;margin:0 0 24px;">${safeMessage}</p>
           <a href="${opts.actionUrl}" style="display:inline-block;background:${G};color:#0a0a0a;font-weight:800;font-size:15px;padding:14px 30px;border-radius:14px;text-decoration:none;">
-            ${opts.actionLabel}
+            ${safeLabel}
           </a>
         </td></tr>
       </table>
